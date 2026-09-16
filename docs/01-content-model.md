@@ -5,8 +5,14 @@ All content is the one JSON object in the `#flow-data` block of
 tests/flow.test.mjs` checks the result in under a second.
 
 The word for one screen in the data is `node`, kept from the build brief.
-On screen and in this repo's prose it is a **question**; a visited question
-is a **step**; a group of questions is a **stage**.
+On screen it is a **topic** (its `label`) that asks one **question** (its
+`prompt`); a visited topic is a **step**; a group of topics is a **stage**.
+
+Write labels as knowledge-base entries, not script lines: "Account takeover
+red flags", "Bank impersonation", "Household use possible". Write prompts
+as the assessment question a rep answers: "Were unauthorised profile
+changes found?" Write answers as findings, not quotes: "Shared a code or
+passcode", not "Says they read out a code".
 
 ## Top level
 
@@ -52,7 +58,7 @@ is a **step**; a group of questions is a **stage**.
 | Field | Rule |
 | --- | --- |
 | `id` | Unique. Convention: `<stage>-<slug>`. |
-| `label` | Short. Used in the step list, the stage's question list, and search. |
+| `label` | The topic name. Used in the flow's boxes, the stage's topic list, the guidance header and search. |
 | `prompt` | The one question on screen. Searchable. |
 | `risk` | `null`, `"low"`, `"elevated"` or `"critical"`. Elevated and critical draw a line above the prompt and a coloured dot in the stage's question list. Low draws nothing. |
 | `content[]` | Zero or more blocks, see below. Rendered in the guidance panel grouped by type, loudest first. |
@@ -73,7 +79,7 @@ is a **step**; a group of questions is a **stage**.
 | --- | --- | --- | --- |
 | `never` | Never | Dark filled block, loudest | What must not be said or done. |
 | `escalate` | Escalate when | Red-outlined block | The condition that ends the rep's involvement. |
-| `ask` | Say or ask | Plain block | The words to use, or what to capture. |
+| `ask` | Check or ask | Plain block | What to establish, and suggested wording where it helps. |
 | `watch` | Watch for | Shaded block | Signals to listen for. |
 | `resource` | Resources | A link block. Needs `url`. All are `#` for now. | A procedure, guide or tool. |
 

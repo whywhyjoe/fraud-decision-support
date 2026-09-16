@@ -3,7 +3,7 @@
 Last touched: 2026-09-16
 Mode: Joe
 Branch: `claude/fraud-decision-support-demo-oalc9g`, pushed
-State: v2 built, tested, committed. Waiting on the client demo.
+State: v3 built, tested, committed. Waiting on the client demo.
 
 ## What this is
 
@@ -15,8 +15,10 @@ what order.
 
 ## Done
 
-- v2 replaced v1 the same day: smaller scope, the flow as the interface,
-  legible type, no AI-design tells. `LOG.md` has the full list.
+- Three cuts in one day (v1 brief-complete, v2 simplified, v3 flow lines
+  and half-screen guidance). `LOG.md` has each list of changes.
+- Content labels are knowledge-base topics now, not script lines; the
+  guidance text itself has not been re-edited since v1.
 - Every interaction is covered by `tests/smoke.mjs`; content graph, CSS
   tokens and the typography floor by `tests/flow.test.mjs`.
 
@@ -38,6 +40,9 @@ what order.
   queries are the one exception.
 - **No uppercase, no letter-spacing, no font token under 14px.** Also
   test-enforced. The reasons are in `docs/00-overview.md`.
+- **The answer fork assumes exactly two columns.** The CSS stubs use
+  `nth-child(n+3)` to connect to the answer above; changing the column
+  count breaks the lines.
 - **Only one stale set is kept.** A second back-and-change while a notice
   is showing discards the first set. Deliberate; the client may want more.
 - **Inputs inside the rendered shell** need a `data-focus-key` if they

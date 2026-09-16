@@ -59,12 +59,23 @@ return visit), or `moved-on` (left by a jump without an answer).
 `later`, `jumped` (from a stage's question list), `searched`. The step list
 and the card header say it in words.
 
-**The stage track** derives from the current question's stage: earlier
-stages are done, later ones to come. Clicking a stage opens its question
-list; picking one is the jump.
+**The flow** is one list. Walking `path` in order, a stage label is
+emitted whenever the stage changes, an edge (a short vertical line carrying
+the answer chosen above it) between every two boxes, a compact box for each
+past or ahead step, and the question card at the cursor. Stale steps follow
+the notice, struck through, without stage labels. Stages later than the
+current one are appended as faint labels so the road ahead is visible.
+
+**The fork.** Answers render in a fixed two-column grid under the card.
+CSS draws a stem from the question, a bar between the two column centres,
+a stub down to each of the first two answers, and for answers three onward
+a stub from the answer above. One answer gets a plain stem.
+
+**Jumping** is the *Other topics in this stage* link on the card, which
+lists the stage's topics inline.
 
 **Going back** is the behaviour the demo exists for. Clicking an earlier
-step, or **Back**, sets `cursor = i`; later steps render dashed and dim.
+box, or **Back**, sets `cursor = i`; later steps render dashed and dim.
 Choosing the *same* answer again advances the cursor along the existing
 path. Choosing anything else, or taking either exit or a jump, calls
 `invalidateDownstream()`: the steps after the cursor move to `stale.steps`,
@@ -77,6 +88,26 @@ lets the search box filter on every keystroke through a full re-render.
 
 ## Decisions
 
+### Topics, not script lines — 2026-09-16
+Labels and prompts read as knowledge-base entries ("Bank impersonation",
+"Which indicators are present?") rather than what the customer said.
+**Rejected:** scripted phrasing, which reads as a call script and ties an
+entry to one moment in one call. **Costs:** the coaching-notes dialogue is
+now the only place customer wording appears; the *ask* blocks still quote
+suggested wording.
+
+### Stages live on the flow, not in a separate track — 2026-09-16
+Stage labels are rows in the flow list; the stages to come are faint rows
+after the current card. **Rejected:** the numbered stage track across the
+top (v2), which the reviewer could not relate to the flow beneath it.
+**Costs:** no single glance shows all five stages with the current one
+marked; the reader scans the left column instead.
+
+### Guidance is half the screen — 2026-09-16
+Two equal columns, guidance text at 18px with 20px headings. **Rejected:**
+a 380px rail (v2). The client is expected to care most about the tips and
+resources. **Costs:** answers had to move to two columns to fit.
+
 ### Second cut is smaller than the brief — 2026-09-16
 Call-note generation, the captured-facts strip, the third exit, the lateral
 panel's stage tabs, the unresolved tray and the live/training split were
@@ -87,11 +118,12 @@ fields" are gone from the data model; `LOG.md` records what they looked
 like if the client asks.
 
 ### The flow is the interface — 2026-09-16
-A stage track across the top and the steps as a vertical chain, with the
-current question as the one large card. **Rejected:** breadcrumb chips plus
-a separate lateral panel (v1), which described the path instead of showing
-it. **Costs:** long calls scroll; the current card scrolls itself into view
-on each move.
+The steps as boxes joined by labelled lines, with the current topic as the
+one large box and its answers forked beneath it: a nod to a flowchart, not
+a flowchart. **Rejected:** breadcrumb chips plus a separate lateral panel
+(v1), which described the path instead of showing it; a strict flowchart
+renderer, which would need layout code the demo does not justify.
+**Costs:** long calls scroll; the current card scrolls itself into view.
 
 ### Content as a JSON script block — 2026-09-16
 `<script type="application/json" id="flow-data">` rather than a JS literal.

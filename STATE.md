@@ -10,10 +10,10 @@ the `project-state` skill.
 
 | | |
 | --- | --- |
-| **Version** | 0.2.0 — second cut, visual flow |
+| **Version** | 0.3.0 — third cut: flow lines, half-screen guidance, topics |
 | **Deployed** | Nowhere. The file is opened locally. |
-| **Last shipped** | 2026-09-16, demo v2 |
-| **Content** | One scenario, 47 questions, placeholder throughout |
+| **Last shipped** | 2026-09-16, demo v3 |
+| **Content** | One scenario, 47 topics, placeholder throughout |
 
 ## Next committed step
 
@@ -48,8 +48,8 @@ built until it has been used once.
 
 ## Open questions
 
-- **Should the stage track let the rep jump into any stage, or only the
-  current one?** It opens any stage now. Settled by the demo.
+- **Should a rep be able to jump to a topic in another stage?** Only the
+  current stage is listed; search reaches everything. Settled by the demo.
 - **Where should "Come back to this later" go?** Currently the next stage's
   first question, with the skipped step marked and clickable. Settled by
   the demo.

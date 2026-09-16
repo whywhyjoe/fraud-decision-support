@@ -7,6 +7,26 @@ Newest first.
 
 ---
 
+## 2026-09-16 — demo v3: flow lines, half-screen guidance, topics
+
+Reworked after review of v2.
+
+- **Guidance is half the screen.** Two equal columns; guidance text 18px,
+  headings 20px; resources as bordered link boxes.
+- **Answers in two columns**, forked off the question box with connector
+  lines: a stem, a bar, a stub to each answer. A nod to a flowchart, drawn
+  in CSS, not a flowchart.
+- **The stage track is gone.** Stages are labels on the flow itself, with
+  the stages still to come shown faintly after the current box. Jumping
+  moved to an *Other topics in this stage* link on the box.
+- **Past steps are boxes joined by lines** that carry the chosen answer.
+- **Topics instead of script lines.** All 47 labels, prompts and answers
+  rewritten as knowledge-base entries ("Account takeover red flags",
+  "Which indicators are present?", "Shared a code or passcode"). The *ask*
+  group is now headed *Check or ask*. Guidance content unchanged.
+
+---
+
 ## 2026-09-16 — demo v2: the flow is the interface
 
 Reworked after review of v1. The first cut was too complex for what the
