@@ -1,0 +1,6 @@
+version = "0.2.0"
+profile = "_base"
+fragments = []
+scaffolded = "2026-09-16"
+# Applied by hand, not by the scaffold skill: no profile exists for a demo
+# wireframe and the standard says not to invent one for a first project.

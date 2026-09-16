@@ -1,0 +1,1917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fraud Call Guide — wireframe (placeholder content)</title>
+<!--
+  Fraud decision-support wireframe.
+  Single self-contained file: no build, no network, no storage.
+  Layout of this file:
+    1. <style>   — every design value is a custom property in :root
+    2. #flow-data — ALL content, one JSON object (see the fence below)
+    3. #app      — semantic markup shell
+    4. <script>  — state, reducer, pure render
+-->
+<style>
+/* ============================================================ */
+/* DESIGN TOKENS — the ONLY place a raw value may appear.        */
+/* Grayscale only; red/amber/green are reserved for risk.        */
+/* ============================================================ */
+:root {
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
+
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-md: 15px;
+  --fs-lg: 18px;
+  --fs-xl: 24px;
+  --fs-xxl: 30px;
+  --lh: 1.45;
+
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-pill: 999px;
+
+  --bw-1: 1px;
+  --bw-2: 2px;
+  --bw-4: 4px;
+
+  --g-0: #ffffff;
+  --g-1: #f6f6f6;
+  --g-2: #e9e9e9;
+  --g-3: #d4d4d4;
+  --g-4: #b0b0b0;
+  --g-5: #808080;
+  --g-6: #555555;
+  --g-7: #333333;
+  --g-8: #1c1c1c;
+  --g-9: #000000;
+
+  --risk-low: #2e8b57;
+  --risk-elevated: #c98a00;
+  --risk-critical: #c62828;
+  --risk-low-bg: #eaf5ee;
+  --risk-elevated-bg: #fdf3dc;
+  --risk-critical-bg: #fbe9e9;
+
+  --fade: 120ms;
+
+  --page-max: 1280px;
+  --rail-w: 340px;
+  --ctx-field-min-w: 160px;
+  --target-h: 56px;
+  --chip-h: 34px;
+  --banner-h: 28px;
+  --topbar-min-h: 96px;
+  --focus-w: 2px;
+  --shell-min-w: 900px;
+  --lateral-max-h: 60vh;
+  --pct-full: 100%;
+  --pct-half: 50%;
+  --op-dim: 0.55;
+  --z-banner: 50;
+  --z-modal: 40;
+  --z-notice: 30;
+}
+
+/* ---------- base ---------- */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-ui);
+  font-size: var(--fs-md);
+  line-height: var(--lh);
+  color: var(--g-8);
+  background: var(--g-1);
+  padding-top: var(--banner-h);
+}
+h1, h2, h3, h4 { margin: 0; line-height: var(--lh); font-weight: 600; }
+h1 { font-size: var(--fs-lg); }
+h2 { font-size: var(--fs-xl); }
+h3 { font-size: var(--fs-sm); text-transform: uppercase; letter-spacing: var(--bw-1); color: var(--g-6); }
+p { margin: 0 0 var(--s-3) 0; }
+ul { margin: 0; padding-left: var(--s-5); }
+a { color: var(--g-8); }
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: var(--g-0);
+  border: var(--bw-1) solid var(--g-4);
+  border-radius: var(--radius-sm);
+  padding: var(--s-2) var(--s-3);
+}
+button:hover { background: var(--g-2); }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible {
+  outline: var(--focus-w) solid var(--g-8);
+  outline-offset: var(--bw-1);
+}
+input, select, textarea {
+  font: inherit;
+  color: inherit;
+  border: var(--bw-1) solid var(--g-4);
+  border-radius: var(--radius-sm);
+  padding: var(--s-1) var(--s-2);
+  background: var(--g-0);
+}
+textarea { font-family: var(--font-mono); font-size: var(--fs-sm); }
+code, pre { font-family: var(--font-mono); font-size: var(--fs-sm); }
+[hidden] { display: none !important; }
+.sr-only { position: absolute; width: var(--bw-1); height: var(--bw-1); overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.muted { color: var(--g-5); }
+.small { font-size: var(--fs-sm); }
+.tag {
+  display: inline-block;
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--bw-1);
+  border: var(--bw-1) solid var(--g-4);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--s-1);
+  color: var(--g-6);
+  background: var(--g-0);
+}
+.btn-primary { background: var(--g-8); color: var(--g-0); border-color: var(--g-8); }
+.btn-primary:hover { background: var(--g-7); }
+.btn-quiet { border-color: transparent; background: transparent; }
+.btn-quiet:hover { background: var(--g-2); }
+.btn-row { display: flex; gap: var(--s-2); flex-wrap: wrap; align-items: center; }
+
+/* ---------- placeholder banner ---------- */
+[data-role="placeholder-banner"] {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--banner-h);
+  z-index: var(--z-banner);
+  background: var(--g-9);
+  color: var(--g-0);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  letter-spacing: var(--bw-1);
+  text-transform: uppercase;
+  display: flex; align-items: center; justify-content: center;
+  gap: var(--s-4);
+}
+[data-role="placeholder-banner"] span { font-weight: 400; text-transform: none; letter-spacing: 0; opacity: var(--op-dim); }
+
+/* ---------- shell ---------- */
+[data-role="shell"] {
+  max-width: var(--page-max);
+  min-width: var(--shell-min-w);
+  margin: 0 auto;
+  padding: var(--s-4);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--rail-w);
+  grid-template-areas: "top top" "main rail" "foot foot";
+  gap: var(--s-4);
+}
+[data-role="top-bar"] { grid-area: top; }
+[data-role="main"] { grid-area: main; min-width: 0; }
+[data-role="rail"] { grid-area: rail; min-width: 0; }
+[data-role="footer"] { grid-area: foot; }
+@media (max-width: 1000px) {
+  [data-role="shell"] { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "main" "rail" "foot"; }
+}
+
+.panel {
+  background: var(--g-0);
+  border: var(--bw-1) solid var(--g-3);
+  border-radius: var(--radius-md);
+  padding: var(--s-4);
+}
+.panel + .panel { margin-top: var(--s-4); }
+
+/* ---------- top bar ---------- */
+[data-role="app-header"] {
+  display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap;
+  padding-bottom: var(--s-3);
+  border-bottom: var(--bw-1) solid var(--g-2);
+  margin-bottom: var(--s-3);
+}
+[data-role="app-header"] h1 { margin-right: auto; }
+[data-role="mode-toggle"] { display: inline-flex; border: var(--bw-1) solid var(--g-4); border-radius: var(--radius-sm); overflow: hidden; }
+[data-role="mode-toggle"] button { border: 0; border-radius: 0; }
+[data-role="mode-toggle"] button[aria-pressed="true"] { background: var(--g-8); color: var(--g-0); }
+[data-role="search"] { display: flex; gap: var(--s-2); align-items: center; position: relative; }
+[data-role="search"] input { min-width: var(--rail-w); height: var(--chip-h); }
+[data-role="search-results"] {
+  position: absolute; top: var(--pct-full); left: 0; right: 0;
+  z-index: var(--z-modal);
+  background: var(--g-0);
+  border: var(--bw-1) solid var(--g-4);
+  border-radius: var(--radius-sm);
+  margin-top: var(--s-1);
+  max-height: var(--lateral-max-h);
+  overflow: auto;
+  list-style: none; padding: 0;
+}
+[data-role="search-results"] li button {
+  display: block; width: var(--pct-full); text-align: left; border: 0; border-radius: 0;
+  border-bottom: var(--bw-1) solid var(--g-2);
+}
+[data-role="search-results"] li:last-child button { border-bottom: 0; }
+.search-empty { display: block; padding: var(--s-2); font-size: var(--fs-sm); color: var(--g-5); }
+.crumb-stale-list { display: contents; }
+
+/* breadcrumb */
+[data-role="breadcrumb"] { display: flex; flex-wrap: wrap; gap: var(--s-2); align-items: center; list-style: none; padding: 0; margin: 0; }
+[data-role="breadcrumb-chip"] {
+  height: auto; min-height: var(--chip-h);
+  display: inline-flex; flex-direction: column; align-items: flex-start; justify-content: center;
+  padding: var(--s-1) var(--s-3);
+  border-radius: var(--radius-pill);
+  border: var(--bw-1) solid var(--g-4);
+  background: var(--g-0);
+  font-size: var(--fs-sm);
+  line-height: 1.2;
+  text-align: left;
+}
+[data-role="breadcrumb-chip"] .chip-answer { font-size: var(--fs-xs); color: var(--g-6); }
+[data-role="breadcrumb-chip"][data-state="current"] { border-color: var(--g-9); border-width: var(--bw-2); background: var(--g-2); font-weight: 600; }
+[data-role="breadcrumb-chip"][data-state="ahead"] { border-style: dashed; color: var(--g-6); }
+[data-role="breadcrumb-chip"][data-state="stale"] { border-style: dotted; color: var(--g-5); text-decoration: line-through; background: var(--g-1); }
+[data-role="breadcrumb-chip"][data-arrived="lateral"], [data-role="breadcrumb-chip"][data-arrived="search"] { border-style: double; border-width: var(--bw-4); }
+[data-role="breadcrumb-chip"][data-arrived="lateral"] .tag, [data-role="breadcrumb-chip"][data-arrived="search"] .tag { border-color: var(--g-8); color: var(--g-8); }
+[data-role="breadcrumb-chip"] .tag { margin-left: var(--s-1); }
+.crumb-sep { color: var(--g-4); }
+.crumb-stale-group { display: inline-flex; gap: var(--s-2); align-items: center; flex-wrap: wrap; padding: var(--s-1) var(--s-2); border: var(--bw-1) dashed var(--g-4); border-radius: var(--radius-md); }
+
+[data-role="stale-notice"] {
+  margin-top: var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  border: var(--bw-2) solid var(--g-9);
+  border-radius: var(--radius-sm);
+  background: var(--g-2);
+  display: flex; gap: var(--s-3); align-items: center; flex-wrap: wrap;
+  z-index: var(--z-notice);
+}
+[data-role="stale-notice"] strong { font-size: var(--fs-md); }
+
+/* context strip */
+[data-role="context-strip"] {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--ctx-field-min-w), 1fr)); gap: var(--s-2);
+  margin-top: var(--s-3); padding-top: var(--s-3); border-top: var(--bw-1) solid var(--g-2);
+}
+[data-role="context-field"] label { display: block; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: var(--bw-1); color: var(--g-6); margin-bottom: var(--s-1); }
+[data-role="context-field"] input, [data-role="context-field"] select { width: var(--pct-full); }
+[data-role="context-field"][data-set="true"] label { color: var(--g-8); font-weight: 600; }
+
+[data-role="unresolved-tray"] { margin-top: var(--s-3); display: flex; gap: var(--s-2); align-items: center; flex-wrap: wrap; font-size: var(--fs-sm); }
+
+/* ---------- node card ---------- */
+[data-role="node-card"] { position: relative; }
+[data-role="node-card"] .stage-line { display: flex; gap: var(--s-2); align-items: center; flex-wrap: wrap; margin-bottom: var(--s-3); }
+[data-role="node-card"] h2 { margin-bottom: var(--s-4); }
+[data-role="risk-banner"] {
+  border-left: var(--bw-4) solid var(--g-4);
+  padding: var(--s-2) var(--s-3);
+  margin-bottom: var(--s-4);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--bw-1);
+  background: var(--g-1);
+}
+[data-role="risk-banner"][data-risk="low"] { border-color: var(--risk-low); background: var(--risk-low-bg); color: var(--risk-low); }
+[data-role="risk-banner"][data-risk="elevated"] { border-color: var(--risk-elevated); background: var(--risk-elevated-bg); color: var(--risk-elevated); }
+[data-role="risk-banner"][data-risk="critical"] { border-color: var(--risk-critical); background: var(--risk-critical-bg); color: var(--risk-critical); }
+[data-role="node-card"][data-risk="critical"] { border-color: var(--risk-critical); border-width: var(--bw-2); }
+[data-role="node-card"][data-risk="elevated"] { border-color: var(--risk-elevated); border-width: var(--bw-2); }
+
+[data-role="answers"] { list-style: none; padding: 0; margin: 0 0 var(--s-4) 0; display: flex; flex-direction: column; gap: var(--s-2); }
+[data-role="answer-button"] {
+  width: var(--pct-full);
+  min-height: var(--target-h);
+  text-align: left;
+  font-size: var(--fs-lg);
+  padding: var(--s-3) var(--s-4);
+  display: flex; align-items: center; gap: var(--s-3);
+  border-width: var(--bw-2);
+  border-color: var(--g-7);
+}
+[data-role="answer-button"] .key {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  border: var(--bw-1) solid var(--g-5);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--s-2);
+  color: var(--g-6);
+  flex: none;
+}
+[data-role="answer-button"][data-previous="true"] { background: var(--g-2); }
+[data-role="answer-button"] .prev { margin-left: auto; }
+[data-role="exits"] { display: flex; gap: var(--s-2); flex-wrap: wrap; padding-top: var(--s-3); border-top: var(--bw-1) dashed var(--g-3); }
+[data-role="exits"] button { font-size: var(--fs-sm); }
+[data-role="node-tools"] { display: flex; gap: var(--s-2); flex-wrap: wrap; margin-top: var(--s-4); }
+
+[data-role="terminal"] { padding: var(--s-4); border: var(--bw-2) solid var(--g-8); border-radius: var(--radius-md); background: var(--g-1); margin-bottom: var(--s-4); }
+
+[data-role="training-block"] { margin-top: var(--s-4); border-top: var(--bw-1) solid var(--g-2); padding-top: var(--s-3); }
+[data-role="training-block"] details { margin-bottom: var(--s-2); }
+[data-role="training-block"] summary { cursor: pointer; font-weight: 600; }
+[data-role="dialogue"] { list-style: none; padding: 0; margin: var(--s-2) 0 0 0; }
+[data-role="dialogue"] li { padding: var(--s-1) var(--s-2); border-left: var(--bw-2) solid var(--g-3); margin-bottom: var(--s-1); }
+[data-role="dialogue"] li[data-who="customer"] { border-color: var(--g-8); }
+[data-role="dialogue"] .who { font-size: var(--fs-xs); text-transform: uppercase; color: var(--g-6); margin-right: var(--s-2); }
+
+/* lateral jump panel */
+[data-role="lateral-panel"] { margin-top: var(--s-4); border: var(--bw-1) solid var(--g-8); border-radius: var(--radius-md); padding: var(--s-3); background: var(--g-1); }
+[data-role="lateral-panel"] header { display: flex; align-items: center; gap: var(--s-2); margin-bottom: var(--s-2); }
+[data-role="lateral-panel"] header h3 { margin-right: auto; }
+[data-role="lateral-stage-tabs"] { display: flex; gap: var(--s-1); flex-wrap: wrap; margin-bottom: var(--s-2); }
+[data-role="lateral-stage-tabs"] button[aria-pressed="true"] { background: var(--g-8); color: var(--g-0); border-color: var(--g-8); }
+[data-role="lateral-list"] { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--s-1); max-height: var(--lateral-max-h); overflow: auto; }
+[data-role="lateral-item"] { width: var(--pct-full); text-align: left; display: flex; gap: var(--s-2); align-items: center; }
+[data-role="lateral-item"][aria-current="true"] { border-style: dashed; color: var(--g-5); cursor: default; }
+[data-role="lateral-item"] .tag { flex: none; white-space: nowrap; margin-left: auto; }
+[data-role="lateral-item"] .risk-dot { width: var(--s-2); height: var(--s-2); border-radius: var(--radius-pill); background: var(--g-3); flex: none; }
+[data-role="lateral-item"] .risk-dot[data-risk="elevated"] { background: var(--risk-elevated); }
+[data-role="lateral-item"] .risk-dot[data-risk="critical"] { background: var(--risk-critical); }
+
+/* flag form */
+[data-role="flag-form"] { margin-top: var(--s-4); border: var(--bw-1) solid var(--g-8); border-radius: var(--radius-md); padding: var(--s-3); background: var(--g-1); }
+[data-role="flag-form"] fieldset { border: 0; padding: 0; margin: 0 0 var(--s-2) 0; display: flex; gap: var(--s-3); flex-wrap: wrap; }
+[data-role="flag-form"] textarea { width: var(--pct-full); font-family: var(--font-ui); }
+
+/* ---------- right rail ---------- */
+[data-role="content-group"] { margin-bottom: var(--s-4); }
+[data-role="content-group"] h3 { margin-bottom: var(--s-2); }
+[data-role="content-block"] {
+  padding: var(--s-2) var(--s-3);
+  border-left: var(--bw-2) solid var(--g-3);
+  margin-bottom: var(--s-2);
+  font-size: var(--fs-sm);
+  background: var(--g-0);
+}
+[data-role="content-block"][data-type="ask"] { border-color: var(--g-5); }
+[data-role="content-block"][data-type="ask"]::before { content: "Ask: "; font-weight: 600; }
+[data-role="content-block"][data-type="watch"] { border-color: var(--g-7); background: var(--g-1); }
+[data-role="content-block"][data-type="watch"]::before { content: "Watch for: "; font-weight: 600; }
+[data-role="content-block"][data-type="never"] {
+  border-left-width: var(--bw-4);
+  border-color: var(--g-9);
+  background: var(--g-9);
+  color: var(--g-0);
+  font-weight: 600;
+}
+[data-role="content-block"][data-type="never"]::before { content: "Never say: "; text-transform: uppercase; letter-spacing: var(--bw-1); }
+[data-role="content-block"][data-type="escalate"] {
+  border-left-width: var(--bw-4);
+  border-color: var(--risk-critical);
+  background: var(--risk-critical-bg);
+  font-weight: 600;
+}
+[data-role="content-block"][data-type="escalate"]::before { content: "Escalate if: "; text-transform: uppercase; letter-spacing: var(--bw-1); color: var(--risk-critical); }
+[data-role="content-block"][data-type="resource"] { border-color: var(--g-4); border-style: dashed; }
+[data-role="content-block"][data-type="resource"] a { font-weight: 600; }
+[data-role="content-block"][data-type="resource"] a::after { content: " \2197"; }
+[data-role="rail-empty"] { color: var(--g-5); font-size: var(--fs-sm); }
+
+/* ---------- note / debug ---------- */
+[data-role="note-panel"] textarea { width: var(--pct-full); min-height: var(--rail-w); }
+[data-role="debug"] pre { background: var(--g-1); border: var(--bw-1) solid var(--g-2); padding: var(--s-3); overflow: auto; max-height: var(--lateral-max-h); margin: 0; white-space: pre-wrap; }
+[data-role="debug"] h3 { margin: var(--s-4) 0 var(--s-2) 0; }
+[data-role="event-log"] { list-style: none; padding: 0; margin: 0; font-family: var(--font-mono); font-size: var(--fs-xs); max-height: var(--lateral-max-h); overflow: auto; border: var(--bw-1) solid var(--g-2); }
+[data-role="event-log"] li { padding: var(--s-1) var(--s-2); border-bottom: var(--bw-1) solid var(--g-2); display: flex; gap: var(--s-3); }
+[data-role="event-log"] .ev-time { color: var(--g-5); flex: none; }
+[data-role="event-log"] .ev-type { font-weight: 700; flex: none; min-width: var(--s-7); }
+[data-role="flag-list"] { list-style: none; padding: 0; margin: 0; }
+[data-role="flag-list"] li { padding: var(--s-2); border: var(--bw-1) solid var(--g-3); border-radius: var(--radius-sm); margin-bottom: var(--s-2); font-size: var(--fs-sm); }
+[data-role="debug-counts"] { display: flex; gap: var(--s-4); flex-wrap: wrap; font-size: var(--fs-sm); }
+[data-role="debug-counts"] span b { font-size: var(--fs-lg); margin-right: var(--s-1); }
+
+[data-role="footer"] { font-size: var(--fs-xs); color: var(--g-5); display: flex; gap: var(--s-4); flex-wrap: wrap; }
+kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); border-radius: var(--radius-sm); padding: 0 var(--s-1); font-size: var(--fs-xs); }
+
+/* the only animation: a fade on the node card when the node changes */
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+[data-role="node-card"][data-fresh="true"] { animation: fade-in var(--fade) ease-out; }
+</style>
+</head>
+<body>
+<div data-role="placeholder-banner" role="note">
+  Placeholder content — not bank policy
+  <span>Wireframe for requirements discussion. Every prompt, tip and link on this page is invented.</span>
+</div>
+
+<!-- ============================================================ -->
+<!-- CONTENT — the ONE place scenario content lives.               -->
+<!-- Everything below this line is placeholder, not bank policy.   -->
+<!-- Edit this block to change prompts, answers, tips, links.      -->
+<!-- The render logic contains no content strings of its own.      -->
+<!-- ============================================================ -->
+<script type="application/json" id="flow-data">
+{
+  "meta": {
+    "scenario": "Inbound call — customer reports unauthorised card transactions",
+    "contentVersion": "0.1-placeholder",
+    "disclaimer": "PLACEHOLDER CONTENT — NOT BANK POLICY"
+  },
+
+  "stages": [
+    { "id": "verify", "order": 1, "label": "Greeting & verification", "naNextNodeId": "triage-open",     "offScriptNodeId": "verify-reanchor" },
+    { "id": "triage", "order": 2, "label": "Triage",                  "naNextNodeId": "scope-open",      "offScriptNodeId": "triage-reanchor" },
+    { "id": "scope",  "order": 3, "label": "Scope",                   "naNextNodeId": "risk-open",       "offScriptNodeId": "scope-reanchor" },
+    { "id": "risk",   "order": 4, "label": "Risk signals",            "naNextNodeId": "act-block",       "offScriptNodeId": "risk-reanchor" },
+    { "id": "act",    "order": 5, "label": "Actions & close",         "naNextNodeId": "resolve-closed",  "offScriptNodeId": "act-reanchor" }
+  ],
+
+  "contextFields": [
+    { "key": "verified",        "label": "Customer verified",    "type": "select", "options": ["", "yes", "partial", "no"] },
+    { "key": "channel",         "label": "Channel",              "type": "select", "options": ["", "card-present", "card-not-present", "mixed", "unknown"] },
+    { "key": "cardLast4",       "label": "Card last 4",          "type": "text" },
+    { "key": "disputedAmount",  "label": "Disputed amount",      "type": "text" },
+    { "key": "dateRange",       "label": "Date range",           "type": "text" },
+    { "key": "cardInPossession","label": "Card in possession",   "type": "select", "options": ["", "yes", "no", "unsure"] },
+    { "key": "pattern",         "label": "Pattern",              "type": "select", "options": ["", "fraud", "scam", "account-takeover", "safeguarding"] }
+  ],
+
+  "startNodeId": "verify-open",
+
+  "nodes": [
+
+    {
+      "id": "verify-open", "stageId": "verify", "label": "Identity check", "risk": null,
+      "prompt": "Greet the caller and run identity verification. Did the caller pass?",
+      "why": "Nothing about the account can be discussed until verification passes. Most of the damage in a fraud call happens in the first minute, when a rep sympathises with an upset caller and skips a step.",
+      "dialogue": [
+        { "who": "rep", "text": "Thanks for calling. Before we look at anything, I need to confirm a few details with you." },
+        { "who": "customer", "text": "Someone's spent money on my card, I just need it stopped!" },
+        { "who": "rep", "text": "I understand, and we'll get to that straight away. First, can you confirm your full name and date of birth?" }
+      ],
+      "content": [
+        { "type": "ask", "text": "Full name, date of birth, and two knowledge questions from the verification panel." },
+        { "type": "watch", "text": "Long pauses before answers, or answers read out slowly as if from a screen." },
+        { "type": "never", "text": "Never read the card number, balance, or any recent transaction to the caller before verification passes." },
+        { "type": "resource", "text": "Identity verification procedure (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Passed in full",                         "nextNodeId": "triage-open",    "setsContext": { "verified": "yes" } },
+        { "label": "Passed partially or failed one question","nextNodeId": "verify-partial", "setsContext": { "verified": "partial" } },
+        { "label": "Refuses or cannot verify",                "nextNodeId": "verify-refuse",  "setsContext": { "verified": "no" } }
+      ]
+    },
+    {
+      "id": "verify-partial", "stageId": "verify", "label": "Partial verification", "risk": null,
+      "prompt": "Which part of verification did not pass?",
+      "why": "The type of failure matters more than the fact of it. A wrong knowledge answer is usually a nervous customer; a caller who does not know their own details is a different problem.",
+      "dialogue": [
+        { "who": "customer", "text": "I can't remember what I set as my memorable place, sorry." }
+      ],
+      "content": [
+        { "type": "ask", "text": "Offer the alternative knowledge question before moving to secondary verification." },
+        { "type": "watch", "text": "The caller repeating your question out loud before answering it." },
+        { "type": "resource", "text": "Identity verification procedure (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Knowledge question wrong",              "nextNodeId": "verify-secondary" },
+        { "label": "One-time code not received",           "nextNodeId": "verify-secondary" },
+        { "label": "Caller seems unsure of their own details", "nextNodeId": "verify-coached" }
+      ]
+    },
+    {
+      "id": "verify-secondary", "stageId": "verify", "label": "Secondary verification", "risk": null,
+      "prompt": "Run secondary verification (callback to the number on file). Did it succeed?",
+      "why": "A callback to a number we already hold is the cheapest strong check we have. It also quietly removes anyone who was on the original line.",
+      "dialogue": [
+        { "who": "rep", "text": "I'm going to call you back on the mobile number we have on file. It ends in the digits I'll read to you now." }
+      ],
+      "content": [
+        { "type": "ask", "text": "Confirm the caller can take a call on the number ending in the last two digits you read out." },
+        { "type": "never", "text": "Never call back a number the caller gives you during the call." },
+        { "type": "resource", "text": "Callback verification steps (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Callback succeeded", "nextNodeId": "triage-open",   "setsContext": { "verified": "yes" } },
+        { "label": "Callback failed",    "nextNodeId": "verify-refuse", "setsContext": { "verified": "no" } }
+      ]
+    },
+    {
+      "id": "verify-refuse", "stageId": "verify", "label": "Cannot verify", "risk": null,
+      "prompt": "The caller cannot be verified. What do they want to do?",
+      "why": "An unverified caller can still stop the bleeding. Blocking a card only needs enough to identify it; discussing what was spent needs the full check.",
+      "dialogue": [
+        { "who": "customer", "text": "Forget the questions, just cancel the card." }
+      ],
+      "content": [
+        { "type": "ask", "text": "Explain what can and cannot be done without verification, in one sentence." },
+        { "type": "never", "text": "Never confirm whether any specific transaction exists on the account." },
+        { "type": "escalate", "text": "The caller becomes aggressive or threatens staff — follow the abusive-caller process." }
+      ],
+      "answers": [
+        { "label": "Wants the card blocked only",       "nextNodeId": "verify-unverified-block" },
+        { "label": "Wants to discuss transactions",     "nextNodeId": "resolve-cannot-proceed" }
+      ]
+    },
+    {
+      "id": "verify-unverified-block", "stageId": "verify", "label": "Block without full verification", "risk": null,
+      "prompt": "Placeholder policy allows a block without full verification. Confirm which card and block it.",
+      "why": "A block is reversible and protects the customer. A discussion is not reversible and protects nobody.",
+      "content": [
+        { "type": "ask", "text": "Last four digits and the name on the card." },
+        { "type": "watch", "text": "A caller who pushes to also change the address or phone number — that is not a block, that is a takeover." },
+        { "type": "resource", "text": "Card block and reissue guide (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Card blocked", "nextNodeId": "resolve-unverified-close" }
+      ]
+    },
+    {
+      "id": "verify-coached", "stageId": "verify", "label": "Possible coaching on the line", "risk": "critical",
+      "prompt": "Signs the caller is being coached by someone else on the line. Can you hear a second voice or prompting?",
+      "why": "Coached callers are often victims, not fraudsters. Someone beside them is running the call. Accusing them shuts it down; a neutral private callback usually breaks the pattern.",
+      "dialogue": [
+        { "who": "customer", "text": "Hang on... (muffled) ...yes, it's the one on the high street." },
+        { "who": "rep", "text": "No problem. Are you somewhere you can talk freely?" }
+      ],
+      "content": [
+        { "type": "watch", "text": "Muffled conversation, answers that arrive after a pause, the caller relaying your questions." },
+        { "type": "never", "text": "Never ask 'is someone telling you what to say?' — it tips off the third party and ends the call." },
+        { "type": "escalate", "text": "Coaching suspected AND the caller asks to change contact details, add a payee, or move money — hand to a fraud specialist." },
+        { "type": "resource", "text": "Third-party coaching guidance (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Yes, clearly",                 "nextNodeId": "verify-coached-confirm" },
+        { "label": "Not sure",                     "nextNodeId": "verify-secondary" },
+        { "label": "No, the caller is just nervous","nextNodeId": "verify-secondary" }
+      ]
+    },
+    {
+      "id": "verify-coached-confirm", "stageId": "verify", "label": "Private callback offer", "risk": "critical",
+      "prompt": "Offer a callback to the number on file, to be taken somewhere private. Did the caller agree?",
+      "why": "The offer sounds routine to the third party and gives the customer a way out without confrontation.",
+      "dialogue": [
+        { "who": "rep", "text": "For security I'll need to call you back on your registered number. Is now a good time, or would later suit you better?" }
+      ],
+      "content": [
+        { "type": "ask", "text": "Offer a time window rather than an immediate callback if the caller hesitates." },
+        { "type": "never", "text": "Never describe the callback as being about the third party." },
+        { "type": "escalate", "text": "The caller refuses a callback and insists on completing a payment or detail change now." }
+      ],
+      "answers": [
+        { "label": "Agreed to a callback",   "nextNodeId": "resolve-callback-scheduled" },
+        { "label": "Refused — wants to continue now", "nextNodeId": "resolve-cannot-proceed" }
+      ]
+    },
+    {
+      "id": "verify-reanchor", "stageId": "verify", "label": "Off-script: verification", "risk": null,
+      "prompt": "The caller has gone off-script during verification. What are they doing?",
+      "why": "Most off-script moments in this stage are a customer who wants to tell the story first. Let them, then bring it back — you have not lost anything.",
+      "content": [
+        { "type": "ask", "text": "Acknowledge, then: 'I want to get this right for you, so let me finish confirming who I'm speaking with.'" },
+        { "type": "never", "text": "Never let empathy substitute for a verification step." }
+      ],
+      "answers": [
+        { "label": "Telling the story before verifying", "nextNodeId": "verify-open" },
+        { "label": "Distressed or angry",                 "nextNodeId": "verify-open" },
+        { "label": "Demanding a supervisor",              "nextNodeId": "resolve-cannot-proceed" }
+      ]
+    },
+
+    {
+      "id": "triage-open", "stageId": "triage", "label": "What happened", "risk": null,
+      "prompt": "What is the customer reporting?",
+      "why": "This one answer decides which half of the tool you are in. 'Someone contacted me and I paid' is a scam, not fraud, and is handled completely differently from here on.",
+      "dialogue": [
+        { "who": "customer", "text": "There are three payments to a shop I've never heard of." }
+      ],
+      "content": [
+        { "type": "ask", "text": "'Tell me in your own words what you've seen.' Then listen for whether they did anything themselves." },
+        { "type": "watch", "text": "The customer mentions a phone call, text or email that started this — route to the scam branch, not fraud." },
+        { "type": "resource", "text": "Scam vs fraud decision aid (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Transactions they don't recognise",      "nextNodeId": "triage-ongoing" },
+        { "label": "Card lost or stolen",                     "nextNodeId": "triage-lost",     "setsContext": { "cardInPossession": "no" } },
+        { "label": "Someone contacted them and they paid",    "nextNodeId": "risk-scam-entry", "setsContext": { "pattern": "scam" } },
+        { "label": "Something else",                          "nextNodeId": "triage-other" }
+      ]
+    },
+    {
+      "id": "triage-ongoing", "stageId": "triage", "label": "Still happening?", "risk": null,
+      "prompt": "Is it still happening — anything today, or pending?",
+      "why": "If it is ongoing, blocking comes before everything else, including scope. Every minute of investigation is another transaction.",
+      "content": [
+        { "type": "ask", "text": "'Do you see anything from today, or anything showing as pending?'" },
+        { "type": "watch", "text": "Pending transactions the customer has not noticed — read the pending list, not just posted." }
+      ],
+      "answers": [
+        { "label": "Yes — today or pending",  "nextNodeId": "triage-block-now" },
+        { "label": "No — all in the past",    "nextNodeId": "triage-present" }
+      ]
+    },
+    {
+      "id": "triage-block-now", "stageId": "triage", "label": "Block now", "risk": "elevated",
+      "prompt": "Block the card now, before anything else. Confirm the block.",
+      "why": "Placeholder policy: block first, investigate second. A reissue is an inconvenience; an unblocked card is a liability.",
+      "dialogue": [
+        { "who": "rep", "text": "I'm going to block the card right now so nothing else can go through, and then we'll go through what's happened." }
+      ],
+      "content": [
+        { "type": "ask", "text": "Confirm the last four digits before blocking. If more than one card, ask which." },
+        { "type": "never", "text": "Never say 'the money is gone' or 'you'll get it all back' — neither is yours to promise." },
+        { "type": "resource", "text": "Card block and reissue guide (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Blocked",                     "nextNodeId": "triage-present" },
+        { "label": "Customer declines the block", "nextNodeId": "triage-decline-block" }
+      ]
+    },
+    {
+      "id": "triage-decline-block", "stageId": "triage", "label": "Declined block", "risk": "elevated",
+      "prompt": "The customer does not want the card blocked. Why?",
+      "why": "A declined block is a signal in itself. Sometimes practical, sometimes a family member, and sometimes because someone has told them not to.",
+      "content": [
+        { "type": "watch", "text": "'They told me not to cancel it' — someone else is directing this customer." },
+        { "type": "never", "text": "Never threaten to block against the customer's wishes as a way to end the discussion." },
+        { "type": "escalate", "text": "The customer says a third party instructed them to keep the card active." }
+      ],
+      "answers": [
+        { "label": "Needs it for travel or essentials",  "nextNodeId": "triage-present" },
+        { "label": "Thinks a family member may have used it", "nextNodeId": "scope-family" },
+        { "label": "Says someone told them not to",     "nextNodeId": "risk-coached", "setsContext": { "pattern": "safeguarding" } }
+      ]
+    },
+    {
+      "id": "triage-present", "stageId": "triage", "label": "Card present or not", "risk": null,
+      "prompt": "Were the transactions made with the physical card (chip, tap, swipe) or card-not-present (online, phone)?",
+      "why": "Card-present fraud with the card still in the customer's wallet is rare and points at cloning or a family member. Card-not-present is the common case.",
+      "content": [
+        { "type": "ask", "text": "Read the merchant channel from the transaction detail rather than asking the customer to guess." },
+        { "type": "resource", "text": "Reading transaction channel codes (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Card present",      "nextNodeId": "scope-open", "setsContext": { "channel": "card-present" } },
+        { "label": "Card not present",  "nextNodeId": "scope-open", "setsContext": { "channel": "card-not-present" } },
+        { "label": "Mixed or unknown",  "nextNodeId": "scope-open", "setsContext": { "channel": "mixed" } }
+      ]
+    },
+    {
+      "id": "triage-lost", "stageId": "triage", "label": "Lost or stolen", "risk": null,
+      "prompt": "When did the customer last have the card, and where?",
+      "why": "The last-seen time bounds the dispute window and tells you whether a PIN could have been observed.",
+      "dialogue": [
+        { "who": "customer", "text": "I used it at the petrol station Tuesday and haven't seen it since." }
+      ],
+      "content": [
+        { "type": "ask", "text": "Last use they are sure of. Was the PIN entered in front of anyone?" },
+        { "type": "watch", "text": "Card 'lost' immediately after a large cash withdrawal — note it, don't challenge it." }
+      ],
+      "answers": [
+        { "label": "Captured — go block the card", "nextNodeId": "triage-block-now" }
+      ]
+    },
+    {
+      "id": "triage-other", "stageId": "triage", "label": "Not this scenario", "risk": null,
+      "prompt": "This does not match the unauthorised-card scenario. Where should it go?",
+      "why": "The tool covers one scenario. Routing out early is better than forcing a merchant dispute through a fraud flow.",
+      "content": [
+        { "type": "ask", "text": "'So I send you to the right team: is this about money you didn't spend, or about something you bought?'" },
+        { "type": "resource", "text": "Team routing directory (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Online banking access problem",     "nextNodeId": "resolve-transfer-out" },
+        { "label": "Merchant or quality dispute",       "nextNodeId": "resolve-transfer-out" },
+        { "label": "Actually unauthorised after all",   "nextNodeId": "triage-ongoing" }
+      ]
+    },
+    {
+      "id": "triage-reanchor", "stageId": "triage", "label": "Off-script: triage", "risk": null,
+      "prompt": "The caller has gone off-script during triage. What happened?",
+      "why": "Customers jump ahead to refunds. Answer the question they asked in one sentence, then return to the question you need answered.",
+      "content": [
+        { "type": "ask", "text": "'I'll explain exactly what happens with the money in a moment — first I need to know if this is still going on.'" },
+        { "type": "never", "text": "Never quote a refund timeline before the scope and pattern are known." }
+      ],
+      "answers": [
+        { "label": "Asking about refunds already",   "nextNodeId": "triage-ongoing" },
+        { "label": "Wants to know how it happened",   "nextNodeId": "triage-present" },
+        { "label": "Reporting a second, unrelated issue", "nextNodeId": "triage-other" }
+      ]
+    },
+
+    {
+      "id": "scope-open", "stageId": "scope", "label": "Walk the transactions", "risk": null,
+      "prompt": "Walk the recent transactions with the customer. How many are disputed?",
+      "why": "Reading the list together is where most 'fraud' turns out to be a subscription or a spouse. It is also where the customer calms down.",
+      "dialogue": [
+        { "who": "rep", "text": "I'll read the last ten and you tell me which ones aren't yours." }
+      ],
+      "content": [
+        { "type": "ask", "text": "Read merchant, amount, date. Pause after each. Record the disputed total in the context strip." },
+        { "type": "watch", "text": "A recognisable merchant billed under a parent-company name." },
+        { "type": "resource", "text": "Merchant name lookup (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "One",                     "nextNodeId": "scope-dates" },
+        { "label": "Several",                 "nextNodeId": "scope-dates" },
+        { "label": "Customer can't tell yet", "nextNodeId": "scope-statement" }
+      ]
+    },
+    {
+      "id": "scope-dates", "stageId": "scope", "label": "Dates and recognition", "risk": null,
+      "prompt": "Capture the date range and total. Does the customer recognise any of the merchants?",
+      "why": "Partial recognition is the most common honest confusion, and the most common dishonest claim. Either way the next node handles it without judgement.",
+      "content": [
+        { "type": "ask", "text": "First and last disputed date. Total amount. Fill both fields in the context strip." },
+        { "type": "never", "text": "Never suggest the customer 'probably just forgot' a transaction." }
+      ],
+      "answers": [
+        { "label": "Recognises none",  "nextNodeId": "scope-possession" },
+        { "label": "Recognises some",  "nextNodeId": "scope-partial" }
+      ]
+    },
+    {
+      "id": "scope-partial", "stageId": "scope", "label": "Some recognised", "risk": null,
+      "prompt": "Some merchants are recognised. Could an authorised user or household member have made the rest?",
+      "why": "Household use is not fraud for the bank's purposes and a dispute will be declined later. Better to ask now.",
+      "content": [
+        { "type": "ask", "text": "'Does anyone else have access to the card details — a partner, a child, a carer?'" },
+        { "type": "watch", "text": "A carer or new 'helper' with access to an older customer's card — see the safeguarding branch." }
+      ],
+      "answers": [
+        { "label": "Possibly",  "nextNodeId": "scope-family" },
+        { "label": "No",        "nextNodeId": "scope-possession" }
+      ]
+    },
+    {
+      "id": "scope-family", "stageId": "scope", "label": "Possible household use", "risk": null,
+      "prompt": "Household or authorised-user use is possible. Will the customer check before disputing?",
+      "why": "A dispute raised against a family member is withdrawn more often than not, and the withdrawal is awkward for everyone.",
+      "dialogue": [
+        { "who": "customer", "text": "My son does use it sometimes. I'll ask him tonight." }
+      ],
+      "content": [
+        { "type": "ask", "text": "Offer a callback window. Note the transactions in question so the next rep has them." },
+        { "type": "never", "text": "Never say 'then it isn't fraud' — a household member using a card without permission can still be." },
+        { "type": "escalate", "text": "The customer seems afraid of the household member, or describes being pressured to hand over the card." }
+      ],
+      "answers": [
+        { "label": "Will check and call back",          "nextNodeId": "resolve-callback-scheduled" },
+        { "label": "Wants to dispute regardless",       "nextNodeId": "scope-possession" }
+      ]
+    },
+    {
+      "id": "scope-possession", "stageId": "scope", "label": "Card in possession?", "risk": null,
+      "prompt": "Is the card in the customer's possession right now?",
+      "why": "Combined with the channel, this is the fastest fraud-type classifier we have.",
+      "content": [
+        { "type": "ask", "text": "'Do you have the physical card in front of you right now?'" },
+        { "type": "watch", "text": "Card present in the wallet plus chip transactions elsewhere — flag for possible cloning." }
+      ],
+      "answers": [
+        { "label": "Yes",       "nextNodeId": "risk-open", "setsContext": { "cardInPossession": "yes" } },
+        { "label": "No",        "nextNodeId": "risk-open", "setsContext": { "cardInPossession": "no" } },
+        { "label": "Not sure",  "nextNodeId": "risk-open", "setsContext": { "cardInPossession": "unsure" } }
+      ]
+    },
+    {
+      "id": "scope-statement", "stageId": "scope", "label": "Statement review", "risk": null,
+      "prompt": "The customer cannot identify the transactions on the call. Offer a statement to review.",
+      "why": "Guessing at scope produces a dispute that gets amended twice. A statement and a callback produces one that sticks.",
+      "content": [
+        { "type": "ask", "text": "Send the statement by the customer's preferred channel and agree a callback." },
+        { "type": "resource", "text": "Sending statements securely (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Statement sent, continue with what we know", "nextNodeId": "scope-possession" },
+        { "label": "Statement sent, customer will call back",    "nextNodeId": "resolve-callback-scheduled" }
+      ]
+    },
+    {
+      "id": "scope-reanchor", "stageId": "scope", "label": "Off-script: scope", "risk": null,
+      "prompt": "The caller has gone off-script during scope. What happened?",
+      "why": "Scope is slow and customers get impatient. Name the finish line: 'three more and we're done with the list.'",
+      "content": [
+        { "type": "ask", "text": "Summarise what is captured so far before asking the next question." }
+      ],
+      "answers": [
+        { "label": "Impatient with the list",        "nextNodeId": "scope-dates" },
+        { "label": "Found more transactions",         "nextNodeId": "scope-open" },
+        { "label": "Now describing a phone call or message that started it", "nextNodeId": "risk-scam-entry", "setsContext": { "pattern": "scam" } }
+      ]
+    },
+
+    {
+      "id": "risk-open", "stageId": "risk", "label": "Which pattern", "risk": null,
+      "prompt": "From what you have heard, which pattern fits best?",
+      "why": "The pattern decides the remedy. Fraud gets a block and a dispute. A scam gets a scam claim. Account takeover gets a credential reset. Picking wrong costs the customer weeks.",
+      "content": [
+        { "type": "ask", "text": "If undecided, run the signal checklist rather than guessing." },
+        { "type": "resource", "text": "Scam vs fraud decision aid (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Straightforward unauthorised use — no contact with anyone",      "nextNodeId": "risk-fraud", "setsContext": { "pattern": "fraud" } },
+        { "label": "Customer was contacted and did something",                       "nextNodeId": "risk-scam-entry", "setsContext": { "pattern": "scam" } },
+        { "label": "Credentials or device may be compromised",                       "nextNodeId": "risk-ato", "setsContext": { "pattern": "account-takeover" } },
+        { "label": "Unclear — run the checklist",                                    "nextNodeId": "risk-signals" }
+      ]
+    },
+    {
+      "id": "risk-fraud", "stageId": "risk", "label": "Straightforward fraud", "risk": "low",
+      "prompt": "Looks like straightforward card fraud. Any signals that change that?",
+      "why": "Most calls end here, and that is fine. The two checks are cheap and catch the cases that are not fine.",
+      "content": [
+        { "type": "ask", "text": "Any recent change to address, phone or email? Any vulnerability indicators on the profile?" },
+        { "type": "watch", "text": "Age over 65 plus a new authorised user, carer, or 'friend who helps with the banking'." }
+      ],
+      "answers": [
+        { "label": "None — proceed to actions",              "nextNodeId": "act-block" },
+        { "label": "Contact details changed recently",        "nextNodeId": "risk-ato", "setsContext": { "pattern": "account-takeover" } },
+        { "label": "Vulnerability indicators present",        "nextNodeId": "risk-elder" }
+      ]
+    },
+    {
+      "id": "risk-ato", "stageId": "risk", "label": "Account takeover check", "risk": "elevated",
+      "prompt": "Account takeover indicators. Check recent profile changes and logins. What did you find?",
+      "why": "A card block does nothing if the attacker has the online banking login. They will just order a new card to the new address.",
+      "content": [
+        { "type": "ask", "text": "Read back the last three profile changes and ask the customer to confirm each one." },
+        { "type": "watch", "text": "A new device registered in the last 14 days that the customer does not recognise." },
+        { "type": "never", "text": "Never read the new (attacker's) contact details to the customer in full." },
+        { "type": "escalate", "text": "Confirmed unauthorised profile change — do not just block the card; go to the lock-down node." }
+      ],
+      "answers": [
+        { "label": "Confirmed changes the customer didn't make", "nextNodeId": "act-ato-lock" },
+        { "label": "Nothing found — treat as card fraud",        "nextNodeId": "act-block", "setsContext": { "pattern": "fraud" } }
+      ]
+    },
+    {
+      "id": "risk-scam-entry", "stageId": "risk", "label": "Contact-initiated scam", "risk": "elevated",
+      "prompt": "The customer may have been manipulated into authorising. Who contacted them?",
+      "why": "Scams where the customer authorised the payment are handled under a different process from fraud, with different outcomes. The customer will not know the difference; you have to.",
+      "dialogue": [
+        { "who": "customer", "text": "The bank rang me and said my account was compromised, so I moved it to the safe account they gave me." }
+      ],
+      "content": [
+        { "type": "ask", "text": "'How did they first get in touch — call, text, email, social media?'" },
+        { "type": "never", "text": "Never say 'you authorised it, so it's not fraud'. It is true and it ends the conversation you need to have." },
+        { "type": "resource", "text": "Scam vs fraud decision aid (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Someone claiming to be the bank",        "nextNodeId": "risk-scam-bank" },
+        { "label": "Romance, investment or prize",           "nextNodeId": "risk-scam-manip" },
+        { "label": "Tech support, government or police",     "nextNodeId": "risk-scam-manip" }
+      ]
+    },
+    {
+      "id": "risk-scam-bank", "stageId": "risk", "label": "Bank impersonation", "risk": "elevated",
+      "prompt": "Bank impersonation. Did the customer share a code, PIN or passcode, or move money themselves?",
+      "why": "Sharing a code means the attacker has, or had, live access. Moving money means a scam claim. Both can be true.",
+      "content": [
+        { "type": "ask", "text": "'Did they ask you to read anything back to them — a code from a text, or from your card reader?'" },
+        { "type": "escalate", "text": "The customer is still on another line with the 'bank' right now." }
+      ],
+      "answers": [
+        { "label": "Shared a code or passcode",          "nextNodeId": "act-ato-lock", "setsContext": { "pattern": "account-takeover" } },
+        { "label": "Moved money themselves",              "nextNodeId": "act-scam-case" },
+        { "label": "Neither — hung up in time",           "nextNodeId": "act-block" }
+      ]
+    },
+    {
+      "id": "risk-scam-manip", "stageId": "risk", "label": "Manipulated payments", "risk": "elevated",
+      "prompt": "The customer authorised payments under manipulation. Are they still in contact with the third party?",
+      "why": "Ongoing contact means ongoing loss. It also means the customer may be coached during this very call.",
+      "content": [
+        { "type": "watch", "text": "The customer defends the third party, or has been told the bank will 'try to stop them being together'." },
+        { "type": "never", "text": "Never call the third party a scammer to the customer's face on a first call." },
+        { "type": "escalate", "text": "Ongoing contact plus further payments planned." }
+      ],
+      "answers": [
+        { "label": "Yes, still in contact",   "nextNodeId": "risk-coached", "setsContext": { "pattern": "safeguarding" } },
+        { "label": "No, contact has stopped", "nextNodeId": "act-scam-case" }
+      ]
+    },
+    {
+      "id": "risk-elder", "stageId": "risk", "label": "Elder financial exploitation", "risk": "critical",
+      "prompt": "Elder financial exploitation indicators. Which fits what you are hearing?",
+      "why": "Exploitation of an older customer by someone they trust is under-reported and rarely self-reported. The rep on the phone is often the only person positioned to notice.",
+      "dialogue": [
+        { "who": "customer", "text": "My neighbour does my shopping with the card. I don't really check it, she's very good to me." }
+      ],
+      "content": [
+        { "type": "ask", "text": "'Who helps you with your banking day to day?' Then listen — do not lead." },
+        { "type": "watch", "text": "New authorised user, regular round-sum withdrawals, a helper who 'handles all of that', reluctance to have the card blocked." },
+        { "type": "never", "text": "Never say 'it sounds like someone is taking advantage of you'." },
+        { "type": "escalate", "text": "Any of the watch-for indicators together with the customer being unable to explain their own transactions — safeguarding referral, not a dispute." },
+        { "type": "resource", "text": "Vulnerable customer and safeguarding referral (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "New helper with card access",               "nextNodeId": "act-safeguard", "setsContext": { "pattern": "safeguarding" } },
+        { "label": "Customer cannot explain own transactions",  "nextNodeId": "act-safeguard", "setsContext": { "pattern": "safeguarding" } },
+        { "label": "Indicators don't hold up",                  "nextNodeId": "act-block" }
+      ]
+    },
+    {
+      "id": "risk-coached", "stageId": "risk", "label": "Coached on this call", "risk": "critical",
+      "prompt": "The customer may be coached by a third party right now. What are you hearing?",
+      "why": "A customer being coached will agree to whatever keeps the third party calm. Nothing agreed on this call is reliable. The goal is a safe callback, not a resolution.",
+      "dialogue": [
+        { "who": "customer", "text": "No, no, keep the card open. (pause) Yes. Keep it open, it's fine." }
+      ],
+      "content": [
+        { "type": "watch", "text": "Answers that reverse after a pause. Background prompting. The customer asking you to repeat questions." },
+        { "type": "never", "text": "Never confront the third party through the customer." },
+        { "type": "escalate", "text": "Always — this node ends in a safeguarding hand-off, never in a normal close." },
+        { "type": "resource", "text": "Third-party coaching guidance (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Third party audibly on the line",               "nextNodeId": "act-safeguard" },
+        { "label": "Customer alone but following instructions",     "nextNodeId": "act-safeguard" },
+        { "label": "No — false alarm",                              "nextNodeId": "act-scam-case" }
+      ]
+    },
+    {
+      "id": "risk-signals", "stageId": "risk", "label": "Signal checklist", "risk": null,
+      "prompt": "Run the signal checklist. Which group has the most ticks?",
+      "why": "A checklist is slower than instinct and more consistent. Use it when instinct has nothing to say.",
+      "content": [
+        { "type": "ask", "text": "Contact from anyone? Codes shared? Profile changes? New devices? Card in possession? Household access?" },
+        { "type": "resource", "text": "Signal checklist card (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Unauthorised use signals",   "nextNodeId": "risk-fraud",      "setsContext": { "pattern": "fraud" } },
+        { "label": "Manipulation signals",       "nextNodeId": "risk-scam-entry", "setsContext": { "pattern": "scam" } },
+        { "label": "Takeover signals",           "nextNodeId": "risk-ato",        "setsContext": { "pattern": "account-takeover" } }
+      ]
+    },
+    {
+      "id": "risk-reanchor", "stageId": "risk", "label": "Off-script: risk", "risk": null,
+      "prompt": "The caller has gone off-script during risk assessment. What happened?",
+      "why": "This is the stage where customers volunteer the detail that reclassifies the whole call. Off-script here is usually good news.",
+      "content": [
+        { "type": "ask", "text": "'That's important — tell me more about that.'" }
+      ],
+      "answers": [
+        { "label": "Mentioned a call or message for the first time",   "nextNodeId": "risk-scam-entry", "setsContext": { "pattern": "scam" } },
+        { "label": "Someone else has started speaking for them",        "nextNodeId": "risk-coached" },
+        { "label": "Wants to skip to 'what happens now'",               "nextNodeId": "risk-open" }
+      ]
+    },
+
+    {
+      "id": "act-block", "stageId": "act", "label": "Block and reissue", "risk": null,
+      "prompt": "Block and reissue the card. Confirm both are done.",
+      "why": "If the card was blocked at triage this is a confirmation. If not, it happens now, before the dispute.",
+      "content": [
+        { "type": "ask", "text": "Confirm the delivery address on file out loud before ordering the replacement." },
+        { "type": "watch", "text": "The delivery address was changed in the last 30 days — stop and go back to the takeover check." },
+        { "type": "resource", "text": "Card block and reissue guide (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Blocked and reissued",          "nextNodeId": "act-credit" },
+        { "label": "Customer wants to keep the card active — noted", "nextNodeId": "act-credit" }
+      ]
+    },
+    {
+      "id": "act-ato-lock", "stageId": "act", "label": "Lock down access", "risk": "critical",
+      "prompt": "Lock online banking, reset credentials, revert unauthorised profile changes, block the card. Done?",
+      "why": "Order matters: lock the login first, or the attacker undoes everything else while you are on the phone.",
+      "content": [
+        { "type": "ask", "text": "Which device does the customer normally use? Everything else gets removed." },
+        { "type": "never", "text": "Never send the new credentials to the contact details the attacker set." },
+        { "type": "escalate", "text": "Outbound payments were set up during the compromise window — payments team, now." },
+        { "type": "resource", "text": "Account takeover lock-down checklist (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "All steps complete", "nextNodeId": "act-credit" }
+      ]
+    },
+    {
+      "id": "act-scam-case", "stageId": "act", "label": "Scam claim", "risk": null,
+      "prompt": "Open a scam claim (not a fraud dispute). Confirm the claim reference.",
+      "why": "A scam claim is assessed on whether the customer could reasonably have known. It needs the story, not just the transactions.",
+      "content": [
+        { "type": "ask", "text": "Capture the story in the customer's words: first contact, what they were told, what they did." },
+        { "type": "never", "text": "Never promise a refund outcome. The claim is assessed later by someone else." },
+        { "type": "resource", "text": "Scam claim form (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Claim opened", "nextNodeId": "act-timeline" }
+      ]
+    },
+    {
+      "id": "act-safeguard", "stageId": "act", "label": "Safeguarding referral", "risk": "critical",
+      "prompt": "Safeguarding referral and a hold on outbound payments. Confirm the referral is logged.",
+      "why": "This is the node the whole critical branch exists for. It is also the one reps skip because it feels like an accusation. It is not — it is a request for someone trained to take a look.",
+      "content": [
+        { "type": "ask", "text": "Tell the customer a colleague who specialises in this will call them back. Agree a safe number and time." },
+        { "type": "never", "text": "Never describe the referral as being about the third party, and never use the word 'abuse' on the call." },
+        { "type": "escalate", "text": "Immediate risk to the customer's safety — follow the emergency process, not this one." },
+        { "type": "resource", "text": "Vulnerable customer and safeguarding referral (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Referral logged, hold placed", "nextNodeId": "act-timeline" }
+      ]
+    },
+    {
+      "id": "act-credit", "stageId": "act", "label": "Provisional credit", "risk": null,
+      "prompt": "Does the dispute meet the placeholder criteria for provisional credit?",
+      "why": "Provisional credit is the single thing the customer will remember. Getting the explanation right matters more than the decision.",
+      "content": [
+        { "type": "ask", "text": "Check: amount under threshold, first dispute in 12 months, card blocked." },
+        { "type": "never", "text": "Never call it a refund. It is provisional and can be reversed." },
+        { "type": "resource", "text": "Provisional credit criteria (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Yes — credit applied",             "nextNodeId": "act-case" },
+        { "label": "No — explained why not",           "nextNodeId": "act-case" }
+      ]
+    },
+    {
+      "id": "act-case", "stageId": "act", "label": "Create the case", "risk": null,
+      "prompt": "Create the fraud case and read the reference to the customer.",
+      "why": "A customer with a reference number calls back once. A customer without one calls back three times.",
+      "content": [
+        { "type": "ask", "text": "Read the reference twice. Ask the customer to read it back." },
+        { "type": "resource", "text": "Case creation guide (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Case created and reference given", "nextNodeId": "act-timeline" }
+      ]
+    },
+    {
+      "id": "act-timeline", "stageId": "act", "label": "Timelines", "risk": null,
+      "prompt": "Tell the customer what happens next and when. Do they understand?",
+      "why": "Set the expectation once, plainly. Most complaints about fraud handling are about silence, not outcome.",
+      "dialogue": [
+        { "who": "rep", "text": "You'll get a letter within 5 working days, and the new card within 7. If you don't hear from us in 10 days, call us with the reference." }
+      ],
+      "content": [
+        { "type": "ask", "text": "State three things: when they hear from us, when the card arrives, what to do if neither happens." },
+        { "type": "never", "text": "Never say 'it's out of my hands now'." },
+        { "type": "resource", "text": "Dispute timelines FAQ (placeholder)", "url": "#" }
+      ],
+      "answers": [
+        { "label": "Customer understands — close the call", "nextNodeId": "resolve-closed" },
+        { "label": "Customer wants to escalate",            "nextNodeId": "resolve-escalated" }
+      ]
+    },
+    {
+      "id": "act-reanchor", "stageId": "act", "label": "Off-script: actions", "risk": null,
+      "prompt": "The caller has gone off-script during actions. What happened?",
+      "why": "At this stage, off-script usually means new information. Do not close a call over new information.",
+      "content": [
+        { "type": "ask", "text": "'Before I finish up — is there anything else about this you've remembered?'" }
+      ],
+      "answers": [
+        { "label": "Remembered something that changes the pattern", "nextNodeId": "risk-open" },
+        { "label": "Disputes the provisional credit decision",       "nextNodeId": "act-credit" },
+        { "label": "Just wants to finish",                            "nextNodeId": "act-timeline" }
+      ]
+    },
+
+    {
+      "id": "resolve-closed", "stageId": "act", "label": "Resolved — closed", "risk": null, "terminal": true,
+      "prompt": "Call complete. Case created, customer informed, timelines set.",
+      "why": "The normal ending. Generate the call note before the next call, not after.",
+      "content": [
+        { "type": "ask", "text": "Generate the call note and paste it into the case." }
+      ],
+      "answers": []
+    },
+    {
+      "id": "resolve-escalated", "stageId": "act", "label": "Resolved — escalated", "risk": null, "terminal": true,
+      "prompt": "Call escalated to a specialist or team leader. Warm transfer done.",
+      "why": "An escalation with a good note is a five-minute handover. Without one it is a repeat of the whole call.",
+      "content": [
+        { "type": "ask", "text": "Generate the call note and hand it over with the transfer." },
+        { "type": "resource", "text": "Escalation contacts (placeholder)", "url": "#" }
+      ],
+      "answers": []
+    },
+    {
+      "id": "resolve-callback-scheduled", "stageId": "act", "label": "Resolved — callback scheduled", "risk": null, "terminal": true,
+      "prompt": "Callback scheduled. Confirm the number on file and the time window.",
+      "why": "A callback that is not in the diary does not happen.",
+      "content": [
+        { "type": "ask", "text": "Log the callback with the reason and the number ending. Generate the call note." },
+        { "type": "never", "text": "Never schedule a callback to a number given on this call." }
+      ],
+      "answers": []
+    },
+    {
+      "id": "resolve-cannot-proceed", "stageId": "act", "label": "Resolved — cannot proceed", "risk": "elevated", "terminal": true,
+      "prompt": "Cannot proceed on this call. Explain what the customer can do next.",
+      "why": "Unverified or unsafe calls end here. The customer still needs a path: branch visit, callback from the number on file, or a letter.",
+      "content": [
+        { "type": "ask", "text": "Offer branch visit with ID, or a callback to the number on file." },
+        { "type": "escalate", "text": "Anything on this call suggested a third party — log the safeguarding concern even though the call could not proceed." }
+      ],
+      "answers": []
+    },
+    {
+      "id": "resolve-transfer-out", "stageId": "act", "label": "Resolved — transferred out", "risk": null, "terminal": true,
+      "prompt": "Not a fraud matter. Warm transfer to the right team.",
+      "why": "A short note prevents the receiving team from re-verifying the customer from scratch.",
+      "content": [
+        { "type": "resource", "text": "Team routing directory (placeholder)", "url": "#" }
+      ],
+      "answers": []
+    },
+    {
+      "id": "resolve-unverified-close", "stageId": "act", "label": "Resolved — blocked, unverified", "risk": null, "terminal": true,
+      "prompt": "Card blocked for an unverified caller. Explain how to complete verification and dispute.",
+      "why": "The block protects the account; the dispute still needs a verified customer.",
+      "content": [
+        { "type": "ask", "text": "Branch visit with ID, or call back with the verification details to hand." },
+        { "type": "never", "text": "Never confirm which transactions are on the account." }
+      ],
+      "answers": []
+    }
+  ]
+}
+</script>
+
+<!-- ============================================================ -->
+<!-- APP SHELL — filled entirely by render(). Nothing below holds  -->
+<!-- content; the labels come from the UI_TEXT table in the script -->
+<!-- ============================================================ -->
+<div id="app" data-role="shell"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------------------------------------------------------- */
+  /* Data                                                        */
+  /* ---------------------------------------------------------- */
+  var FLOW = JSON.parse(document.getElementById('flow-data').textContent);
+  var NODES = {};
+  FLOW.nodes.forEach(function (n) { NODES[n.id] = n; });
+  var STAGES = FLOW.stages.slice().sort(function (a, b) { return a.order - b.order; });
+  var STAGE = {};
+  STAGES.forEach(function (s) { STAGE[s.id] = s; });
+
+  /* UI chrome strings. Not scenario content — but kept in one table so the
+     render functions contain no literals and a designer can retitle things. */
+  var UI_TEXT = {
+    appTitle: 'Fraud call guide',
+    wireframeTag: 'wireframe',
+    modeLive: 'Live',
+    modeTraining: 'Training',
+    searchPlaceholder: 'Jump to… (type a keyword, Enter)',
+    searchNoResults: 'No node matches',
+    noteButton: 'Call note',
+    debugButton: 'Debug',
+    resetButton: 'Start over',
+    breadcrumbLabel: 'Path taken',
+    contextLabel: 'Captured facts',
+    unresolvedLabel: 'Unresolved:',
+    returnTo: 'Return',
+    stageOf: 'Stage {n} of {total}',
+    riskLabel: { low: 'Low risk', elevated: 'Elevated risk', critical: 'Critical — read the right-hand panel before speaking' },
+    previouslyChosen: 'previously chosen',
+    exitNa: 'Not applicable',
+    exitOffScript: 'Customer went off-script',
+    exitPark: "I don't know yet",
+    lateralButton: 'Jump to another answer in this stage',
+    lateralTitle: 'Jump within the stage',
+    lateralHint: 'The path is kept; the jump is marked in the breadcrumb.',
+    lateralCurrent: 'you are here',
+    flagButton: 'Flag this node',
+    flagTitle: 'Flag this node',
+    flagKinds: { wrong: 'This is wrong', unclear: 'This is unclear', missing: 'Missing a resource' },
+    flagCommentPlaceholder: 'Optional: what would you change?',
+    flagSubmit: 'Add flag',
+    flagCancel: 'Cancel',
+    close: 'Close',
+    terminalTitle: 'End of call',
+    terminalHint: 'Generate the call note, then start over for the next call.',
+    whyTitle: 'Why this matters',
+    dialogueTitle: 'Sample dialogue',
+    railTitle: 'For this node',
+    railEmpty: 'No guidance authored for this node yet.',
+    groups: { ask: 'Ask', watch: 'Watch for', never: 'Never say', escalate: 'Escalate if', resource: 'Resources' },
+    staleNotice: '{n} later step{s} no longer appl{y}',
+    staleDetail: 'You changed the answer at step {n}. The old steps are kept, struck through, until you undo or dismiss.',
+    staleUndo: 'Undo',
+    staleDismiss: 'Dismiss',
+    staleGroup: 'No longer apply:',
+    chipTags: { lateral: 'jumped', search: 'searched', 'exit-na': 'n/a', 'exit-offscript': 'off-script', park: 'parked', return: 'returned' },
+    chipStatus: { unresolved: 'unresolved', skipped: 'jumped away', 'resolved-later': 'resolved later', exit: '' },
+    chipExit: { na: 'not applicable', offscript: 'off-script' },
+    noteTitle: 'Call note',
+    noteCopy: 'Copy',
+    noteCopied: 'Copied',
+    noteRegenerate: 'Regenerate',
+    debugTitle: 'Debug',
+    debugState: 'Current state',
+    debugFlags: 'Flagged nodes',
+    debugFlagsEmpty: 'Nothing flagged yet.',
+    debugLog: 'Event log',
+    debugCounts: { visit: 'visits', lateral: 'lateral jumps', rewind: 'rewinds', stale: 'invalidations', park: 'parked', flag: 'flags' },
+    footerKeys: 'Keys: 1–9 choose an answer · / search · Esc close panels',
+    footerVersion: 'Content {v}'
+  };
+
+  /* ---------------------------------------------------------- */
+  /* State                                                       */
+  /* ---------------------------------------------------------- */
+  var state = initialState();
+
+  function initialState() {
+    return {
+      mode: 'live',
+      path: [{ nodeId: FLOW.startNodeId, arrivedVia: 'start', answer: null, status: 'open', exit: null }],
+      cursor: 0,
+      stale: null,
+      context: {},
+      unresolved: [],
+      flags: [],
+      log: [],
+      ui: { lateralOpen: false, lateralStage: null, flagOpen: false, noteOpen: false, noteCopied: false,
+            debugOpen: false, search: '', searchOpen: false, freshNode: true }
+    };
+  }
+
+  function currentStep() { return state.path[state.cursor]; }
+  function currentNode() { return NODES[currentStep().nodeId]; }
+  function stageOf(node) { return STAGE[node.stageId]; }
+
+  function logEvent(type, detail) {
+    state.log.push({ at: new Date().toISOString(), type: type, detail: detail || {} });
+  }
+
+  function snapshot() {
+    return JSON.parse(JSON.stringify({ path: state.path, cursor: state.cursor, context: state.context, unresolved: state.unresolved }));
+  }
+
+  /* If the rep is positioned before the end of the path, any forward move
+     invalidates the steps after the cursor. They are kept as stale, not lost. */
+  function invalidateDownstream(reason) {
+    if (state.cursor >= state.path.length - 1) return;
+    var snap = snapshot();
+    var dropped = state.path.slice(state.cursor + 1);
+    state.path = state.path.slice(0, state.cursor + 1);
+    state.stale = { steps: dropped, changedAt: state.cursor, reason: reason, snapshot: snap };
+    logEvent('stale', { changedAt: state.cursor + 1, dropped: dropped.length, reason: reason });
+  }
+
+  function applyContext(setsContext) {
+    if (!setsContext) return;
+    Object.keys(setsContext).forEach(function (k) { state.context[k] = setsContext[k]; });
+  }
+
+  function moveTo(nodeId, via) {
+    state.path.push({ nodeId: nodeId, arrivedVia: via, answer: null, status: 'open', exit: null });
+    state.cursor = state.path.length - 1;
+    state.ui.lateralOpen = false; state.ui.flagOpen = false; state.ui.searchOpen = false; state.ui.search = '';
+    state.ui.freshNode = true;
+    logEvent('visit', { nodeId: nodeId, via: via, step: state.cursor + 1 });
+  }
+
+  function markResolvedLater(nodeId) {
+    state.path.forEach(function (s) { if (s.nodeId === nodeId && s.status === 'unresolved') s.status = 'resolved-later'; });
+    state.unresolved = state.unresolved.filter(function (id) { return id !== nodeId; });
+  }
+
+  /* ---------------------------------------------------------- */
+  /* Reducer: every state change goes through here, then render  */
+  /* ---------------------------------------------------------- */
+  function dispatch(action) {
+    var step = currentStep();
+    var node = currentNode();
+    var stage = stageOf(node);
+    state.ui.freshNode = false;
+
+    switch (action.type) {
+
+      case 'answer': {
+        var answer = node.answers[action.index];
+        if (!answer) break;
+        if (state.cursor < state.path.length - 1 && step.answer === answer.label) {
+          // Same answer as before: walk forward along the existing path.
+          state.cursor += 1;
+          state.ui.freshNode = true;
+          logEvent('rewind-forward', { step: state.cursor + 1 });
+          break;
+        }
+        invalidateDownstream('answer-changed');
+        step.answer = answer.label; step.status = 'answered'; step.exit = null;
+        markResolvedLater(node.id);
+        applyContext(answer.setsContext);
+        logEvent('answer', { nodeId: node.id, answer: answer.label });
+        moveTo(answer.nextNodeId, 'answer');
+        break;
+      }
+
+      case 'exit': {
+        invalidateDownstream('exit');
+        var next;
+        if (action.exit === 'na') {
+          step.status = 'exit'; step.exit = 'na'; step.answer = null;
+          next = node.naNextNodeId || stage.naNextNodeId;
+          logEvent('exit', { nodeId: node.id, exit: 'na' });
+          moveTo(next, 'exit-na');
+        } else if (action.exit === 'offscript') {
+          step.status = 'exit'; step.exit = 'offscript'; step.answer = null;
+          next = stage.offScriptNodeId;
+          logEvent('exit', { nodeId: node.id, exit: 'offscript' });
+          moveTo(next, 'exit-offscript');
+        } else if (action.exit === 'park') {
+          step.status = 'unresolved'; step.answer = null;
+          if (state.unresolved.indexOf(node.id) < 0) state.unresolved.push(node.id);
+          next = node.parkNextNodeId || stage.naNextNodeId;
+          logEvent('park', { nodeId: node.id });
+          moveTo(next, 'park');
+        }
+        break;
+      }
+
+      case 'lateral': {
+        if (action.nodeId === node.id) break;
+        invalidateDownstream('lateral');
+        if (step.status === 'open') step.status = 'skipped';
+        logEvent('lateral', { from: node.id, to: action.nodeId });
+        moveTo(action.nodeId, 'lateral');
+        break;
+      }
+
+      case 'return': {
+        invalidateDownstream('return');
+        if (step.status === 'open') step.status = 'skipped';
+        logEvent('return', { from: node.id, to: action.nodeId });
+        moveTo(action.nodeId, 'return');
+        break;
+      }
+
+      case 'search-jump': {
+        invalidateDownstream('search');
+        if (step.status === 'open') step.status = 'skipped';
+        logEvent('search-jump', { from: node.id, to: action.nodeId, query: state.ui.search });
+        moveTo(action.nodeId, 'search');
+        break;
+      }
+
+      case 'rewind': {
+        if (action.index === state.cursor || action.index < 0 || action.index >= state.path.length) break;
+        logEvent('rewind', { from: state.cursor + 1, to: action.index + 1 });
+        state.cursor = action.index;
+        state.ui.lateralOpen = false; state.ui.flagOpen = false;
+        state.ui.freshNode = true;
+        break;
+      }
+
+      case 'undo-stale': {
+        if (!state.stale) break;
+        var snap = state.stale.snapshot;
+        state.path = snap.path; state.cursor = snap.cursor; state.context = snap.context; state.unresolved = snap.unresolved;
+        state.stale = null;
+        state.ui.freshNode = true;
+        logEvent('undo', { restoredTo: state.cursor + 1 });
+        break;
+      }
+
+      case 'dismiss-stale': {
+        if (!state.stale) break;
+        logEvent('stale-dismissed', { dropped: state.stale.steps.length });
+        state.stale = null;
+        break;
+      }
+
+      case 'set-context': {
+        state.context[action.key] = action.value;
+        logEvent('context', { key: action.key, value: action.value });
+        break;
+      }
+
+      case 'set-mode': {
+        if (state.mode === action.mode) break;
+        state.mode = action.mode;
+        logEvent('mode', { mode: action.mode });
+        break;
+      }
+
+      case 'toggle-lateral': {
+        state.ui.lateralOpen = !state.ui.lateralOpen;
+        state.ui.lateralStage = node.stageId;
+        state.ui.flagOpen = false;
+        break;
+      }
+      case 'lateral-stage': { state.ui.lateralStage = action.stageId; break; }
+
+      case 'toggle-flag': { state.ui.flagOpen = !state.ui.flagOpen; state.ui.lateralOpen = false; break; }
+      case 'submit-flag': {
+        state.flags.push({ id: state.flags.length + 1, nodeId: node.id, kind: action.kind, comment: action.comment, at: new Date().toISOString(), mode: state.mode });
+        state.ui.flagOpen = false;
+        logEvent('flag', { nodeId: node.id, kind: action.kind });
+        break;
+      }
+
+      case 'search': { state.ui.search = action.value; state.ui.searchOpen = action.value.trim().length > 0; break; }
+      case 'close-search': { state.ui.searchOpen = false; break; }
+
+      case 'toggle-note': {
+        state.ui.noteOpen = !state.ui.noteOpen; state.ui.noteCopied = false;
+        if (state.ui.noteOpen) logEvent('note', { steps: state.path.length });
+        break;
+      }
+      case 'note-copied': { state.ui.noteCopied = true; break; }
+      case 'toggle-debug': { state.ui.debugOpen = !state.ui.debugOpen; break; }
+
+      case 'close-panels': {
+        state.ui.lateralOpen = false; state.ui.flagOpen = false; state.ui.searchOpen = false;
+        break;
+      }
+
+      case 'reset': {
+        var keep = { mode: state.mode, flags: state.flags, log: state.log };
+        state = initialState();
+        state.mode = keep.mode; state.flags = keep.flags; state.log = keep.log;
+        logEvent('reset', {});
+        break;
+      }
+    }
+    render();
+  }
+
+  /* ---------------------------------------------------------- */
+  /* Derived                                                     */
+  /* ---------------------------------------------------------- */
+  function searchNodes(query) {
+    var q = query.trim().toLowerCase();
+    if (!q) return [];
+    return FLOW.nodes.filter(function (n) {
+      var hay = [n.label, n.prompt, STAGE[n.stageId].label].concat(n.content.map(function (c) { return c.text; })).join(' ').toLowerCase();
+      return hay.indexOf(q) >= 0;
+    }).slice(0, 12);
+  }
+
+  function pathLine(step, i) {
+    var n = NODES[step.nodeId];
+    var s = STAGE[n.stageId];
+    var how = '';
+    if (step.arrivedVia === 'lateral') how = ' [lateral jump]';
+    else if (step.arrivedVia === 'search') how = ' [keyword jump]';
+    else if (step.arrivedVia === 'return') how = ' [returned to unresolved]';
+    var outcome;
+    if (step.status === 'answered') outcome = step.answer;
+    else if (step.status === 'unresolved') outcome = 'UNRESOLVED (rep did not know yet)';
+    else if (step.status === 'resolved-later') outcome = 'left unresolved, resolved later';
+    else if (step.status === 'skipped') outcome = 'no answer recorded (jumped away)';
+    else if (step.status === 'exit') outcome = step.exit === 'na' ? 'not applicable' : 'customer went off-script';
+    else if (n.terminal) outcome = 'END';
+    else outcome = 'in progress';
+    return (i + 1) + '. [' + s.label + '] ' + n.label + how + ' -> ' + outcome;
+  }
+
+  function buildNote() {
+    var lines = [];
+    lines.push('CASE NOTE (draft) — ' + FLOW.meta.disclaimer);
+    lines.push('Scenario: ' + FLOW.meta.scenario);
+    lines.push('Generated: ' + new Date().toLocaleString());
+    lines.push('');
+    lines.push('CAPTURED FACTS');
+    FLOW.contextFields.forEach(function (f) {
+      var v = state.context[f.key];
+      lines.push('- ' + f.label + ': ' + (v ? v : '(not captured)'));
+    });
+    lines.push('');
+    lines.push('PATH TAKEN');
+    state.path.forEach(function (step, i) { lines.push(pathLine(step, i)); });
+    if (state.stale) {
+      lines.push('');
+      lines.push('STEPS NO LONGER APPLYING (answer changed at step ' + (state.stale.changedAt + 1) + ')');
+      state.stale.steps.forEach(function (step, i) { lines.push('  ' + pathLine(step, state.stale.changedAt + 1 + i)); });
+    }
+    if (state.unresolved.length) {
+      lines.push('');
+      lines.push('STILL UNRESOLVED');
+      state.unresolved.forEach(function (id) { lines.push('- ' + NODES[id].label + ': ' + NODES[id].prompt); });
+    }
+    var critical = state.path.filter(function (s) { return NODES[s.nodeId].risk === 'critical'; });
+    if (critical.length) {
+      lines.push('');
+      lines.push('CRITICAL-RISK NODES VISITED');
+      critical.forEach(function (s) { lines.push('- ' + NODES[s.nodeId].label); });
+    }
+    var flagsHere = state.flags.length;
+    if (flagsHere) { lines.push(''); lines.push('Content flags raised during this call: ' + flagsHere + ' (see debug screen)'); }
+    return lines.join('\n');
+  }
+
+  function counts() {
+    var c = { visit: 0, lateral: 0, rewind: 0, stale: 0, park: 0, flag: 0 };
+    state.log.forEach(function (e) { if (c.hasOwnProperty(e.type)) c[e.type] += 1; });
+    return c;
+  }
+
+  /* ---------------------------------------------------------- */
+  /* Render: state in, DOM out. One call per dispatch.           */
+  /* ---------------------------------------------------------- */
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function fmt(tpl, vars) { return tpl.replace(/\{(\w+)\}/g, function (_, k) { return vars[k] != null ? vars[k] : ''; }); }
+  function attr(name, v) { return v == null || v === false ? '' : ' ' + name + '="' + esc(v) + '"'; }
+
+  function render() {
+    var root = document.getElementById('app');
+    var focus = captureFocus();
+    root.innerHTML = renderTopBar() + renderMain() + renderRail() + renderFooter();
+    restoreFocus(focus);
+  }
+
+  function captureFocus() {
+    var el = document.activeElement;
+    if (!el || !el.getAttribute) return null;
+    var key = el.getAttribute('data-focus-key');
+    if (!key) return null;
+    return { key: key, start: el.selectionStart, end: el.selectionEnd };
+  }
+  function restoreFocus(f) {
+    if (!f) return;
+    var el = document.querySelector('[data-focus-key="' + f.key + '"]');
+    if (!el) return;
+    el.focus();
+    if (typeof f.start === 'number' && el.setSelectionRange) { try { el.setSelectionRange(f.start, f.end); } catch (e) {} }
+  }
+
+  /* ---- top bar ---- */
+  function renderTopBar() {
+    return '<header class="panel" data-role="top-bar">' +
+      renderHeaderRow() +
+      renderBreadcrumb() +
+      renderStaleNotice() +
+      renderContextStrip() +
+      renderUnresolvedTray() +
+      '</header>';
+  }
+
+  function renderHeaderRow() {
+    var h = '<div data-role="app-header">';
+    h += '<h1>' + esc(UI_TEXT.appTitle) + ' <span class="tag">' + esc(UI_TEXT.wireframeTag) + '</span> <span class="small muted">' + esc(FLOW.meta.scenario) + '</span></h1>';
+    h += renderSearch();
+    h += '<div data-role="mode-toggle" role="group">' +
+      '<button type="button" data-action="set-mode" data-mode="live"' + attr('aria-pressed', state.mode === 'live' ? 'true' : 'false') + '>' + esc(UI_TEXT.modeLive) + '</button>' +
+      '<button type="button" data-action="set-mode" data-mode="training"' + attr('aria-pressed', state.mode === 'training' ? 'true' : 'false') + '>' + esc(UI_TEXT.modeTraining) + '</button>' +
+      '</div>';
+    h += '<button type="button" data-action="toggle-note" data-role="note-button"' + attr('aria-pressed', state.ui.noteOpen ? 'true' : 'false') + '>' + esc(UI_TEXT.noteButton) + '</button>';
+    h += '<button type="button" data-action="toggle-debug" data-role="debug-button"' + attr('aria-pressed', state.ui.debugOpen ? 'true' : 'false') + '>' + esc(UI_TEXT.debugButton) + (state.flags.length ? ' (' + state.flags.length + ')' : '') + '</button>';
+    h += '<button type="button" class="btn-quiet" data-action="reset" data-role="reset-button">' + esc(UI_TEXT.resetButton) + '</button>';
+    h += '</div>';
+    return h;
+  }
+
+  function renderSearch() {
+    var results = state.ui.searchOpen ? searchNodes(state.ui.search) : [];
+    var h = '<div data-role="search" role="search">';
+    h += '<input type="search" data-role="search-input" data-focus-key="search" autocomplete="off"' +
+      attr('placeholder', UI_TEXT.searchPlaceholder) + attr('value', state.ui.search) + attr('aria-expanded', state.ui.searchOpen ? 'true' : 'false') + '>';
+    if (state.ui.searchOpen) {
+      h += '<ul data-role="search-results">';
+      if (!results.length) h += '<li><span class="search-empty">' + esc(UI_TEXT.searchNoResults) + '</span></li>';
+      results.forEach(function (n) {
+        h += '<li><button type="button" data-action="search-jump" data-role="search-result"' + attr('data-node-id', n.id) + '>' +
+          '<span class="tag">' + esc(STAGE[n.stageId].label) + '</span> <strong>' + esc(n.label) + '</strong><br><span class="small muted">' + esc(n.prompt) + '</span></button></li>';
+      });
+      h += '</ul>';
+    }
+    h += '</div>';
+    return h;
+  }
+
+  function renderChip(step, i, stateName) {
+    var n = NODES[step.nodeId];
+    var tag = UI_TEXT.chipTags[step.arrivedVia];
+    var line2 = '';
+    if (step.status === 'answered') line2 = '→ ' + step.answer;
+    else if (step.status === 'exit') line2 = '→ ' + UI_TEXT.chipExit[step.exit];
+    else if (UI_TEXT.chipStatus[step.status]) line2 = UI_TEXT.chipStatus[step.status];
+    var h = '<li>';
+    h += '<button type="button" data-role="breadcrumb-chip" data-action="rewind"' + attr('data-index', stateName === 'stale' ? null : i) +
+      attr('data-state', stateName) + attr('data-arrived', step.arrivedVia) + attr('data-node-id', n.id) +
+      attr('aria-current', stateName === 'current' ? 'step' : null) + (stateName === 'stale' ? ' disabled' : '') + '>';
+    h += '<span>' + (i + 1) + '. ' + esc(n.label) + (tag ? ' <span class="tag">' + esc(tag) + '</span>' : '') + '</span>';
+    if (line2) h += '<span class="chip-answer">' + esc(line2) + '</span>';
+    h += '</button></li>';
+    return h;
+  }
+
+  function renderBreadcrumb() {
+    var h = '<nav aria-label="' + esc(UI_TEXT.breadcrumbLabel) + '"><ol data-role="breadcrumb">';
+    state.path.forEach(function (step, i) {
+      var st = i === state.cursor ? 'current' : (i > state.cursor ? 'ahead' : 'past');
+      h += renderChip(step, i, st);
+      if (i < state.path.length - 1) h += '<li class="crumb-sep" aria-hidden="true">›</li>';
+    });
+    if (state.stale) {
+      h += '<li class="crumb-stale-group" data-role="stale-group"><span class="small muted">' + esc(UI_TEXT.staleGroup) + '</span>';
+      h += '<ol data-role="breadcrumb" class="crumb-stale-list">';
+      state.stale.steps.forEach(function (step, j) { h += renderChip(step, state.stale.changedAt + 1 + j, 'stale'); });
+      h += '</ol></li>';
+    }
+    h += '</ol></nav>';
+    return h;
+  }
+
+  function renderStaleNotice() {
+    if (!state.stale) return '';
+    var n = state.stale.steps.length;
+    var title = fmt(UI_TEXT.staleNotice, { n: n, s: n === 1 ? '' : 's', y: n === 1 ? 'ies' : 'y' });
+    return '<div data-role="stale-notice" role="status">' +
+      '<strong>' + esc(title) + '</strong>' +
+      '<span class="small">' + esc(fmt(UI_TEXT.staleDetail, { n: state.stale.changedAt + 1 })) + '</span>' +
+      '<button type="button" class="btn-primary" data-action="undo-stale" data-role="stale-undo">' + esc(UI_TEXT.staleUndo) + '</button>' +
+      '<button type="button" data-action="dismiss-stale" data-role="stale-dismiss">' + esc(UI_TEXT.staleDismiss) + '</button>' +
+      '</div>';
+  }
+
+  function renderContextStrip() {
+    var h = '<section data-role="context-strip" aria-label="' + esc(UI_TEXT.contextLabel) + '">';
+    FLOW.contextFields.forEach(function (f) {
+      var v = state.context[f.key] || '';
+      var id = 'ctx-' + f.key;
+      h += '<div data-role="context-field"' + attr('data-key', f.key) + attr('data-set', v ? 'true' : 'false') + '>';
+      h += '<label' + attr('for', id) + '>' + esc(f.label) + '</label>';
+      if (f.type === 'select') {
+        h += '<select' + attr('id', id) + ' data-role="context-input"' + attr('data-key', f.key) + attr('data-focus-key', id) + '>';
+        f.options.forEach(function (o) { h += '<option' + attr('value', o) + (o === v ? ' selected' : '') + '>' + esc(o || '—') + '</option>'; });
+        h += '</select>';
+      } else {
+        h += '<input type="text"' + attr('id', id) + ' data-role="context-input"' + attr('data-key', f.key) + attr('data-focus-key', id) + attr('value', v) + '>';
+      }
+      h += '</div>';
+    });
+    h += '</section>';
+    return h;
+  }
+
+  function renderUnresolvedTray() {
+    if (!state.unresolved.length) return '';
+    var h = '<div data-role="unresolved-tray"><span class="muted">' + esc(UI_TEXT.unresolvedLabel) + '</span>';
+    state.unresolved.forEach(function (id) {
+      h += '<button type="button" data-action="return" data-role="unresolved-chip"' + attr('data-node-id', id) + '>' + esc(NODES[id].label) + ' · ' + esc(UI_TEXT.returnTo) + '</button>';
+    });
+    h += '</div>';
+    return h;
+  }
+
+  /* ---- main ---- */
+  function renderMain() {
+    var h = '<main data-role="main">';
+    h += renderNodeCard();
+    if (state.ui.noteOpen) h += renderNotePanel();
+    if (state.ui.debugOpen) h += renderDebug();
+    h += '</main>';
+    return h;
+  }
+
+  function renderNodeCard() {
+    var step = currentStep();
+    var node = currentNode();
+    var stage = stageOf(node);
+    var idx = STAGES.indexOf(stage);
+    var h = '<article class="panel" data-role="node-card"' + attr('data-node-id', node.id) + attr('data-risk', node.risk) + attr('data-fresh', state.ui.freshNode ? 'true' : null) + '>';
+    h += '<div class="stage-line"><span class="tag">' + esc(fmt(UI_TEXT.stageOf, { n: idx + 1, total: STAGES.length })) + '</span><strong>' + esc(stage.label) + '</strong><span class="small muted">' + esc(node.label) + '</span></div>';
+    if (node.risk) h += '<div data-role="risk-banner"' + attr('data-risk', node.risk) + '>' + esc(UI_TEXT.riskLabel[node.risk]) + '</div>';
+    h += '<h2 data-role="prompt">' + esc(node.prompt) + '</h2>';
+
+    if (node.terminal) {
+      h += '<div data-role="terminal"><strong>' + esc(UI_TEXT.terminalTitle) + '</strong><p class="small">' + esc(UI_TEXT.terminalHint) + '</p>' +
+        '<div class="btn-row"><button type="button" class="btn-primary" data-action="toggle-note">' + esc(UI_TEXT.noteButton) + '</button>' +
+        '<button type="button" data-action="reset">' + esc(UI_TEXT.resetButton) + '</button></div></div>';
+    } else {
+      h += '<ol data-role="answers">';
+      node.answers.forEach(function (a, i) {
+        var prev = state.cursor < state.path.length - 1 && step.answer === a.label;
+        h += '<li><button type="button" data-role="answer-button" data-action="answer"' + attr('data-index', i) + attr('data-previous', prev ? 'true' : null) + '>' +
+          '<span class="key" aria-hidden="true">' + (i + 1) + '</span><span>' + esc(a.label) + '</span>' +
+          (prev ? '<span class="tag prev">' + esc(UI_TEXT.previouslyChosen) + '</span>' : '') + '</button></li>';
+      });
+      h += '</ol>';
+      h += '<div data-role="exits">';
+      h += '<button type="button" data-action="exit" data-exit="na" data-role="exit-na">' + esc(UI_TEXT.exitNa) + '</button>';
+      if (node.id !== stage.offScriptNodeId) h += '<button type="button" data-action="exit" data-exit="offscript" data-role="exit-offscript">' + esc(UI_TEXT.exitOffScript) + '</button>';
+      h += '<button type="button" data-action="exit" data-exit="park" data-role="exit-park">' + esc(UI_TEXT.exitPark) + '</button>';
+      h += '</div>';
+    }
+
+    h += '<div data-role="node-tools">';
+    h += '<button type="button" data-action="toggle-lateral" data-role="lateral-button"' + attr('aria-expanded', state.ui.lateralOpen ? 'true' : 'false') + '>' + esc(UI_TEXT.lateralButton) + '</button>';
+    h += '<button type="button" class="btn-quiet" data-action="toggle-flag" data-role="flag-button"' + attr('aria-expanded', state.ui.flagOpen ? 'true' : 'false') + '>' + esc(UI_TEXT.flagButton) + '</button>';
+    h += '</div>';
+
+    if (state.ui.lateralOpen) h += renderLateralPanel(node);
+    if (state.ui.flagOpen) h += renderFlagForm(node);
+    if (state.mode === 'training') h += renderTraining(node);
+
+    h += '</article>';
+    return h;
+  }
+
+  function renderLateralPanel(node) {
+    var stageId = state.ui.lateralStage || node.stageId;
+    var h = '<section data-role="lateral-panel" aria-label="' + esc(UI_TEXT.lateralTitle) + '">';
+    h += '<header><h3>' + esc(UI_TEXT.lateralTitle) + '</h3><span class="small muted">' + esc(UI_TEXT.lateralHint) + '</span>' +
+      '<button type="button" class="btn-quiet" data-action="toggle-lateral">' + esc(UI_TEXT.close) + '</button></header>';
+    h += '<div data-role="lateral-stage-tabs">';
+    STAGES.forEach(function (s) {
+      h += '<button type="button" data-action="lateral-stage"' + attr('data-stage-id', s.id) + attr('aria-pressed', s.id === stageId ? 'true' : 'false') + '>' + esc(s.label) + '</button>';
+    });
+    h += '</div><ul data-role="lateral-list">';
+    FLOW.nodes.filter(function (n) { return n.stageId === stageId; }).forEach(function (n) {
+      var here = n.id === node.id;
+      h += '<li><button type="button" data-role="lateral-item" data-action="lateral"' + attr('data-node-id', n.id) + attr('aria-current', here ? 'true' : null) + (here ? ' disabled' : '') + '>' +
+        '<span class="risk-dot"' + attr('data-risk', n.risk) + '></span><strong>' + esc(n.label) + '</strong><span class="small muted">' + esc(n.prompt) + '</span>' +
+        (here ? '<span class="tag">' + esc(UI_TEXT.lateralCurrent) + '</span>' : '') + '</button></li>';
+    });
+    h += '</ul></section>';
+    return h;
+  }
+
+  function renderFlagForm(node) {
+    var h = '<form data-role="flag-form" data-action="submit-flag">';
+    h += '<h3>' + esc(UI_TEXT.flagTitle) + ' <span class="muted">' + esc(node.label) + '</span></h3>';
+    h += '<fieldset>';
+    Object.keys(UI_TEXT.flagKinds).forEach(function (k, i) {
+      h += '<label><input type="radio" name="kind"' + attr('value', k) + (i === 0 ? ' checked' : '') + '> ' + esc(UI_TEXT.flagKinds[k]) + '</label>';
+    });
+    h += '</fieldset>';
+    h += '<textarea name="comment" rows="2"' + attr('placeholder', UI_TEXT.flagCommentPlaceholder) + '></textarea>';
+    h += '<div class="btn-row"><button type="submit" class="btn-primary">' + esc(UI_TEXT.flagSubmit) + '</button>' +
+      '<button type="button" class="btn-quiet" data-action="toggle-flag">' + esc(UI_TEXT.flagCancel) + '</button></div>';
+    h += '</form>';
+    return h;
+  }
+
+  function renderTraining(node) {
+    var h = '<section data-role="training-block">';
+    if (node.why) h += '<details open><summary>' + esc(UI_TEXT.whyTitle) + '</summary><p class="small">' + esc(node.why) + '</p></details>';
+    if (node.dialogue && node.dialogue.length) {
+      h += '<details><summary>' + esc(UI_TEXT.dialogueTitle) + '</summary><ul data-role="dialogue">';
+      node.dialogue.forEach(function (d) { h += '<li' + attr('data-who', d.who) + '><span class="who">' + esc(d.who) + '</span>' + esc(d.text) + '</li>'; });
+      h += '</ul></details>';
+    }
+    h += '</section>';
+    return h;
+  }
+
+  function renderNotePanel() {
+    var text = buildNote();
+    return '<section class="panel" data-role="note-panel" aria-label="' + esc(UI_TEXT.noteTitle) + '">' +
+      '<div class="btn-row"><h3>' + esc(UI_TEXT.noteTitle) + '</h3>' +
+      '<button type="button" class="btn-primary" data-action="copy-note" data-role="note-copy">' + esc(state.ui.noteCopied ? UI_TEXT.noteCopied : UI_TEXT.noteCopy) + '</button>' +
+      '<button type="button" data-action="toggle-note">' + esc(UI_TEXT.close) + '</button></div>' +
+      '<textarea data-role="note-text" readonly>' + esc(text) + '</textarea>' +
+      '</section>';
+  }
+
+  function renderDebug() {
+    var c = counts();
+    var h = '<section class="panel" data-role="debug" aria-label="' + esc(UI_TEXT.debugTitle) + '">';
+    h += '<div class="btn-row"><h3>' + esc(UI_TEXT.debugTitle) + '</h3><button type="button" data-action="toggle-debug">' + esc(UI_TEXT.close) + '</button></div>';
+    h += '<div data-role="debug-counts">';
+    Object.keys(UI_TEXT.debugCounts).forEach(function (k) { h += '<span><b>' + c[k] + '</b>' + esc(UI_TEXT.debugCounts[k]) + '</span>'; });
+    h += '</div>';
+    h += '<h3>' + esc(UI_TEXT.debugFlags) + '</h3>';
+    if (!state.flags.length) h += '<p class="small muted">' + esc(UI_TEXT.debugFlagsEmpty) + '</p>';
+    else {
+      h += '<ul data-role="flag-list">';
+      state.flags.forEach(function (f) {
+        h += '<li><span class="tag">' + esc(UI_TEXT.flagKinds[f.kind]) + '</span> <strong>' + esc(NODES[f.nodeId].label) + '</strong> <span class="muted">(' + esc(f.nodeId) + ', ' + esc(f.mode) + ')</span>' +
+          (f.comment ? '<br>' + esc(f.comment) : '') + '<br><span class="muted small">' + esc(f.at) + '</span></li>';
+      });
+      h += '</ul>';
+    }
+    h += '<h3>' + esc(UI_TEXT.debugLog) + '</h3><ol data-role="event-log">';
+    state.log.slice().reverse().forEach(function (e) {
+      h += '<li><span class="ev-time">' + esc(e.at.slice(11, 23)) + '</span><span class="ev-type">' + esc(e.type) + '</span><span>' + esc(JSON.stringify(e.detail)) + '</span></li>';
+    });
+    h += '</ol>';
+    var view = { mode: state.mode, cursor: state.cursor, path: state.path, stale: state.stale ? { changedAt: state.stale.changedAt, reason: state.stale.reason, steps: state.stale.steps } : null, context: state.context, unresolved: state.unresolved };
+    h += '<h3>' + esc(UI_TEXT.debugState) + '</h3><pre data-role="state-json">' + esc(JSON.stringify(view, null, 2)) + '</pre>';
+    h += '</section>';
+    return h;
+  }
+
+  /* ---- rail ---- */
+  function renderRail() {
+    var node = currentNode();
+    var h = '<aside class="panel" data-role="rail" aria-label="' + esc(UI_TEXT.railTitle) + '">';
+    h += '<h3>' + esc(UI_TEXT.railTitle) + '</h3>';
+    var order = ['never', 'escalate', 'ask', 'watch', 'resource'];
+    var any = false;
+    order.forEach(function (type) {
+      var blocks = node.content.filter(function (c) { return c.type === type; });
+      if (!blocks.length) return;
+      any = true;
+      h += '<section data-role="content-group"' + attr('data-type', type) + '><h3>' + esc(UI_TEXT.groups[type]) + '</h3>';
+      blocks.forEach(function (b) {
+        h += '<div data-role="content-block"' + attr('data-type', type) + '>';
+        if (type === 'resource') h += '<a' + attr('href', b.url || '#') + '>' + esc(b.text) + '</a>';
+        else h += esc(b.text);
+        h += '</div>';
+      });
+      h += '</section>';
+    });
+    if (!any) h += '<p data-role="rail-empty">' + esc(UI_TEXT.railEmpty) + '</p>';
+    h += '</aside>';
+    return h;
+  }
+
+  function renderFooter() {
+    return '<footer data-role="footer"><span>' + esc(UI_TEXT.footerKeys) + '</span><span>' + esc(fmt(UI_TEXT.footerVersion, { v: FLOW.meta.contentVersion })) + '</span><span>' + esc(FLOW.meta.disclaimer) + '</span></footer>';
+  }
+
+  /* ---------------------------------------------------------- */
+  /* Events: delegated, translate DOM events into actions        */
+  /* ---------------------------------------------------------- */
+  var root = document.getElementById('app');
+
+  root.addEventListener('click', function (ev) {
+    var el = ev.target.closest('[data-action]');
+    if (!el || el.tagName === 'FORM') return;
+    var action = el.getAttribute('data-action');
+    switch (action) {
+      case 'answer': dispatch({ type: 'answer', index: Number(el.getAttribute('data-index')) }); break;
+      case 'exit': dispatch({ type: 'exit', exit: el.getAttribute('data-exit') }); break;
+      case 'lateral': dispatch({ type: 'lateral', nodeId: el.getAttribute('data-node-id') }); break;
+      case 'return': dispatch({ type: 'return', nodeId: el.getAttribute('data-node-id') }); break;
+      case 'search-jump': dispatch({ type: 'search-jump', nodeId: el.getAttribute('data-node-id') }); break;
+      case 'rewind': if (el.hasAttribute('data-index')) dispatch({ type: 'rewind', index: Number(el.getAttribute('data-index')) }); break;
+      case 'set-mode': dispatch({ type: 'set-mode', mode: el.getAttribute('data-mode') }); break;
+      case 'lateral-stage': dispatch({ type: 'lateral-stage', stageId: el.getAttribute('data-stage-id') }); break;
+      case 'copy-note': copyNote(); break;
+      default: dispatch({ type: action }); break;
+    }
+  });
+
+  root.addEventListener('change', function (ev) {
+    var el = ev.target;
+    if (el.getAttribute('data-role') === 'context-input') dispatch({ type: 'set-context', key: el.getAttribute('data-key'), value: el.value });
+  });
+
+  root.addEventListener('input', function (ev) {
+    var el = ev.target;
+    if (el.getAttribute('data-role') === 'search-input') dispatch({ type: 'search', value: el.value });
+  });
+
+  root.addEventListener('submit', function (ev) {
+    var form = ev.target.closest('form[data-action="submit-flag"]');
+    if (!form) return;
+    ev.preventDefault();
+    var kind = form.querySelector('input[name="kind"]:checked');
+    dispatch({ type: 'submit-flag', kind: kind ? kind.value : Object.keys(UI_TEXT.flagKinds)[0], comment: form.querySelector('textarea[name="comment"]').value.trim() });
+  });
+
+  root.addEventListener('keydown', function (ev) {
+    var el = ev.target;
+    if (el.getAttribute && el.getAttribute('data-role') === 'search-input' && ev.key === 'Enter') {
+      var first = searchNodes(state.ui.search)[0];
+      if (first) { ev.preventDefault(); dispatch({ type: 'search-jump', nodeId: first.id }); }
+    }
+  });
+
+  document.addEventListener('keydown', function (ev) {
+    var t = ev.target;
+    var typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT');
+    if (ev.key === 'Escape') {
+      if (typing) t.blur();
+      dispatch({ type: 'close-panels' });
+      return;
+    }
+    if (typing) return;
+    if (ev.key === '/') { ev.preventDefault(); var s = document.querySelector('[data-role="search-input"]'); if (s) s.focus(); return; }
+    if (/^[1-9]$/.test(ev.key) && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
+      var node = currentNode();
+      var i = Number(ev.key) - 1;
+      if (!node.terminal && node.answers[i]) { ev.preventDefault(); dispatch({ type: 'answer', index: i }); }
+    }
+  });
+
+  function copyNote() {
+    var ta = document.querySelector('[data-role="note-text"]');
+    if (!ta) return;
+    var done = function () { dispatch({ type: 'note-copied' }); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(ta.value).then(done, function () { legacyCopy(ta); done(); });
+    } else { legacyCopy(ta); done(); }
+  }
+  function legacyCopy(ta) {
+    ta.focus(); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+  }
+
+  /* ---------------------------------------------------------- */
+  logEvent('visit', { nodeId: FLOW.startNodeId, via: 'start', step: 1 });
+  render();
+
+  // Exposed for the smoke test and for poking at in the console. Read-only intent.
+  window.__frd = { getState: function () { return JSON.parse(JSON.stringify(state)); }, flow: FLOW, dispatch: dispatch };
+})();
+</script>
+</body>
+</html>
