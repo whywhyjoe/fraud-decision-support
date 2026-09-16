@@ -2,14 +2,14 @@
 
 ## What this is
 
-A click-through wireframe of a guided decision-support tool for front-line
-bank fraud reps. The rep follows prompts choose-your-own-adventure style;
-each node shows what to ask, what to watch for, what never to say, when to
-escalate, and links to resources. Because real calls do not follow a script,
-the rep can back up, change an answer, jump sideways, or park a question.
+A click-through demo of a guided call tool for front-line bank fraud reps.
+The rep answers one question at a time; each question shows what to say,
+what to watch for, what never to say, when to escalate, and links to
+resources. Because real calls do not follow a script, the rep can go back,
+change an answer, jump to another question, or skip one and return.
 
-It is a demo built to provoke requirements from a client who is vague on
-them. It is not production software and its content is not bank policy.
+It is built to provoke requirements from a client who is vague on them. It
+is not production software and its content is not bank policy.
 
 ## The non-negotiables
 
@@ -21,14 +21,18 @@ them. It is not production software and its content is not bank policy.
   purpose. Without the banner someone will screenshot it into a procedure.
 - **Content only in `#flow-data`.** The client will change the content and
   the shape of the flow. Both must be possible by editing JSON, without
-  touching the logic.
-- **Design values only in `:root`; grayscale except risk colours.** The
-  designer's pass has to be a restyle. Every colour, spacing, radius, font
-  size and duration is a token, and every interactive element or region has
-  a stable `data-role` to target.
+  touching the logic. Chrome labels live in the one `UI_TEXT` table.
+- **Design values only in `:root`; greyscale except risk colours.** The
+  designer's pass has to be a restyle. Every colour, size, radius and
+  duration is a token, and every element that matters has a `data-role`.
+- **Legible at a glance, no AI-design tells.** Nothing under 14px. No
+  uppercase or letter-spaced labels, no pills, no coloured left borders, no
+  eyebrow lines. Corners are rounded (the client's design system). Tests
+  enforce the size floor and the uppercase ban.
 - **Pure render.** `dispatch(action)` mutates state and calls `render()`
   once. Handlers only translate DOM events into actions. That is what makes
-  rewind, undo and the debug screen's state dump trustworthy.
+  going back, undo, and the state dump behind the scenes trustworthy.
+- **Plain words on screen.** Question, step, stage. Never node.
 
 ## How the pieces fit
 
@@ -39,32 +43,33 @@ The file has four parts in order: `<style>` (tokens, then rules), the
 
 | Field | Meaning |
 | --- | --- |
-| `path[]` | Every step taken, in order. A step is `{ nodeId, arrivedVia, answer, status, exit }`. |
-| `cursor` | Index into `path` of the node on screen. Rewinding moves the cursor; it does not shorten the path. |
+| `path[]` | Every step taken, in order. A step is `{ nodeId, arrivedVia, answer, status }`. |
+| `cursor` | Index into `path` of the question on screen. Going back moves the cursor; it does not shorten the path. |
 | `stale` | `null`, or the steps invalidated by the last forward move from a rewound position, with a snapshot for undo. |
-| `context` | The captured facts strip. Set by answers (`setsContext`) or edited inline. |
-| `unresolved[]` | Node ids parked with *I don't know yet*. |
-| `flags[]`, `log[]` | The flag list and the event log the debug screen shows. |
-| `ui` | Which panels are open, the search text, the mode. |
+| `coaching` | Whether coaching notes are shown. |
+| `feedback[]`, `log[]` | What the behind-the-scenes panel shows. |
+| `ui` | Which stage's question list is open, the search text, panels. |
 
-**Step status** is how a node was left: `open` (on screen now or ahead of a
-rewound cursor), `answered`, `exit` (with `exit` of `na` or `offscript`),
-`unresolved` (parked), `resolved-later` (parked, then answered on a return
-visit), or `skipped` (left by a lateral, search or return jump without an
-answer).
+**Step status** is how a question was left: `open` (on screen now, or
+ahead of a rewound cursor), `answered`, `none` (none of these fit), `later`
+(come back to this later), `resolved-later` (skipped, then answered on a
+return visit), or `moved-on` (left by a jump without an answer).
 
-**`arrivedVia`** is how a node was reached: `start`, `answer`, `lateral`,
-`search`, `return`, `exit-na`, `exit-offscript`, `park`. The breadcrumb tags
-chips with it, and the call note labels lines with it.
+**`arrivedVia`** is how a question was reached: `start`, `answer`, `none`,
+`later`, `jumped` (from a stage's question list), `searched`. The step list
+and the card header say it in words.
 
-**Rewind** is the behaviour the demo exists for. Clicking chip *i* sets
-`cursor = i`; the later chips render dashed ("ahead"). Choosing the *same*
-answer again advances the cursor along the existing path. Choosing anything
-else, or taking any exit or jump, calls `invalidateDownstream()`: the steps
-after the cursor move to `stale.steps`, a snapshot of path, cursor, context
-and unresolved is kept, and the notice with **Undo** renders until undone or
-dismissed. Undo restores the snapshot wholesale, so context set by the new
-answer is also reverted.
+**The stage track** derives from the current question's stage: earlier
+stages are done, later ones to come. Clicking a stage opens its question
+list; picking one is the jump.
+
+**Going back** is the behaviour the demo exists for. Clicking an earlier
+step, or **Back**, sets `cursor = i`; later steps render dashed and dim.
+Choosing the *same* answer again advances the cursor along the existing
+path. Choosing anything else, or taking either exit or a jump, calls
+`invalidateDownstream()`: the steps after the cursor move to `stale.steps`,
+a snapshot of path and cursor is kept, and the notice with **Undo** renders
+until undone or dismissed.
 
 **Render** builds an HTML string from state and assigns it to `#app`. Focus
 is captured before and restored after by `data-focus-key`, which is what
@@ -72,42 +77,53 @@ lets the search box filter on every keystroke through a full re-render.
 
 ## Decisions
 
+### Second cut is smaller than the brief — 2026-09-16
+Call-note generation, the captured-facts strip, the third exit, the lateral
+panel's stage tabs, the unresolved tray and the live/training split were
+built in v1 and removed. **Rejected:** keeping them behind toggles. The
+client has not asked for any of it, and each one added a control to a screen
+meant for quick decisions. **Costs:** the brief's "case note" and "context
+fields" are gone from the data model; `LOG.md` records what they looked
+like if the client asks.
+
+### The flow is the interface — 2026-09-16
+A stage track across the top and the steps as a vertical chain, with the
+current question as the one large card. **Rejected:** breadcrumb chips plus
+a separate lateral panel (v1), which described the path instead of showing
+it. **Costs:** long calls scroll; the current card scrolls itself into view
+on each move.
+
 ### Content as a JSON script block — 2026-09-16
 `<script type="application/json" id="flow-data">` rather than a JS literal.
-**Rejected:** `const FLOW = {...}` — reads the same but is not parseable
-without evaluating the page, so the tests could not check the graph.
-**Costs:** no comments inside the content; the fence comment above the block
-carries the guidance instead.
+**Rejected:** `const FLOW = {...}`, which the tests could not parse without
+evaluating the page. **Costs:** no comments inside the content.
 
 ### Stale steps are kept, not deleted — 2026-09-16
-A changed answer moves downstream steps to `stale`, rendered struck-through,
-with a snapshot for undo. **Rejected:** truncating the path silently, which
-is what every flowchart tool does and what the client's reps will hate.
-**Costs:** a second list to render and to include in the call note; only one
-stale set is kept, so a second rewind discards the first set.
+A changed answer moves later steps to `stale`, shown struck through, with a
+snapshot for undo. **Rejected:** truncating silently, which is what every
+flowchart tool does. **Costs:** only one stale set is kept; a second change
+while a notice shows discards the first set.
 
-### Exits are stage-level with node override — 2026-09-16
-Each stage names `naNextNodeId` and `offScriptNodeId`; a node may override
-the first and add `parkNextNodeId`. **Rejected:** three ids on every node
-(45 copies of the same two values). **Costs:** authoring a node means knowing
-its stage's defaults; `01-content-model.md` spells them out.
-
-### One off-script re-anchor node per stage — 2026-09-16
-"Customer went off-script" lands on a node whose answers route back into the
-stage. **Rejected:** a single global off-script node, which would have had to
-route to every stage and say nothing useful about any of them. **Costs:**
-five more nodes to author.
+### Exits are stage-level — 2026-09-16
+Each stage names where *none of these fit* and *come back later* go.
+**Rejected:** ids on every question. **Costs:** authoring a question means
+knowing its stage's defaults.
 
 ### Full re-render with focus restore — 2026-09-16
-The whole shell is rebuilt on every dispatch. **Rejected:** targeted DOM
-patching, which is faster and is exactly the scattered mutation the brief
-forbade. **Costs:** inputs must commit on `change` (not `input`) or carry a
-`data-focus-key`; the flag form's draft text lives in the DOM until submit.
+**Rejected:** targeted DOM patching, which is the scattered mutation the
+brief forbade. **Costs:** the feedback form's draft text lives in the DOM
+until submit; any input that re-renders on `input` needs a `data-focus-key`.
 
 ## Paid-for gotchas
 
+- **Claude's default UI has recognisable tells** and the first cut had all
+  of them: 12px uppercase tracked labels, pill tags on everything, coloured
+  left borders on content blocks, a stat-banner row. The web has checklists
+  of these ("AI design slop", "Claude design tells"); the non-negotiables
+  above encode the ones that applied. A test now fails on uppercase and on
+  any font token under 14px.
 - **`fullPage` screenshots in Playwright draw the fixed banner at the scroll
-  offset**, not at the top. It looks like the banner has slid down over the
-  header. It has not; a viewport screenshot shows it correctly.
+  offset** and can catch the 120ms fade mid-frame, so the current card looks
+  dim. Neither is real; a viewport screenshot after a short wait is right.
 - **`node --test tests/`** does not work on Node 22 with a directory
   argument; name the file.

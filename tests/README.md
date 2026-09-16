@@ -4,8 +4,8 @@ One row per suite. Runtimes are measured, not guessed.
 
 | Suite | Tier | Runtime | What it proves |
 | --- | --- | --- | --- |
-| `flow.test.mjs` | fast | 0.3s | The content graph is well-formed (unique ids, every target resolves, every node reachable, every node can reach a resolution), the brief's content minimums hold, the CSS keeps every raw value inside `:root`, and no scenario string is hardcoded in the script. |
-| `smoke.mjs` | full | 2.6s | The file boots from `file://` in Chromium with no console errors, and the eight required interactions work end to end: full path, call note and copy, lateral jump, rewind (same answer walks forward, changed answer goes stale with notice and undo), all three exits and the unresolved tray, keyword jump, mode toggle and number keys, flag to debug screen with a complete event log. Also no horizontal overflow at 900px. |
+| `flow.test.mjs` | fast | 0.3s | The content graph is well-formed (unique ids, every target resolves, every question reachable, every question can reach an end of call), the brief's content minimums hold, the CSS keeps every raw value inside `:root`, no font token is under 14px, nothing is uppercase or letter-spaced, and no scenario string is hardcoded in the script. |
+| `smoke.mjs` | full | 3–10s | The file boots from `file://` in Chromium with no console errors, and every interaction the demo depends on works end to end: full path with the stage track following, jump from the track, back and changed answer with stale steps and undo, the two exits, find a question, coaching notes and number keys, the guidance panel, feedback behind the scenes with a complete event log. Also no rendered text under 14px and no horizontal overflow at 900px. |
 
 ```
 node --test tests/flow.test.mjs

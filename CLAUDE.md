@@ -37,9 +37,14 @@ is not `xo-handoff` and `.xo-handoffs/`; don't cross-file them.
 4. **Render is pure: state in, DOM out.** One `render()` per `dispatch()`.
    No DOM mutation in handlers. Every interactive element and content region
    carries a stable `data-role`.
-5. **The placeholder banner stays.** Nobody in a demo may mistake this for
+5. **Legible, rounded, plain.** Nothing under 14px. No uppercase or
+   letter-spaced labels, no pills or tags, no coloured left borders, no
+   eyebrow lines. Corners rounded. On screen say question, step, stage:
+   never node. The fast test enforces the size floor and the uppercase ban;
+   `docs/00-overview.md` says why.
+6. **The placeholder banner stays.** Nobody in a demo may mistake this for
    real procedure.
-6. **Not a Windows environment.** Nothing here may depend on PowerShell or
+7. **Not a Windows environment.** Nothing here may depend on PowerShell or
    `.cmd` tooling.
 
 ## Layout

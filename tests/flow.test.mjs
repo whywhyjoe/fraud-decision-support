@@ -32,18 +32,14 @@ test('every node belongs to a stage and every stage has nodes', () => {
   for (const n of flow.nodes) assert.ok(stageById.has(n.stageId), `${n.id}: unknown stage ${n.stageId}`);
   for (const s of flow.stages) {
     assert.ok(flow.nodes.some((n) => n.stageId === s.id), `stage ${s.id} has no nodes`);
-    assert.ok(nodeById.has(s.naNextNodeId), `stage ${s.id}: naNextNodeId ${s.naNextNodeId} missing`);
-    assert.ok(nodeById.has(s.offScriptNodeId), `stage ${s.id}: offScriptNodeId ${s.offScriptNodeId} missing`);
-    assert.equal(nodeById.get(s.offScriptNodeId).stageId, s.id, `stage ${s.id}: off-script node lives in another stage`);
+    assert.ok(nodeById.has(s.skipToNodeId), `stage ${s.id}: skipToNodeId ${s.skipToNodeId} missing`);
+    assert.ok(nodeById.has(s.noneOfTheseNodeId), `stage ${s.id}: noneOfTheseNodeId ${s.noneOfTheseNodeId} missing`);
+    assert.equal(nodeById.get(s.noneOfTheseNodeId).stageId, s.id, `stage ${s.id}: none-of-these question lives in another stage`);
   }
 });
 
-test('every answer, exit and park target resolves', () => {
-  for (const n of flow.nodes) {
-    for (const a of n.answers) assert.ok(nodeById.has(a.nextNodeId), `${n.id} -> ${a.nextNodeId} missing`);
-    if (n.naNextNodeId) assert.ok(nodeById.has(n.naNextNodeId), `${n.id}: naNextNodeId missing`);
-    if (n.parkNextNodeId) assert.ok(nodeById.has(n.parkNextNodeId), `${n.id}: parkNextNodeId missing`);
-  }
+test('every answer target resolves', () => {
+  for (const n of flow.nodes) for (const a of n.answers) assert.ok(nodeById.has(a.nextNodeId), `${n.id} -> ${a.nextNodeId} missing`);
 });
 
 test('terminal nodes have no answers; others have at least one', () => {
@@ -62,7 +58,7 @@ test('every node is reachable from the start node', () => {
     seen.add(id);
     const n = nodeById.get(id);
     const s = stageById.get(n.stageId);
-    const targets = n.answers.map((a) => a.nextNodeId).concat([n.naNextNodeId || s.naNextNodeId, s.offScriptNodeId, n.parkNextNodeId || s.naNextNodeId]);
+    const targets = n.answers.map((a) => a.nextNodeId).concat([s.skipToNodeId, s.noneOfTheseNodeId]);
     targets.forEach((t) => queue.push(t));
   }
   const unreachable = flow.nodes.map((n) => n.id).filter((id) => !seen.has(id));
@@ -99,13 +95,6 @@ test('content blocks and risk values are well-formed', () => {
   }
 });
 
-test('setsContext keys are declared context fields', () => {
-  const keys = new Set(flow.contextFields.map((f) => f.key));
-  for (const n of flow.nodes) for (const a of n.answers) {
-    for (const k of Object.keys(a.setsContext || {})) assert.ok(keys.has(k), `${n.id}: setsContext.${k} not a context field`);
-  }
-});
-
 test('scenario brief is met: critical nodes, never-say blocks, resource links', () => {
   const critical = flow.nodes.filter((n) => n.risk === 'critical');
   assert.ok(critical.length >= 2, 'at least two critical-risk nodes');
@@ -113,7 +102,7 @@ test('scenario brief is met: critical nodes, never-say blocks, resource links', 
   assert.ok(nevers.length >= 3, 'several never-say blocks');
   const resources = new Set(flow.nodes.flatMap((n) => n.content).filter((c) => c.type === 'resource').map((c) => c.text));
   assert.ok(resources.size >= 4, 'at least four distinct resource links');
-  assert.ok(flow.meta.disclaimer.includes('NOT BANK POLICY'));
+  assert.match(flow.meta.disclaimer, /not bank policy/i);
 });
 
 test('CSS keeps raw values inside :root (designer restyles by tokens)', () => {
@@ -127,6 +116,15 @@ test('CSS keeps raw values inside :root (designer restyles by tokens)', () => {
     if (/\b\d+(\.\d+)?(px|rem|em|ms|vh|vw)\b/.test(line)) offenders.push(`raw length/time: ${line.trim()}`);
   });
   assert.deepEqual(offenders, []);
+});
+
+test('no font-size token is smaller than 14px and no uppercase transform exists', () => {
+  const style = html.match(/<style>([\s\S]*?)<\/style>/)[1];
+  const sizes = [...style.matchAll(/--fs-[\w-]+:\s*(\d+)px/g)].map((m) => Number(m[1]));
+  assert.ok(sizes.length > 0);
+  assert.ok(Math.min(...sizes) >= 14, `smallest font token is ${Math.min(...sizes)}px`);
+  assert.ok(!/text-transform:\s*uppercase/.test(style), 'uppercase labels are an AI-design tell; use sentence case');
+  assert.ok(!/letter-spacing/.test(style), 'tracked labels are an AI-design tell');
 });
 
 test('render logic contains no scenario strings', () => {

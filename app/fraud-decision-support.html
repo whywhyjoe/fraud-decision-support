@@ -3,32 +3,33 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fraud Call Guide — wireframe (placeholder content)</title>
+<title>Fraud call guide — demo (placeholder content)</title>
 <!--
-  Fraud decision-support wireframe.
+  Fraud call guide: click-through demo.
   Single self-contained file: no build, no network, no storage.
   Layout of this file:
-    1. <style>   — every design value is a custom property in :root
-    2. #flow-data — ALL content, one JSON object (see the fence below)
-    3. #app      — semantic markup shell
-    4. <script>  — state, reducer, pure render
+    1. <style>    every design value is a custom property in :root
+    2. #flow-data ALL content, one JSON object (see the fence below)
+    3. #app       empty shell, filled by render()
+    4. <script>   state, reducer, pure render
 -->
 <style>
 /* ============================================================ */
-/* DESIGN TOKENS — the ONLY place a raw value may appear.        */
-/* Grayscale only; red/amber/green are reserved for risk.        */
+/* Design tokens. The only place a raw value may appear.         */
+/* Greyscale only; red and amber are reserved for risk.          */
+/* Nothing on the page is smaller than --fs-small.               */
 /* ============================================================ */
 :root {
-  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --font-mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
 
-  --fs-xs: 12px;
-  --fs-sm: 13px;
-  --fs-md: 15px;
-  --fs-lg: 18px;
-  --fs-xl: 24px;
-  --fs-xxl: 30px;
-  --lh: 1.45;
+  --fs-small: 14px;
+  --fs-body: 16px;
+  --fs-lead: 18px;
+  --fs-h1: 20px;
+  --fs-prompt: 28px;
+  --lh-body: 1.5;
+  --lh-tight: 1.25;
 
   --s-1: 4px;
   --s-2: 8px;
@@ -38,401 +39,354 @@
   --s-6: 32px;
   --s-7: 48px;
 
-  --radius-sm: 3px;
-  --radius-md: 6px;
-  --radius-pill: 999px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-round: 999px;
 
-  --bw-1: 1px;
-  --bw-2: 2px;
-  --bw-4: 4px;
+  --bw: 1px;
+  --bw-strong: 2px;
+  --bw-line: 2px;
 
   --g-0: #ffffff;
-  --g-1: #f6f6f6;
-  --g-2: #e9e9e9;
-  --g-3: #d4d4d4;
-  --g-4: #b0b0b0;
-  --g-5: #808080;
-  --g-6: #555555;
-  --g-7: #333333;
-  --g-8: #1c1c1c;
-  --g-9: #000000;
+  --g-1: #f5f5f5;
+  --g-2: #e8e8e8;
+  --g-3: #d0d0d0;
+  --g-4: #a8a8a8;
+  --g-5: #767676;
+  --g-6: #4d4d4d;
+  --g-7: #2e2e2e;
+  --g-8: #1a1a1a;
 
-  --risk-low: #2e8b57;
-  --risk-elevated: #c98a00;
-  --risk-critical: #c62828;
-  --risk-low-bg: #eaf5ee;
-  --risk-elevated-bg: #fdf3dc;
-  --risk-critical-bg: #fbe9e9;
+  --critical: #b3261e;
+  --critical-bg: #fbeeed;
+  --elevated: #8a5a00;
+  --elevated-bg: #fbf1dc;
 
   --fade: 120ms;
 
   --page-max: 1280px;
-  --rail-w: 340px;
-  --ctx-field-min-w: 160px;
-  --target-h: 56px;
-  --chip-h: 34px;
-  --banner-h: 28px;
-  --topbar-min-h: 96px;
-  --focus-w: 2px;
-  --shell-min-w: 900px;
-  --lateral-max-h: 60vh;
-  --pct-full: 100%;
-  --pct-half: 50%;
-  --op-dim: 0.55;
+  --page-min: 900px;
+  --guide-w: 380px;
+  --answer-h: 60px;
+  --dot: 28px;
+  --dot-small: 14px;
+  --banner-h: 36px;
+  --control-h: 40px;
+  --search-w: 300px;
+  --dropdown-max-h: 420px;
+  --step-indent: 40px;
+  --full: 100%;
+  --half: 50%;
+  --dim: 0.5;
   --z-banner: 50;
-  --z-modal: 40;
-  --z-notice: 30;
+  --z-drop: 40;
 }
 
 /* ---------- base ---------- */
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
-  font-family: var(--font-ui);
-  font-size: var(--fs-md);
-  line-height: var(--lh);
+  font-family: var(--font);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
   color: var(--g-8);
   background: var(--g-1);
   padding-top: var(--banner-h);
 }
-h1, h2, h3, h4 { margin: 0; line-height: var(--lh); font-weight: 600; }
-h1 { font-size: var(--fs-lg); }
-h2 { font-size: var(--fs-xl); }
-h3 { font-size: var(--fs-sm); text-transform: uppercase; letter-spacing: var(--bw-1); color: var(--g-6); }
+h1, h2, h3 { margin: 0; line-height: var(--lh-tight); font-weight: 600; }
+h1 { font-size: var(--fs-h1); }
+h2 { font-size: var(--fs-prompt); }
+h3 { font-size: var(--fs-body); }
 p { margin: 0 0 var(--s-3) 0; }
-ul { margin: 0; padding-left: var(--s-5); }
+ul, ol { margin: 0; padding: 0; list-style: none; }
 a { color: var(--g-8); }
 button {
   font: inherit;
   color: inherit;
   cursor: pointer;
   background: var(--g-0);
-  border: var(--bw-1) solid var(--g-4);
-  border-radius: var(--radius-sm);
-  padding: var(--s-2) var(--s-3);
+  border: var(--bw) solid var(--g-3);
+  border-radius: var(--radius);
+  padding: var(--s-2) var(--s-4);
+  min-height: var(--control-h);
 }
 button:hover { background: var(--g-2); }
-button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible {
-  outline: var(--focus-w) solid var(--g-8);
-  outline-offset: var(--bw-1);
+button:disabled { cursor: default; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible {
+  outline: var(--bw-strong) solid var(--g-8);
+  outline-offset: var(--bw-strong);
 }
-input, select, textarea {
+input, textarea {
   font: inherit;
   color: inherit;
-  border: var(--bw-1) solid var(--g-4);
-  border-radius: var(--radius-sm);
-  padding: var(--s-1) var(--s-2);
+  border: var(--bw) solid var(--g-3);
+  border-radius: var(--radius);
+  padding: var(--s-2) var(--s-3);
   background: var(--g-0);
+  min-height: var(--control-h);
 }
-textarea { font-family: var(--font-mono); font-size: var(--fs-sm); }
-code, pre { font-family: var(--font-mono); font-size: var(--fs-sm); }
 [hidden] { display: none !important; }
-.sr-only { position: absolute; width: var(--bw-1); height: var(--bw-1); overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .muted { color: var(--g-5); }
-.small { font-size: var(--fs-sm); }
-.tag {
-  display: inline-block;
-  font-size: var(--fs-xs);
-  text-transform: uppercase;
-  letter-spacing: var(--bw-1);
-  border: var(--bw-1) solid var(--g-4);
-  border-radius: var(--radius-sm);
-  padding: 0 var(--s-1);
-  color: var(--g-6);
-  background: var(--g-0);
-}
-.btn-primary { background: var(--g-8); color: var(--g-0); border-color: var(--g-8); }
-.btn-primary:hover { background: var(--g-7); }
-.btn-quiet { border-color: transparent; background: transparent; }
-.btn-quiet:hover { background: var(--g-2); }
-.btn-row { display: flex; gap: var(--s-2); flex-wrap: wrap; align-items: center; }
+.small { font-size: var(--fs-small); }
+.btn-dark { background: var(--g-8); color: var(--g-0); border-color: var(--g-8); }
+.btn-dark:hover { background: var(--g-7); }
+.btn-text { border-color: transparent; background: transparent; text-decoration: underline; padding-left: var(--s-2); padding-right: var(--s-2); }
+.btn-text:hover { background: var(--g-2); }
+.btn-toggle[aria-pressed="true"] { background: var(--g-8); color: var(--g-0); border-color: var(--g-8); }
+.row { display: flex; gap: var(--s-3); align-items: center; flex-wrap: wrap; }
 
 /* ---------- placeholder banner ---------- */
 [data-role="placeholder-banner"] {
   position: fixed; top: 0; left: 0; right: 0;
   height: var(--banner-h);
   z-index: var(--z-banner);
-  background: var(--g-9);
+  background: var(--g-8);
   color: var(--g-0);
-  font-size: var(--fs-sm);
-  font-weight: 700;
-  letter-spacing: var(--bw-1);
-  text-transform: uppercase;
+  font-size: var(--fs-body);
+  font-weight: 600;
   display: flex; align-items: center; justify-content: center;
-  gap: var(--s-4);
 }
-[data-role="placeholder-banner"] span { font-weight: 400; text-transform: none; letter-spacing: 0; opacity: var(--op-dim); }
 
-/* ---------- shell ---------- */
+/* ---------- page grid ---------- */
 [data-role="shell"] {
   max-width: var(--page-max);
-  min-width: var(--shell-min-w);
+  min-width: var(--page-min);
   margin: 0 auto;
-  padding: var(--s-4);
+  padding: var(--s-5) var(--s-5) var(--s-7);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--rail-w);
-  grid-template-areas: "top top" "main rail" "foot foot";
-  gap: var(--s-4);
+  grid-template-columns: minmax(0, 1fr) var(--guide-w);
+  grid-template-areas: "top top" "path guide" "foot foot";
+  column-gap: var(--s-6);
+  row-gap: var(--s-5);
 }
-[data-role="top-bar"] { grid-area: top; }
-[data-role="main"] { grid-area: main; min-width: 0; }
-[data-role="rail"] { grid-area: rail; min-width: 0; }
-[data-role="footer"] { grid-area: foot; }
+[data-role="top"] { grid-area: top; }
+[data-role="path"] { grid-area: path; min-width: 0; }
+[data-role="guide"] { grid-area: guide; min-width: 0; }
+[data-role="foot"] { grid-area: foot; }
 @media (max-width: 1000px) {
-  [data-role="shell"] { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "main" "rail" "foot"; }
+  [data-role="shell"] { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "path" "guide" "foot"; }
 }
 
-.panel {
-  background: var(--g-0);
-  border: var(--bw-1) solid var(--g-3);
-  border-radius: var(--radius-md);
-  padding: var(--s-4);
-}
-.panel + .panel { margin-top: var(--s-4); }
-
-/* ---------- top bar ---------- */
-[data-role="app-header"] {
-  display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap;
-  padding-bottom: var(--s-3);
-  border-bottom: var(--bw-1) solid var(--g-2);
-  margin-bottom: var(--s-3);
-}
-[data-role="app-header"] h1 { margin-right: auto; }
-[data-role="mode-toggle"] { display: inline-flex; border: var(--bw-1) solid var(--g-4); border-radius: var(--radius-sm); overflow: hidden; }
-[data-role="mode-toggle"] button { border: 0; border-radius: 0; }
-[data-role="mode-toggle"] button[aria-pressed="true"] { background: var(--g-8); color: var(--g-0); }
-[data-role="search"] { display: flex; gap: var(--s-2); align-items: center; position: relative; }
-[data-role="search"] input { min-width: var(--rail-w); height: var(--chip-h); }
+/* ---------- header row ---------- */
+[data-role="header-row"] { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; margin-bottom: var(--s-5); }
+[data-role="header-row"] h1 { margin-right: auto; }
+[data-role="header-row"] h1 span { font-weight: 400; color: var(--g-5); }
+[data-role="search"] { position: relative; }
+[data-role="search"] input { width: var(--search-w); }
 [data-role="search-results"] {
-  position: absolute; top: var(--pct-full); left: 0; right: 0;
-  z-index: var(--z-modal);
-  background: var(--g-0);
-  border: var(--bw-1) solid var(--g-4);
-  border-radius: var(--radius-sm);
+  position: absolute; top: var(--full); right: 0; width: var(--search-w);
+  z-index: var(--z-drop);
   margin-top: var(--s-1);
-  max-height: var(--lateral-max-h);
-  overflow: auto;
-  list-style: none; padding: 0;
-}
-[data-role="search-results"] li button {
-  display: block; width: var(--pct-full); text-align: left; border: 0; border-radius: 0;
-  border-bottom: var(--bw-1) solid var(--g-2);
-}
-[data-role="search-results"] li:last-child button { border-bottom: 0; }
-.search-empty { display: block; padding: var(--s-2); font-size: var(--fs-sm); color: var(--g-5); }
-.crumb-stale-list { display: contents; }
-
-/* breadcrumb */
-[data-role="breadcrumb"] { display: flex; flex-wrap: wrap; gap: var(--s-2); align-items: center; list-style: none; padding: 0; margin: 0; }
-[data-role="breadcrumb-chip"] {
-  height: auto; min-height: var(--chip-h);
-  display: inline-flex; flex-direction: column; align-items: flex-start; justify-content: center;
-  padding: var(--s-1) var(--s-3);
-  border-radius: var(--radius-pill);
-  border: var(--bw-1) solid var(--g-4);
   background: var(--g-0);
-  font-size: var(--fs-sm);
-  line-height: 1.2;
-  text-align: left;
+  border: var(--bw) solid var(--g-3);
+  border-radius: var(--radius);
+  max-height: var(--dropdown-max-h);
+  overflow: auto;
 }
-[data-role="breadcrumb-chip"] .chip-answer { font-size: var(--fs-xs); color: var(--g-6); }
-[data-role="breadcrumb-chip"][data-state="current"] { border-color: var(--g-9); border-width: var(--bw-2); background: var(--g-2); font-weight: 600; }
-[data-role="breadcrumb-chip"][data-state="ahead"] { border-style: dashed; color: var(--g-6); }
-[data-role="breadcrumb-chip"][data-state="stale"] { border-style: dotted; color: var(--g-5); text-decoration: line-through; background: var(--g-1); }
-[data-role="breadcrumb-chip"][data-arrived="lateral"], [data-role="breadcrumb-chip"][data-arrived="search"] { border-style: double; border-width: var(--bw-4); }
-[data-role="breadcrumb-chip"][data-arrived="lateral"] .tag, [data-role="breadcrumb-chip"][data-arrived="search"] .tag { border-color: var(--g-8); color: var(--g-8); }
-[data-role="breadcrumb-chip"] .tag { margin-left: var(--s-1); }
-.crumb-sep { color: var(--g-4); }
-.crumb-stale-group { display: inline-flex; gap: var(--s-2); align-items: center; flex-wrap: wrap; padding: var(--s-1) var(--s-2); border: var(--bw-1) dashed var(--g-4); border-radius: var(--radius-md); }
+[data-role="search-result"], .search-empty {
+  display: block; width: var(--full); text-align: left;
+  border: 0; border-radius: 0; border-bottom: var(--bw) solid var(--g-2);
+  padding: var(--s-3) var(--s-4);
+}
+[data-role="search-result"] span { display: block; color: var(--g-5); font-size: var(--fs-small); }
+.search-empty { color: var(--g-5); }
+
+/* ---------- stage track ---------- */
+[data-role="stage-track"] { display: flex; align-items: stretch; }
+[data-role="stage"] { flex: 1; position: relative; }
+[data-role="stage-button"] {
+  width: var(--full); min-height: var(--control-h);
+  border: 0; background: transparent; border-radius: var(--radius);
+  display: flex; flex-direction: column; align-items: center; gap: var(--s-2);
+  padding: var(--s-2) var(--s-2) var(--s-3);
+  color: var(--g-5);
+}
+[data-role="stage-button"]:hover { background: var(--g-2); }
+[data-role="stage-button"] .stage-dot {
+  width: var(--dot); height: var(--dot);
+  border-radius: var(--radius-round);
+  border: var(--bw-strong) solid var(--g-3);
+  background: var(--g-0);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: var(--fs-small);
+  position: relative; z-index: 1;
+}
+[data-role="stage-button"] .stage-name { font-size: var(--fs-body); text-align: center; }
+[data-role="stage"]::before {
+  content: ""; position: absolute; top: calc(var(--s-2) + var(--dot) / 2); left: 0; right: 0;
+  border-top: var(--bw-line) solid var(--g-3);
+}
+[data-role="stage"]:first-child::before { left: var(--half); }
+[data-role="stage"]:last-child::before { right: var(--half); }
+[data-role="stage"][data-state="done"] .stage-dot { background: var(--g-6); border-color: var(--g-6); color: var(--g-0); }
+[data-role="stage"][data-state="done"] .stage-name { color: var(--g-6); }
+[data-role="stage"][data-state="current"] .stage-dot { background: var(--g-8); border-color: var(--g-8); color: var(--g-0); }
+[data-role="stage"][data-state="current"] .stage-name { color: var(--g-8); font-weight: 600; }
+[data-role="stage"][data-state="done"]::before { border-color: var(--g-6); }
+[data-role="stage-button"][aria-expanded="true"] { background: var(--g-2); }
+
+/* stage question list, opened from the track */
+[data-role="stage-questions"] {
+  margin-top: var(--s-3);
+  background: var(--g-0);
+  border: var(--bw) solid var(--g-3);
+  border-radius: var(--radius-lg);
+  padding: var(--s-4) var(--s-5);
+}
+[data-role="stage-questions"] header { display: flex; align-items: center; gap: var(--s-3); margin-bottom: var(--s-3); }
+[data-role="stage-questions"] header h3 { margin-right: auto; font-size: var(--fs-lead); }
+[data-role="stage-questions"] ul { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-2); }
+[data-role="stage-question"] {
+  width: var(--full); text-align: left; display: flex; gap: var(--s-3); align-items: center;
+}
+[data-role="stage-question"][aria-current="true"] { background: var(--g-2); border-color: var(--g-2); cursor: default; }
+[data-role="stage-question"] .risk-mark { flex: none; width: var(--dot-small); height: var(--dot-small); border-radius: var(--radius-round); background: var(--g-3); }
+[data-role="stage-question"] .risk-mark[data-risk="elevated"] { background: var(--elevated); }
+[data-role="stage-question"] .risk-mark[data-risk="critical"] { background: var(--critical); }
+
+/* ---------- the path ---------- */
+[data-role="steps"] { position: relative; }
+[data-role="step"] { position: relative; padding-left: var(--step-indent); padding-bottom: var(--s-3); }
+[data-role="step"]::before {
+  content: ""; position: absolute; left: calc(var(--dot-small) / 2); top: var(--dot-small); bottom: calc(var(--s-3) * -1);
+  border-left: var(--bw-line) solid var(--g-3);
+}
+[data-role="step"]:last-child::before { display: none; }
+[data-role="step"]::after {
+  content: ""; position: absolute; left: 0; top: var(--s-4);
+  width: var(--dot-small); height: var(--dot-small);
+  border-radius: var(--radius-round);
+  background: var(--g-0); border: var(--bw-strong) solid var(--g-4);
+}
+[data-role="step"][data-state="past"]::after { background: var(--g-6); border-color: var(--g-6); }
+[data-role="step"][data-state="current"]::after { background: var(--g-8); border-color: var(--g-8); }
+[data-role="step"][data-state="ahead"]::after, [data-role="step"][data-state="stale"]::after { border-style: dashed; }
+[data-role="step"][data-state="ahead"]::before, [data-role="step"][data-state="stale"]::before { border-left-style: dashed; }
+
+[data-role="step-summary"] {
+  width: var(--full); text-align: left;
+  display: flex; align-items: baseline; gap: var(--s-3); flex-wrap: wrap;
+  padding: var(--s-3) var(--s-4);
+  background: var(--g-0);
+}
+[data-role="step-summary"] .step-q { font-weight: 600; }
+[data-role="step-summary"] .step-a { color: var(--g-6); }
+[data-role="step-summary"] .step-note { color: var(--g-5); font-size: var(--fs-small); width: var(--full); }
+[data-role="step"][data-state="ahead"] [data-role="step-summary"] { opacity: var(--dim); border-style: dashed; }
+[data-role="step"][data-state="stale"] [data-role="step-summary"] { opacity: var(--dim); border-style: dashed; text-decoration: line-through; }
 
 [data-role="stale-notice"] {
-  margin-top: var(--s-3);
-  padding: var(--s-2) var(--s-3);
-  border: var(--bw-2) solid var(--g-9);
-  border-radius: var(--radius-sm);
-  background: var(--g-2);
-  display: flex; gap: var(--s-3); align-items: center; flex-wrap: wrap;
-  z-index: var(--z-notice);
-}
-[data-role="stale-notice"] strong { font-size: var(--fs-md); }
-
-/* context strip */
-[data-role="context-strip"] {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--ctx-field-min-w), 1fr)); gap: var(--s-2);
-  margin-top: var(--s-3); padding-top: var(--s-3); border-top: var(--bw-1) solid var(--g-2);
-}
-[data-role="context-field"] label { display: block; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: var(--bw-1); color: var(--g-6); margin-bottom: var(--s-1); }
-[data-role="context-field"] input, [data-role="context-field"] select { width: var(--pct-full); }
-[data-role="context-field"][data-set="true"] label { color: var(--g-8); font-weight: 600; }
-
-[data-role="unresolved-tray"] { margin-top: var(--s-3); display: flex; gap: var(--s-2); align-items: center; flex-wrap: wrap; font-size: var(--fs-sm); }
-
-/* ---------- node card ---------- */
-[data-role="node-card"] { position: relative; }
-[data-role="node-card"] .stage-line { display: flex; gap: var(--s-2); align-items: center; flex-wrap: wrap; margin-bottom: var(--s-3); }
-[data-role="node-card"] h2 { margin-bottom: var(--s-4); }
-[data-role="risk-banner"] {
-  border-left: var(--bw-4) solid var(--g-4);
-  padding: var(--s-2) var(--s-3);
-  margin-bottom: var(--s-4);
-  font-weight: 600;
-  font-size: var(--fs-sm);
-  text-transform: uppercase;
-  letter-spacing: var(--bw-1);
-  background: var(--g-1);
-}
-[data-role="risk-banner"][data-risk="low"] { border-color: var(--risk-low); background: var(--risk-low-bg); color: var(--risk-low); }
-[data-role="risk-banner"][data-risk="elevated"] { border-color: var(--risk-elevated); background: var(--risk-elevated-bg); color: var(--risk-elevated); }
-[data-role="risk-banner"][data-risk="critical"] { border-color: var(--risk-critical); background: var(--risk-critical-bg); color: var(--risk-critical); }
-[data-role="node-card"][data-risk="critical"] { border-color: var(--risk-critical); border-width: var(--bw-2); }
-[data-role="node-card"][data-risk="elevated"] { border-color: var(--risk-elevated); border-width: var(--bw-2); }
-
-[data-role="answers"] { list-style: none; padding: 0; margin: 0 0 var(--s-4) 0; display: flex; flex-direction: column; gap: var(--s-2); }
-[data-role="answer-button"] {
-  width: var(--pct-full);
-  min-height: var(--target-h);
-  text-align: left;
-  font-size: var(--fs-lg);
+  display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap;
   padding: var(--s-3) var(--s-4);
-  display: flex; align-items: center; gap: var(--s-3);
-  border-width: var(--bw-2);
-  border-color: var(--g-7);
+  background: var(--g-2);
+  border-radius: var(--radius);
+  margin-bottom: var(--s-3);
 }
-[data-role="answer-button"] .key {
-  font-family: var(--font-mono);
-  font-size: var(--fs-sm);
-  border: var(--bw-1) solid var(--g-5);
-  border-radius: var(--radius-sm);
-  padding: 0 var(--s-2);
-  color: var(--g-6);
-  flex: none;
-}
-[data-role="answer-button"][data-previous="true"] { background: var(--g-2); }
-[data-role="answer-button"] .prev { margin-left: auto; }
-[data-role="exits"] { display: flex; gap: var(--s-2); flex-wrap: wrap; padding-top: var(--s-3); border-top: var(--bw-1) dashed var(--g-3); }
-[data-role="exits"] button { font-size: var(--fs-sm); }
-[data-role="node-tools"] { display: flex; gap: var(--s-2); flex-wrap: wrap; margin-top: var(--s-4); }
+[data-role="stale-notice"] strong { font-size: var(--fs-lead); }
+[data-role="stale-notice"] .row { margin-left: auto; }
 
-[data-role="terminal"] { padding: var(--s-4); border: var(--bw-2) solid var(--g-8); border-radius: var(--radius-md); background: var(--g-1); margin-bottom: var(--s-4); }
-
-[data-role="training-block"] { margin-top: var(--s-4); border-top: var(--bw-1) solid var(--g-2); padding-top: var(--s-3); }
-[data-role="training-block"] details { margin-bottom: var(--s-2); }
-[data-role="training-block"] summary { cursor: pointer; font-weight: 600; }
-[data-role="dialogue"] { list-style: none; padding: 0; margin: var(--s-2) 0 0 0; }
-[data-role="dialogue"] li { padding: var(--s-1) var(--s-2); border-left: var(--bw-2) solid var(--g-3); margin-bottom: var(--s-1); }
-[data-role="dialogue"] li[data-who="customer"] { border-color: var(--g-8); }
-[data-role="dialogue"] .who { font-size: var(--fs-xs); text-transform: uppercase; color: var(--g-6); margin-right: var(--s-2); }
-
-/* lateral jump panel */
-[data-role="lateral-panel"] { margin-top: var(--s-4); border: var(--bw-1) solid var(--g-8); border-radius: var(--radius-md); padding: var(--s-3); background: var(--g-1); }
-[data-role="lateral-panel"] header { display: flex; align-items: center; gap: var(--s-2); margin-bottom: var(--s-2); }
-[data-role="lateral-panel"] header h3 { margin-right: auto; }
-[data-role="lateral-stage-tabs"] { display: flex; gap: var(--s-1); flex-wrap: wrap; margin-bottom: var(--s-2); }
-[data-role="lateral-stage-tabs"] button[aria-pressed="true"] { background: var(--g-8); color: var(--g-0); border-color: var(--g-8); }
-[data-role="lateral-list"] { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--s-1); max-height: var(--lateral-max-h); overflow: auto; }
-[data-role="lateral-item"] { width: var(--pct-full); text-align: left; display: flex; gap: var(--s-2); align-items: center; }
-[data-role="lateral-item"][aria-current="true"] { border-style: dashed; color: var(--g-5); cursor: default; }
-[data-role="lateral-item"] .tag { flex: none; white-space: nowrap; margin-left: auto; }
-[data-role="lateral-item"] .risk-dot { width: var(--s-2); height: var(--s-2); border-radius: var(--radius-pill); background: var(--g-3); flex: none; }
-[data-role="lateral-item"] .risk-dot[data-risk="elevated"] { background: var(--risk-elevated); }
-[data-role="lateral-item"] .risk-dot[data-risk="critical"] { background: var(--risk-critical); }
-
-/* flag form */
-[data-role="flag-form"] { margin-top: var(--s-4); border: var(--bw-1) solid var(--g-8); border-radius: var(--radius-md); padding: var(--s-3); background: var(--g-1); }
-[data-role="flag-form"] fieldset { border: 0; padding: 0; margin: 0 0 var(--s-2) 0; display: flex; gap: var(--s-3); flex-wrap: wrap; }
-[data-role="flag-form"] textarea { width: var(--pct-full); font-family: var(--font-ui); }
-
-/* ---------- right rail ---------- */
-[data-role="content-group"] { margin-bottom: var(--s-4); }
-[data-role="content-group"] h3 { margin-bottom: var(--s-2); }
-[data-role="content-block"] {
-  padding: var(--s-2) var(--s-3);
-  border-left: var(--bw-2) solid var(--g-3);
-  margin-bottom: var(--s-2);
-  font-size: var(--fs-sm);
+/* the current question */
+[data-role="question-card"] {
   background: var(--g-0);
+  border: var(--bw-strong) solid var(--g-8);
+  border-radius: var(--radius-lg);
+  padding: var(--s-5);
 }
-[data-role="content-block"][data-type="ask"] { border-color: var(--g-5); }
-[data-role="content-block"][data-type="ask"]::before { content: "Ask: "; font-weight: 600; }
-[data-role="content-block"][data-type="watch"] { border-color: var(--g-7); background: var(--g-1); }
-[data-role="content-block"][data-type="watch"]::before { content: "Watch for: "; font-weight: 600; }
-[data-role="content-block"][data-type="never"] {
-  border-left-width: var(--bw-4);
-  border-color: var(--g-9);
-  background: var(--g-9);
-  color: var(--g-0);
+[data-role="question-card"][data-fresh="true"] { animation: fade-in var(--fade) ease-out; }
+[data-role="question-card"] .card-top { display: flex; align-items: center; gap: var(--s-3); margin-bottom: var(--s-4); color: var(--g-5); }
+[data-role="question-card"] .card-top .spacer { flex: 1; }
+[data-role="risk-line"] {
+  border-radius: var(--radius);
+  padding: var(--s-2) var(--s-4);
   font-weight: 600;
+  margin-bottom: var(--s-4);
 }
-[data-role="content-block"][data-type="never"]::before { content: "Never say: "; text-transform: uppercase; letter-spacing: var(--bw-1); }
-[data-role="content-block"][data-type="escalate"] {
-  border-left-width: var(--bw-4);
-  border-color: var(--risk-critical);
-  background: var(--risk-critical-bg);
-  font-weight: 600;
+[data-role="risk-line"][data-risk="elevated"] { background: var(--elevated-bg); color: var(--elevated); }
+[data-role="risk-line"][data-risk="critical"] { background: var(--critical-bg); color: var(--critical); }
+[data-role="question-card"] h2 { margin-bottom: var(--s-5); }
+[data-role="revisit-line"] { margin-bottom: var(--s-4); color: var(--g-6); }
+
+[data-role="answers"] { display: flex; flex-direction: column; gap: var(--s-3); margin-bottom: var(--s-4); }
+[data-role="answer"] {
+  width: var(--full);
+  min-height: var(--answer-h);
+  text-align: left;
+  font-size: var(--fs-lead);
+  padding: var(--s-3) var(--s-5);
+  border: var(--bw-strong) solid var(--g-4);
+  display: flex; align-items: center; gap: var(--s-3);
 }
-[data-role="content-block"][data-type="escalate"]::before { content: "Escalate if: "; text-transform: uppercase; letter-spacing: var(--bw-1); color: var(--risk-critical); }
-[data-role="content-block"][data-type="resource"] { border-color: var(--g-4); border-style: dashed; }
-[data-role="content-block"][data-type="resource"] a { font-weight: 600; }
-[data-role="content-block"][data-type="resource"] a::after { content: " \2197"; }
-[data-role="rail-empty"] { color: var(--g-5); font-size: var(--fs-sm); }
+[data-role="answer"]:hover { border-color: var(--g-8); }
+[data-role="answer"][data-previous="true"] { background: var(--g-2); border-color: var(--g-8); }
+[data-role="answer"] .prev { margin-left: auto; color: var(--g-6); font-size: var(--fs-small); }
+[data-role="other-ways"] { display: flex; gap: var(--s-2); flex-wrap: wrap; align-items: center; color: var(--g-5); }
 
-/* ---------- note / debug ---------- */
-[data-role="note-panel"] textarea { width: var(--pct-full); min-height: var(--rail-w); }
-[data-role="debug"] pre { background: var(--g-1); border: var(--bw-1) solid var(--g-2); padding: var(--s-3); overflow: auto; max-height: var(--lateral-max-h); margin: 0; white-space: pre-wrap; }
-[data-role="debug"] h3 { margin: var(--s-4) 0 var(--s-2) 0; }
-[data-role="event-log"] { list-style: none; padding: 0; margin: 0; font-family: var(--font-mono); font-size: var(--fs-xs); max-height: var(--lateral-max-h); overflow: auto; border: var(--bw-1) solid var(--g-2); }
-[data-role="event-log"] li { padding: var(--s-1) var(--s-2); border-bottom: var(--bw-1) solid var(--g-2); display: flex; gap: var(--s-3); }
-[data-role="event-log"] .ev-time { color: var(--g-5); flex: none; }
-[data-role="event-log"] .ev-type { font-weight: 700; flex: none; min-width: var(--s-7); }
-[data-role="flag-list"] { list-style: none; padding: 0; margin: 0; }
-[data-role="flag-list"] li { padding: var(--s-2); border: var(--bw-1) solid var(--g-3); border-radius: var(--radius-sm); margin-bottom: var(--s-2); font-size: var(--fs-sm); }
-[data-role="debug-counts"] { display: flex; gap: var(--s-4); flex-wrap: wrap; font-size: var(--fs-sm); }
-[data-role="debug-counts"] span b { font-size: var(--fs-lg); margin-right: var(--s-1); }
+[data-role="end-card"] { background: var(--g-1); border-radius: var(--radius); padding: var(--s-4) var(--s-5); margin-bottom: var(--s-4); }
+[data-role="end-card"] p { margin-bottom: var(--s-3); }
 
-[data-role="footer"] { font-size: var(--fs-xs); color: var(--g-5); display: flex; gap: var(--s-4); flex-wrap: wrap; }
-kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); border-radius: var(--radius-sm); padding: 0 var(--s-1); font-size: var(--fs-xs); }
+[data-role="coaching"] { margin-top: var(--s-5); padding-top: var(--s-4); border-top: var(--bw) solid var(--g-2); }
+[data-role="coaching"] h3 { margin-bottom: var(--s-2); }
+[data-role="coaching"] section + section { margin-top: var(--s-4); }
+[data-role="dialogue"] li { padding: var(--s-2) var(--s-4); border-radius: var(--radius); margin-bottom: var(--s-2); background: var(--g-1); }
+[data-role="dialogue"] li[data-who="customer"] { background: var(--g-2); }
+[data-role="dialogue"] .who { font-weight: 600; margin-right: var(--s-2); }
 
-/* the only animation: a fade on the node card when the node changes */
+[data-role="feedback-form"] { margin-top: var(--s-5); padding: var(--s-4) var(--s-5); background: var(--g-1); border-radius: var(--radius); }
+[data-role="feedback-form"] h3 { margin-bottom: var(--s-3); }
+[data-role="feedback-form"] fieldset { border: 0; padding: 0; margin: 0 0 var(--s-3); display: flex; gap: var(--s-4); flex-wrap: wrap; }
+[data-role="feedback-form"] textarea { width: var(--full); margin-bottom: var(--s-3); }
+
+/* ---------- guidance ---------- */
+[data-role="guide"] > h2 { font-size: var(--fs-lead); margin-bottom: var(--s-4); }
+[data-role="guide-group"] { margin-bottom: var(--s-5); }
+[data-role="guide-group"] h3 { margin-bottom: var(--s-2); }
+[data-role="guide-group"] li { padding: var(--s-3) var(--s-4); border-radius: var(--radius); margin-bottom: var(--s-2); background: var(--g-0); border: var(--bw) solid var(--g-2); }
+[data-role="guide-group"][data-type="never"] h3 { color: var(--g-8); }
+[data-role="guide-group"][data-type="never"] li { background: var(--g-8); color: var(--g-0); border-color: var(--g-8); font-weight: 600; }
+[data-role="guide-group"][data-type="escalate"] h3 { color: var(--critical); }
+[data-role="guide-group"][data-type="escalate"] li { border: var(--bw-strong) solid var(--critical); font-weight: 600; }
+[data-role="guide-group"][data-type="watch"] li { background: var(--g-2); border-color: var(--g-2); }
+[data-role="guide-group"][data-type="resource"] li { padding: 0; }
+[data-role="guide-group"][data-type="resource"] a { display: block; padding: var(--s-3) var(--s-4); font-weight: 600; text-decoration: underline; }
+[data-role="guide-empty"] { color: var(--g-5); }
+
+/* ---------- footer and behind-the-scenes ---------- */
+[data-role="foot"] { display: flex; gap: var(--s-4); align-items: center; flex-wrap: wrap; color: var(--g-5); font-size: var(--fs-small); border-top: var(--bw) solid var(--g-2); padding-top: var(--s-4); }
+[data-role="foot"] .spacer { flex: 1; }
+[data-role="debug"] { margin-top: var(--s-4); background: var(--g-0); border: var(--bw) solid var(--g-3); border-radius: var(--radius-lg); padding: var(--s-5); width: var(--full); color: var(--g-8); font-size: var(--fs-body); }
+[data-role="debug"] h3 { margin: var(--s-4) 0 var(--s-2); }
+[data-role="debug"] pre { font-family: var(--font-mono); font-size: var(--fs-small); background: var(--g-1); border-radius: var(--radius); padding: var(--s-4); max-height: var(--dropdown-max-h); overflow: auto; white-space: pre-wrap; margin: 0; }
+[data-role="event-log"] { font-family: var(--font-mono); font-size: var(--fs-small); max-height: var(--dropdown-max-h); overflow: auto; border: var(--bw) solid var(--g-2); border-radius: var(--radius); }
+[data-role="event-log"] li { display: flex; gap: var(--s-3); padding: var(--s-1) var(--s-3); border-bottom: var(--bw) solid var(--g-2); }
+[data-role="event-log"] .ev-type { font-weight: 600; min-width: var(--step-indent); }
+[data-role="feedback-list"] li { padding: var(--s-3) var(--s-4); border: var(--bw) solid var(--g-2); border-radius: var(--radius); margin-bottom: var(--s-2); }
+
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-[data-role="node-card"][data-fresh="true"] { animation: fade-in var(--fade) ease-out; }
 </style>
 </head>
 <body>
-<div data-role="placeholder-banner" role="note">
-  Placeholder content — not bank policy
-  <span>Wireframe for requirements discussion. Every prompt, tip and link on this page is invented.</span>
-</div>
+<div data-role="placeholder-banner" role="note">Placeholder content for discussion — not bank policy</div>
 
 <!-- ============================================================ -->
-<!-- CONTENT — the ONE place scenario content lives.               -->
+<!-- CONTENT: the one place scenario content lives.                -->
 <!-- Everything below this line is placeholder, not bank policy.   -->
-<!-- Edit this block to change prompts, answers, tips, links.      -->
-<!-- The render logic contains no content strings of its own.      -->
+<!-- Edit this block to change questions, answers, guidance, links.-->
+<!-- The page logic contains no content strings of its own.        -->
 <!-- ============================================================ -->
 <script type="application/json" id="flow-data">
 {
   "meta": {
     "scenario": "Inbound call — customer reports unauthorised card transactions",
-    "contentVersion": "0.1-placeholder",
-    "disclaimer": "PLACEHOLDER CONTENT — NOT BANK POLICY"
+    "contentVersion": "0.2-placeholder",
+    "disclaimer": "Placeholder content for discussion — not bank policy"
   },
 
   "stages": [
-    { "id": "verify", "order": 1, "label": "Greeting & verification", "naNextNodeId": "triage-open",     "offScriptNodeId": "verify-reanchor" },
-    { "id": "triage", "order": 2, "label": "Triage",                  "naNextNodeId": "scope-open",      "offScriptNodeId": "triage-reanchor" },
-    { "id": "scope",  "order": 3, "label": "Scope",                   "naNextNodeId": "risk-open",       "offScriptNodeId": "scope-reanchor" },
-    { "id": "risk",   "order": 4, "label": "Risk signals",            "naNextNodeId": "act-block",       "offScriptNodeId": "risk-reanchor" },
-    { "id": "act",    "order": 5, "label": "Actions & close",         "naNextNodeId": "resolve-closed",  "offScriptNodeId": "act-reanchor" }
-  ],
-
-  "contextFields": [
-    { "key": "verified",        "label": "Customer verified",    "type": "select", "options": ["", "yes", "partial", "no"] },
-    { "key": "channel",         "label": "Channel",              "type": "select", "options": ["", "card-present", "card-not-present", "mixed", "unknown"] },
-    { "key": "cardLast4",       "label": "Card last 4",          "type": "text" },
-    { "key": "disputedAmount",  "label": "Disputed amount",      "type": "text" },
-    { "key": "dateRange",       "label": "Date range",           "type": "text" },
-    { "key": "cardInPossession","label": "Card in possession",   "type": "select", "options": ["", "yes", "no", "unsure"] },
-    { "key": "pattern",         "label": "Pattern",              "type": "select", "options": ["", "fraud", "scam", "account-takeover", "safeguarding"] }
+    { "id": "verify", "order": 1, "label": "Greeting & verification", "skipToNodeId": "triage-open",     "noneOfTheseNodeId": "verify-reanchor" },
+    { "id": "triage", "order": 2, "label": "Triage",                  "skipToNodeId": "scope-open",      "noneOfTheseNodeId": "triage-reanchor" },
+    { "id": "scope",  "order": 3, "label": "Scope",                   "skipToNodeId": "risk-open",       "noneOfTheseNodeId": "scope-reanchor" },
+    { "id": "risk",   "order": 4, "label": "Risk signals",            "skipToNodeId": "act-block",       "noneOfTheseNodeId": "risk-reanchor" },
+    { "id": "act",    "order": 5, "label": "Actions & close",         "skipToNodeId": "resolve-closed",  "noneOfTheseNodeId": "act-reanchor" }
   ],
 
   "startNodeId": "verify-open",
@@ -455,9 +409,9 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
         { "type": "resource", "text": "Identity verification procedure (placeholder)", "url": "#" }
       ],
       "answers": [
-        { "label": "Passed in full",                         "nextNodeId": "triage-open",    "setsContext": { "verified": "yes" } },
-        { "label": "Passed partially or failed one question","nextNodeId": "verify-partial", "setsContext": { "verified": "partial" } },
-        { "label": "Refuses or cannot verify",                "nextNodeId": "verify-refuse",  "setsContext": { "verified": "no" } }
+        { "label": "Passed in full",                         "nextNodeId": "triage-open" },
+        { "label": "Passed partially or failed one question","nextNodeId": "verify-partial" },
+        { "label": "Refuses or cannot verify",                "nextNodeId": "verify-refuse" }
       ]
     },
     {
@@ -491,8 +445,8 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
         { "type": "resource", "text": "Callback verification steps (placeholder)", "url": "#" }
       ],
       "answers": [
-        { "label": "Callback succeeded", "nextNodeId": "triage-open",   "setsContext": { "verified": "yes" } },
-        { "label": "Callback failed",    "nextNodeId": "verify-refuse", "setsContext": { "verified": "no" } }
+        { "label": "Callback succeeded", "nextNodeId": "triage-open" },
+        { "label": "Callback failed",    "nextNodeId": "verify-refuse" }
       ]
     },
     {
@@ -563,9 +517,9 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
       ]
     },
     {
-      "id": "verify-reanchor", "stageId": "verify", "label": "Off-script: verification", "risk": null,
-      "prompt": "The caller has gone off-script during verification. What are they doing?",
-      "why": "Most off-script moments in this stage are a customer who wants to tell the story first. Let them, then bring it back — you have not lost anything.",
+      "id": "verify-reanchor", "stageId": "verify", "label": "None of these fit (verification)", "risk": null,
+      "prompt": "None of the answers fit. What is the caller doing?",
+      "why": "Most off the expected path moments in this stage are a customer who wants to tell the story first. Let them, then bring it back — you have not lost anything.",
       "content": [
         { "type": "ask", "text": "Acknowledge, then: 'I want to get this right for you, so let me finish confirming who I'm speaking with.'" },
         { "type": "never", "text": "Never let empathy substitute for a verification step." }
@@ -591,8 +545,8 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
       ],
       "answers": [
         { "label": "Transactions they don't recognise",      "nextNodeId": "triage-ongoing" },
-        { "label": "Card lost or stolen",                     "nextNodeId": "triage-lost",     "setsContext": { "cardInPossession": "no" } },
-        { "label": "Someone contacted them and they paid",    "nextNodeId": "risk-scam-entry", "setsContext": { "pattern": "scam" } },
+        { "label": "Card lost or stolen",                     "nextNodeId": "triage-lost" },
+        { "label": "Someone contacted them and they paid",    "nextNodeId": "risk-scam-entry" },
         { "label": "Something else",                          "nextNodeId": "triage-other" }
       ]
     },
@@ -638,7 +592,7 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
       "answers": [
         { "label": "Needs it for travel or essentials",  "nextNodeId": "triage-present" },
         { "label": "Thinks a family member may have used it", "nextNodeId": "scope-family" },
-        { "label": "Says someone told them not to",     "nextNodeId": "risk-coached", "setsContext": { "pattern": "safeguarding" } }
+        { "label": "Says someone told them not to",     "nextNodeId": "risk-coached" }
       ]
     },
     {
@@ -650,9 +604,9 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
         { "type": "resource", "text": "Reading transaction channel codes (placeholder)", "url": "#" }
       ],
       "answers": [
-        { "label": "Card present",      "nextNodeId": "scope-open", "setsContext": { "channel": "card-present" } },
-        { "label": "Card not present",  "nextNodeId": "scope-open", "setsContext": { "channel": "card-not-present" } },
-        { "label": "Mixed or unknown",  "nextNodeId": "scope-open", "setsContext": { "channel": "mixed" } }
+        { "label": "Card present",      "nextNodeId": "scope-open" },
+        { "label": "Card not present",  "nextNodeId": "scope-open" },
+        { "label": "Mixed or unknown",  "nextNodeId": "scope-open" }
       ]
     },
     {
@@ -685,8 +639,8 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
       ]
     },
     {
-      "id": "triage-reanchor", "stageId": "triage", "label": "Off-script: triage", "risk": null,
-      "prompt": "The caller has gone off-script during triage. What happened?",
+      "id": "triage-reanchor", "stageId": "triage", "label": "None of these fit (triage)", "risk": null,
+      "prompt": "None of the answers fit. What is the caller doing?",
       "why": "Customers jump ahead to refunds. Answer the question they asked in one sentence, then return to the question you need answered.",
       "content": [
         { "type": "ask", "text": "'I'll explain exactly what happens with the money in a moment — first I need to know if this is still going on.'" },
@@ -769,9 +723,9 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
         { "type": "watch", "text": "Card present in the wallet plus chip transactions elsewhere — flag for possible cloning." }
       ],
       "answers": [
-        { "label": "Yes",       "nextNodeId": "risk-open", "setsContext": { "cardInPossession": "yes" } },
-        { "label": "No",        "nextNodeId": "risk-open", "setsContext": { "cardInPossession": "no" } },
-        { "label": "Not sure",  "nextNodeId": "risk-open", "setsContext": { "cardInPossession": "unsure" } }
+        { "label": "Yes",       "nextNodeId": "risk-open" },
+        { "label": "No",        "nextNodeId": "risk-open" },
+        { "label": "Not sure",  "nextNodeId": "risk-open" }
       ]
     },
     {
@@ -788,8 +742,8 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
       ]
     },
     {
-      "id": "scope-reanchor", "stageId": "scope", "label": "Off-script: scope", "risk": null,
-      "prompt": "The caller has gone off-script during scope. What happened?",
+      "id": "scope-reanchor", "stageId": "scope", "label": "None of these fit (scope)", "risk": null,
+      "prompt": "None of the answers fit. What is the caller doing?",
       "why": "Scope is slow and customers get impatient. Name the finish line: 'three more and we're done with the list.'",
       "content": [
         { "type": "ask", "text": "Summarise what is captured so far before asking the next question." }
@@ -797,7 +751,7 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
       "answers": [
         { "label": "Impatient with the list",        "nextNodeId": "scope-dates" },
         { "label": "Found more transactions",         "nextNodeId": "scope-open" },
-        { "label": "Now describing a phone call or message that started it", "nextNodeId": "risk-scam-entry", "setsContext": { "pattern": "scam" } }
+        { "label": "Now describing a phone call or message that started it", "nextNodeId": "risk-scam-entry" }
       ]
     },
 
@@ -810,9 +764,9 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
         { "type": "resource", "text": "Scam vs fraud decision aid (placeholder)", "url": "#" }
       ],
       "answers": [
-        { "label": "Straightforward unauthorised use — no contact with anyone",      "nextNodeId": "risk-fraud", "setsContext": { "pattern": "fraud" } },
-        { "label": "Customer was contacted and did something",                       "nextNodeId": "risk-scam-entry", "setsContext": { "pattern": "scam" } },
-        { "label": "Credentials or device may be compromised",                       "nextNodeId": "risk-ato", "setsContext": { "pattern": "account-takeover" } },
+        { "label": "Straightforward unauthorised use — no contact with anyone",      "nextNodeId": "risk-fraud" },
+        { "label": "Customer was contacted and did something",                       "nextNodeId": "risk-scam-entry" },
+        { "label": "Credentials or device may be compromised",                       "nextNodeId": "risk-ato" },
         { "label": "Unclear — run the checklist",                                    "nextNodeId": "risk-signals" }
       ]
     },
@@ -826,7 +780,7 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
       ],
       "answers": [
         { "label": "None — proceed to actions",              "nextNodeId": "act-block" },
-        { "label": "Contact details changed recently",        "nextNodeId": "risk-ato", "setsContext": { "pattern": "account-takeover" } },
+        { "label": "Contact details changed recently",        "nextNodeId": "risk-ato" },
         { "label": "Vulnerability indicators present",        "nextNodeId": "risk-elder" }
       ]
     },
@@ -842,7 +796,7 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
       ],
       "answers": [
         { "label": "Confirmed changes the customer didn't make", "nextNodeId": "act-ato-lock" },
-        { "label": "Nothing found — treat as card fraud",        "nextNodeId": "act-block", "setsContext": { "pattern": "fraud" } }
+        { "label": "Nothing found — treat as card fraud",        "nextNodeId": "act-block" }
       ]
     },
     {
@@ -872,7 +826,7 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
         { "type": "escalate", "text": "The customer is still on another line with the 'bank' right now." }
       ],
       "answers": [
-        { "label": "Shared a code or passcode",          "nextNodeId": "act-ato-lock", "setsContext": { "pattern": "account-takeover" } },
+        { "label": "Shared a code or passcode",          "nextNodeId": "act-ato-lock" },
         { "label": "Moved money themselves",              "nextNodeId": "act-scam-case" },
         { "label": "Neither — hung up in time",           "nextNodeId": "act-block" }
       ]
@@ -887,7 +841,7 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
         { "type": "escalate", "text": "Ongoing contact plus further payments planned." }
       ],
       "answers": [
-        { "label": "Yes, still in contact",   "nextNodeId": "risk-coached", "setsContext": { "pattern": "safeguarding" } },
+        { "label": "Yes, still in contact",   "nextNodeId": "risk-coached" },
         { "label": "No, contact has stopped", "nextNodeId": "act-scam-case" }
       ]
     },
@@ -906,8 +860,8 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
         { "type": "resource", "text": "Vulnerable customer and safeguarding referral (placeholder)", "url": "#" }
       ],
       "answers": [
-        { "label": "New helper with card access",               "nextNodeId": "act-safeguard", "setsContext": { "pattern": "safeguarding" } },
-        { "label": "Customer cannot explain own transactions",  "nextNodeId": "act-safeguard", "setsContext": { "pattern": "safeguarding" } },
+        { "label": "New helper with card access",               "nextNodeId": "act-safeguard" },
+        { "label": "Customer cannot explain own transactions",  "nextNodeId": "act-safeguard" },
         { "label": "Indicators don't hold up",                  "nextNodeId": "act-block" }
       ]
     },
@@ -939,20 +893,20 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
         { "type": "resource", "text": "Signal checklist card (placeholder)", "url": "#" }
       ],
       "answers": [
-        { "label": "Unauthorised use signals",   "nextNodeId": "risk-fraud",      "setsContext": { "pattern": "fraud" } },
-        { "label": "Manipulation signals",       "nextNodeId": "risk-scam-entry", "setsContext": { "pattern": "scam" } },
-        { "label": "Takeover signals",           "nextNodeId": "risk-ato",        "setsContext": { "pattern": "account-takeover" } }
+        { "label": "Unauthorised use signals",   "nextNodeId": "risk-fraud" },
+        { "label": "Manipulation signals",       "nextNodeId": "risk-scam-entry" },
+        { "label": "Takeover signals",           "nextNodeId": "risk-ato" }
       ]
     },
     {
-      "id": "risk-reanchor", "stageId": "risk", "label": "Off-script: risk", "risk": null,
-      "prompt": "The caller has gone off-script during risk assessment. What happened?",
+      "id": "risk-reanchor", "stageId": "risk", "label": "None of these fit (risk)", "risk": null,
+      "prompt": "None of the answers fit. What is the caller doing?",
       "why": "This is the stage where customers volunteer the detail that reclassifies the whole call. Off-script here is usually good news.",
       "content": [
         { "type": "ask", "text": "'That's important — tell me more about that.'" }
       ],
       "answers": [
-        { "label": "Mentioned a call or message for the first time",   "nextNodeId": "risk-scam-entry", "setsContext": { "pattern": "scam" } },
+        { "label": "Mentioned a call or message for the first time",   "nextNodeId": "risk-scam-entry" },
         { "label": "Someone else has started speaking for them",        "nextNodeId": "risk-coached" },
         { "label": "Wants to skip to 'what happens now'",               "nextNodeId": "risk-open" }
       ]
@@ -1057,9 +1011,9 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
       ]
     },
     {
-      "id": "act-reanchor", "stageId": "act", "label": "Off-script: actions", "risk": null,
-      "prompt": "The caller has gone off-script during actions. What happened?",
-      "why": "At this stage, off-script usually means new information. Do not close a call over new information.",
+      "id": "act-reanchor", "stageId": "act", "label": "None of these fit (actions)", "risk": null,
+      "prompt": "None of the answers fit. What is the caller doing?",
+      "why": "At this stage, off the expected path usually means new information. Do not close a call over new information.",
       "content": [
         { "type": "ask", "text": "'Before I finish up — is there anything else about this you've remembered?'" }
       ],
@@ -1133,8 +1087,8 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
 </script>
 
 <!-- ============================================================ -->
-<!-- APP SHELL — filled entirely by render(). Nothing below holds  -->
-<!-- content; the labels come from the UI_TEXT table in the script -->
+<!-- App shell. Filled entirely by render(). Nothing below holds   -->
+<!-- content; the chrome labels come from UI_TEXT in the script.   -->
 <!-- ============================================================ -->
 <div id="app" data-role="shell"></div>
 
@@ -1152,66 +1106,55 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
   var STAGE = {};
   STAGES.forEach(function (s) { STAGE[s.id] = s; });
 
-  /* UI chrome strings. Not scenario content — but kept in one table so the
-     render functions contain no literals and a designer can retitle things. */
+  /* Chrome labels. Not scenario content, but kept in one table so the
+     render functions hold no literals. Plain words: question, step, stage. */
   var UI_TEXT = {
-    appTitle: 'Fraud call guide',
-    wireframeTag: 'wireframe',
-    modeLive: 'Live',
-    modeTraining: 'Training',
-    searchPlaceholder: 'Jump to… (type a keyword, Enter)',
-    searchNoResults: 'No node matches',
-    noteButton: 'Call note',
-    debugButton: 'Debug',
-    resetButton: 'Start over',
-    breadcrumbLabel: 'Path taken',
-    contextLabel: 'Captured facts',
-    unresolvedLabel: 'Unresolved:',
-    returnTo: 'Return',
-    stageOf: 'Stage {n} of {total}',
-    riskLabel: { low: 'Low risk', elevated: 'Elevated risk', critical: 'Critical — read the right-hand panel before speaking' },
-    previouslyChosen: 'previously chosen',
-    exitNa: 'Not applicable',
-    exitOffScript: 'Customer went off-script',
-    exitPark: "I don't know yet",
-    lateralButton: 'Jump to another answer in this stage',
-    lateralTitle: 'Jump within the stage',
-    lateralHint: 'The path is kept; the jump is marked in the breadcrumb.',
-    lateralCurrent: 'you are here',
-    flagButton: 'Flag this node',
-    flagTitle: 'Flag this node',
-    flagKinds: { wrong: 'This is wrong', unclear: 'This is unclear', missing: 'Missing a resource' },
-    flagCommentPlaceholder: 'Optional: what would you change?',
-    flagSubmit: 'Add flag',
-    flagCancel: 'Cancel',
+    title: 'Fraud call guide',
+    searchPlaceholder: 'Find a question…',
+    searchEmpty: 'No question matches',
+    coachingToggle: 'Coaching notes',
+    newCall: 'Start a new call',
+    stageTrackLabel: 'Stages of the call',
+    stageQuestionsTitle: 'Questions in {stage}',
+    stageQuestionsHint: 'Pick one to go straight there. The steps so far are kept.',
+    youAreHere: 'you are here',
     close: 'Close',
-    terminalTitle: 'End of call',
-    terminalHint: 'Generate the call note, then start over for the next call.',
-    whyTitle: 'Why this matters',
-    dialogueTitle: 'Sample dialogue',
-    railTitle: 'For this node',
-    railEmpty: 'No guidance authored for this node yet.',
-    groups: { ask: 'Ask', watch: 'Watch for', never: 'Never say', escalate: 'Escalate if', resource: 'Resources' },
-    staleNotice: '{n} later step{s} no longer appl{y}',
-    staleDetail: 'You changed the answer at step {n}. The old steps are kept, struck through, until you undo or dismiss.',
-    staleUndo: 'Undo',
-    staleDismiss: 'Dismiss',
-    staleGroup: 'No longer apply:',
-    chipTags: { lateral: 'jumped', search: 'searched', 'exit-na': 'n/a', 'exit-offscript': 'off-script', park: 'parked', return: 'returned' },
-    chipStatus: { unresolved: 'unresolved', skipped: 'jumped away', 'resolved-later': 'resolved later', exit: '' },
-    chipExit: { na: 'not applicable', offscript: 'off-script' },
-    noteTitle: 'Call note',
-    noteCopy: 'Copy',
-    noteCopied: 'Copied',
-    noteRegenerate: 'Regenerate',
-    debugTitle: 'Debug',
-    debugState: 'Current state',
-    debugFlags: 'Flagged nodes',
-    debugFlagsEmpty: 'Nothing flagged yet.',
-    debugLog: 'Event log',
-    debugCounts: { visit: 'visits', lateral: 'lateral jumps', rewind: 'rewinds', stale: 'invalidations', park: 'parked', flag: 'flags' },
-    footerKeys: 'Keys: 1–9 choose an answer · / search · Esc close panels',
-    footerVersion: 'Content {v}'
+    pathLabel: 'Steps so far',
+    stepOf: 'Step {n}',
+    stepFor: 'Step {n} · {stage}',
+    back: 'Back',
+    riskLine: { elevated: 'Elevated risk', critical: 'Critical: read the guidance on the right before you speak' },
+    revisit: 'You are back at step {n}. Choose the same answer to carry on, or a different one.',
+    previously: 'your earlier answer',
+    noneOfThese: 'None of these fit',
+    later: 'Come back to this later',
+    endTitle: 'End of call',
+    endHint: 'Start a new call for the next customer.',
+    coachingWhy: 'Why this matters',
+    coachingExample: 'Example',
+    speakers: { rep: 'You', customer: 'Customer' },
+    feedbackLink: 'Something wrong with this step?',
+    feedbackTitle: 'Feedback on this step',
+    feedbackKinds: { wrong: 'Wrong', unclear: 'Unclear', missing: 'Missing a resource' },
+    feedbackPlaceholder: 'What would you change?',
+    feedbackSend: 'Send feedback',
+    feedbackCancel: 'Cancel',
+    guideTitle: 'Guidance for this question',
+    guideEmpty: 'No guidance written for this question yet.',
+    groups: { never: 'Never', escalate: 'Escalate when', ask: 'Say or ask', watch: 'Watch for', resource: 'Resources' },
+    stepNotes: { later: 'Skipped for now', jumped: 'Jumped here', searched: 'Jumped here from a search', none: 'None of the answers fit', movedOn: 'Moved on without answering', resolvedLater: 'Answered later' },
+    staleTitle: '{n} later step{s} no longer appl{y}',
+    staleHint: 'Because the answer at step {n} changed.',
+    undo: 'Undo',
+    dismiss: 'Dismiss',
+    keysHint: 'Keys 1 to 9 choose an answer',
+    contentVersion: 'Content {v}',
+    behind: 'Behind the scenes',
+    behindSummary: '{visits} steps visited · {jumps} jumps · {backs} times back · {stale} times later steps dropped · {later} skipped for now · {feedback} feedback',
+    behindFeedback: 'Feedback',
+    behindFeedbackEmpty: 'No feedback yet.',
+    behindLog: 'Event log',
+    behindState: 'Current state'
   };
 
   /* ---------------------------------------------------------- */
@@ -1221,68 +1164,56 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
 
   function initialState() {
     return {
-      mode: 'live',
-      path: [{ nodeId: FLOW.startNodeId, arrivedVia: 'start', answer: null, status: 'open', exit: null }],
+      coaching: false,
+      path: [{ nodeId: FLOW.startNodeId, arrivedVia: 'start', answer: null, status: 'open' }],
       cursor: 0,
       stale: null,
-      context: {},
-      unresolved: [],
-      flags: [],
+      feedback: [],
       log: [],
-      ui: { lateralOpen: false, lateralStage: null, flagOpen: false, noteOpen: false, noteCopied: false,
-            debugOpen: false, search: '', searchOpen: false, freshNode: true }
+      ui: { stageOpen: null, feedbackOpen: false, debugOpen: false, search: '', searchOpen: false, fresh: true }
     };
   }
 
   function currentStep() { return state.path[state.cursor]; }
   function currentNode() { return NODES[currentStep().nodeId]; }
-  function stageOf(node) { return STAGE[node.stageId]; }
 
   function logEvent(type, detail) {
     state.log.push({ at: new Date().toISOString(), type: type, detail: detail || {} });
   }
 
-  function snapshot() {
-    return JSON.parse(JSON.stringify({ path: state.path, cursor: state.cursor, context: state.context, unresolved: state.unresolved }));
-  }
-
-  /* If the rep is positioned before the end of the path, any forward move
-     invalidates the steps after the cursor. They are kept as stale, not lost. */
+  /* Any forward move from a rewound position invalidates the steps after
+     the cursor. They are kept as stale, shown struck through, until undone
+     or dismissed. */
   function invalidateDownstream(reason) {
     if (state.cursor >= state.path.length - 1) return;
-    var snap = snapshot();
+    var snap = JSON.parse(JSON.stringify({ path: state.path, cursor: state.cursor }));
     var dropped = state.path.slice(state.cursor + 1);
     state.path = state.path.slice(0, state.cursor + 1);
     state.stale = { steps: dropped, changedAt: state.cursor, reason: reason, snapshot: snap };
     logEvent('stale', { changedAt: state.cursor + 1, dropped: dropped.length, reason: reason });
   }
 
-  function applyContext(setsContext) {
-    if (!setsContext) return;
-    Object.keys(setsContext).forEach(function (k) { state.context[k] = setsContext[k]; });
-  }
-
   function moveTo(nodeId, via) {
-    state.path.push({ nodeId: nodeId, arrivedVia: via, answer: null, status: 'open', exit: null });
+    state.path.push({ nodeId: nodeId, arrivedVia: via, answer: null, status: 'open' });
     state.cursor = state.path.length - 1;
-    state.ui.lateralOpen = false; state.ui.flagOpen = false; state.ui.searchOpen = false; state.ui.search = '';
-    state.ui.freshNode = true;
-    logEvent('visit', { nodeId: nodeId, via: via, step: state.cursor + 1 });
+    state.ui.stageOpen = null; state.ui.feedbackOpen = false; state.ui.searchOpen = false; state.ui.search = '';
+    state.ui.fresh = true;
+    logEvent('visit', { question: nodeId, via: via, step: state.cursor + 1 });
   }
 
-  function markResolvedLater(nodeId) {
-    state.path.forEach(function (s) { if (s.nodeId === nodeId && s.status === 'unresolved') s.status = 'resolved-later'; });
-    state.unresolved = state.unresolved.filter(function (id) { return id !== nodeId; });
+  function leaveCurrent(newStatus) {
+    var step = currentStep();
+    if (step.status === 'open') step.status = newStatus;
   }
 
   /* ---------------------------------------------------------- */
-  /* Reducer: every state change goes through here, then render  */
+  /* Reducer                                                     */
   /* ---------------------------------------------------------- */
   function dispatch(action) {
     var step = currentStep();
     var node = currentNode();
-    var stage = stageOf(node);
-    state.ui.freshNode = false;
+    var stage = STAGE[node.stageId];
+    state.ui.fresh = false;
 
     switch (action.type) {
 
@@ -1290,85 +1221,59 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
         var answer = node.answers[action.index];
         if (!answer) break;
         if (state.cursor < state.path.length - 1 && step.answer === answer.label) {
-          // Same answer as before: walk forward along the existing path.
           state.cursor += 1;
-          state.ui.freshNode = true;
-          logEvent('rewind-forward', { step: state.cursor + 1 });
+          state.ui.fresh = true;
+          logEvent('forward', { step: state.cursor + 1 });
           break;
         }
         invalidateDownstream('answer-changed');
-        step.answer = answer.label; step.status = 'answered'; step.exit = null;
-        markResolvedLater(node.id);
-        applyContext(answer.setsContext);
-        logEvent('answer', { nodeId: node.id, answer: answer.label });
+        step.answer = answer.label; step.status = 'answered';
+        state.path.forEach(function (s) { if (s !== step && s.nodeId === node.id && s.status === 'later') s.status = 'resolved-later'; });
+        logEvent('answer', { question: node.id, answer: answer.label });
         moveTo(answer.nextNodeId, 'answer');
         break;
       }
 
-      case 'exit': {
-        invalidateDownstream('exit');
-        var next;
-        if (action.exit === 'na') {
-          step.status = 'exit'; step.exit = 'na'; step.answer = null;
-          next = node.naNextNodeId || stage.naNextNodeId;
-          logEvent('exit', { nodeId: node.id, exit: 'na' });
-          moveTo(next, 'exit-na');
-        } else if (action.exit === 'offscript') {
-          step.status = 'exit'; step.exit = 'offscript'; step.answer = null;
-          next = stage.offScriptNodeId;
-          logEvent('exit', { nodeId: node.id, exit: 'offscript' });
-          moveTo(next, 'exit-offscript');
-        } else if (action.exit === 'park') {
-          step.status = 'unresolved'; step.answer = null;
-          if (state.unresolved.indexOf(node.id) < 0) state.unresolved.push(node.id);
-          next = node.parkNextNodeId || stage.naNextNodeId;
-          logEvent('park', { nodeId: node.id });
-          moveTo(next, 'park');
-        }
+      case 'none-of-these': {
+        invalidateDownstream('none-of-these');
+        step.status = 'none'; step.answer = null;
+        logEvent('none-of-these', { question: node.id });
+        moveTo(stage.noneOfTheseNodeId, 'none');
         break;
       }
 
-      case 'lateral': {
-        if (action.nodeId === node.id) break;
-        invalidateDownstream('lateral');
-        if (step.status === 'open') step.status = 'skipped';
-        logEvent('lateral', { from: node.id, to: action.nodeId });
-        moveTo(action.nodeId, 'lateral');
+      case 'later': {
+        invalidateDownstream('later');
+        step.status = 'later'; step.answer = null;
+        logEvent('later', { question: node.id });
+        moveTo(stage.skipToNodeId, 'later');
         break;
       }
 
-      case 'return': {
-        invalidateDownstream('return');
-        if (step.status === 'open') step.status = 'skipped';
-        logEvent('return', { from: node.id, to: action.nodeId });
-        moveTo(action.nodeId, 'return');
-        break;
-      }
-
-      case 'search-jump': {
-        invalidateDownstream('search');
-        if (step.status === 'open') step.status = 'skipped';
-        logEvent('search-jump', { from: node.id, to: action.nodeId, query: state.ui.search });
-        moveTo(action.nodeId, 'search');
+      case 'jump': {
+        if (action.nodeId === node.id) { state.ui.stageOpen = null; break; }
+        invalidateDownstream('jump');
+        leaveCurrent('moved-on');
+        logEvent('jump', { from: node.id, to: action.nodeId, via: action.via });
+        moveTo(action.nodeId, action.via);
         break;
       }
 
       case 'rewind': {
         if (action.index === state.cursor || action.index < 0 || action.index >= state.path.length) break;
-        logEvent('rewind', { from: state.cursor + 1, to: action.index + 1 });
+        logEvent('back', { from: state.cursor + 1, to: action.index + 1 });
         state.cursor = action.index;
-        state.ui.lateralOpen = false; state.ui.flagOpen = false;
-        state.ui.freshNode = true;
+        state.ui.stageOpen = null; state.ui.feedbackOpen = false;
+        state.ui.fresh = true;
         break;
       }
 
       case 'undo-stale': {
         if (!state.stale) break;
-        var snap = state.stale.snapshot;
-        state.path = snap.path; state.cursor = snap.cursor; state.context = snap.context; state.unresolved = snap.unresolved;
+        state.path = state.stale.snapshot.path; state.cursor = state.stale.snapshot.cursor;
         state.stale = null;
-        state.ui.freshNode = true;
-        logEvent('undo', { restoredTo: state.cursor + 1 });
+        state.ui.fresh = true;
+        logEvent('undo', { backTo: state.cursor + 1 });
         break;
       }
 
@@ -1379,56 +1284,31 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
         break;
       }
 
-      case 'set-context': {
-        state.context[action.key] = action.value;
-        logEvent('context', { key: action.key, value: action.value });
+      case 'toggle-coaching': { state.coaching = !state.coaching; logEvent('coaching', { on: state.coaching }); break; }
+
+      case 'open-stage': {
+        state.ui.stageOpen = state.ui.stageOpen === action.stageId ? null : action.stageId;
+        state.ui.feedbackOpen = false;
         break;
       }
 
-      case 'set-mode': {
-        if (state.mode === action.mode) break;
-        state.mode = action.mode;
-        logEvent('mode', { mode: action.mode });
-        break;
-      }
-
-      case 'toggle-lateral': {
-        state.ui.lateralOpen = !state.ui.lateralOpen;
-        state.ui.lateralStage = node.stageId;
-        state.ui.flagOpen = false;
-        break;
-      }
-      case 'lateral-stage': { state.ui.lateralStage = action.stageId; break; }
-
-      case 'toggle-flag': { state.ui.flagOpen = !state.ui.flagOpen; state.ui.lateralOpen = false; break; }
-      case 'submit-flag': {
-        state.flags.push({ id: state.flags.length + 1, nodeId: node.id, kind: action.kind, comment: action.comment, at: new Date().toISOString(), mode: state.mode });
-        state.ui.flagOpen = false;
-        logEvent('flag', { nodeId: node.id, kind: action.kind });
+      case 'toggle-feedback': { state.ui.feedbackOpen = !state.ui.feedbackOpen; state.ui.stageOpen = null; break; }
+      case 'send-feedback': {
+        state.feedback.push({ id: state.feedback.length + 1, question: node.id, kind: action.kind, comment: action.comment, at: new Date().toISOString() });
+        state.ui.feedbackOpen = false;
+        logEvent('feedback', { question: node.id, kind: action.kind });
         break;
       }
 
       case 'search': { state.ui.search = action.value; state.ui.searchOpen = action.value.trim().length > 0; break; }
-      case 'close-search': { state.ui.searchOpen = false; break; }
-
-      case 'toggle-note': {
-        state.ui.noteOpen = !state.ui.noteOpen; state.ui.noteCopied = false;
-        if (state.ui.noteOpen) logEvent('note', { steps: state.path.length });
-        break;
-      }
-      case 'note-copied': { state.ui.noteCopied = true; break; }
       case 'toggle-debug': { state.ui.debugOpen = !state.ui.debugOpen; break; }
-
-      case 'close-panels': {
-        state.ui.lateralOpen = false; state.ui.flagOpen = false; state.ui.searchOpen = false;
-        break;
-      }
+      case 'close-panels': { state.ui.stageOpen = null; state.ui.feedbackOpen = false; state.ui.searchOpen = false; break; }
 
       case 'reset': {
-        var keep = { mode: state.mode, flags: state.flags, log: state.log };
+        var keep = { coaching: state.coaching, feedback: state.feedback, log: state.log };
         state = initialState();
-        state.mode = keep.mode; state.flags = keep.flags; state.log = keep.log;
-        logEvent('reset', {});
+        state.coaching = keep.coaching; state.feedback = keep.feedback; state.log = keep.log;
+        logEvent('new-call', {});
         break;
       }
     }
@@ -1444,65 +1324,19 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
     return FLOW.nodes.filter(function (n) {
       var hay = [n.label, n.prompt, STAGE[n.stageId].label].concat(n.content.map(function (c) { return c.text; })).join(' ').toLowerCase();
       return hay.indexOf(q) >= 0;
-    }).slice(0, 12);
-  }
-
-  function pathLine(step, i) {
-    var n = NODES[step.nodeId];
-    var s = STAGE[n.stageId];
-    var how = '';
-    if (step.arrivedVia === 'lateral') how = ' [lateral jump]';
-    else if (step.arrivedVia === 'search') how = ' [keyword jump]';
-    else if (step.arrivedVia === 'return') how = ' [returned to unresolved]';
-    var outcome;
-    if (step.status === 'answered') outcome = step.answer;
-    else if (step.status === 'unresolved') outcome = 'UNRESOLVED (rep did not know yet)';
-    else if (step.status === 'resolved-later') outcome = 'left unresolved, resolved later';
-    else if (step.status === 'skipped') outcome = 'no answer recorded (jumped away)';
-    else if (step.status === 'exit') outcome = step.exit === 'na' ? 'not applicable' : 'customer went off-script';
-    else if (n.terminal) outcome = 'END';
-    else outcome = 'in progress';
-    return (i + 1) + '. [' + s.label + '] ' + n.label + how + ' -> ' + outcome;
-  }
-
-  function buildNote() {
-    var lines = [];
-    lines.push('CASE NOTE (draft) — ' + FLOW.meta.disclaimer);
-    lines.push('Scenario: ' + FLOW.meta.scenario);
-    lines.push('Generated: ' + new Date().toLocaleString());
-    lines.push('');
-    lines.push('CAPTURED FACTS');
-    FLOW.contextFields.forEach(function (f) {
-      var v = state.context[f.key];
-      lines.push('- ' + f.label + ': ' + (v ? v : '(not captured)'));
-    });
-    lines.push('');
-    lines.push('PATH TAKEN');
-    state.path.forEach(function (step, i) { lines.push(pathLine(step, i)); });
-    if (state.stale) {
-      lines.push('');
-      lines.push('STEPS NO LONGER APPLYING (answer changed at step ' + (state.stale.changedAt + 1) + ')');
-      state.stale.steps.forEach(function (step, i) { lines.push('  ' + pathLine(step, state.stale.changedAt + 1 + i)); });
-    }
-    if (state.unresolved.length) {
-      lines.push('');
-      lines.push('STILL UNRESOLVED');
-      state.unresolved.forEach(function (id) { lines.push('- ' + NODES[id].label + ': ' + NODES[id].prompt); });
-    }
-    var critical = state.path.filter(function (s) { return NODES[s.nodeId].risk === 'critical'; });
-    if (critical.length) {
-      lines.push('');
-      lines.push('CRITICAL-RISK NODES VISITED');
-      critical.forEach(function (s) { lines.push('- ' + NODES[s.nodeId].label); });
-    }
-    var flagsHere = state.flags.length;
-    if (flagsHere) { lines.push(''); lines.push('Content flags raised during this call: ' + flagsHere + ' (see debug screen)'); }
-    return lines.join('\n');
+    }).slice(0, 10);
   }
 
   function counts() {
-    var c = { visit: 0, lateral: 0, rewind: 0, stale: 0, park: 0, flag: 0 };
-    state.log.forEach(function (e) { if (c.hasOwnProperty(e.type)) c[e.type] += 1; });
+    var c = { visits: 0, jumps: 0, backs: 0, stale: 0, later: 0, feedback: 0 };
+    state.log.forEach(function (e) {
+      if (e.type === 'visit') c.visits += 1;
+      if (e.type === 'jump') c.jumps += 1;
+      if (e.type === 'back') c.backs += 1;
+      if (e.type === 'stale') c.stale += 1;
+      if (e.type === 'later') c.later += 1;
+      if (e.type === 'feedback') c.feedback += 1;
+    });
     return c;
   }
 
@@ -1520,314 +1354,247 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
   function render() {
     var root = document.getElementById('app');
     var focus = captureFocus();
-    root.innerHTML = renderTopBar() + renderMain() + renderRail() + renderFooter();
+    root.innerHTML = renderTop() + renderPath() + renderGuide() + renderFoot();
     restoreFocus(focus);
+    if (state.ui.fresh) {
+      var card = root.querySelector('[data-role="question-card"]');
+      if (card && card.scrollIntoView) card.scrollIntoView({ block: 'nearest' });
+    }
   }
 
   function captureFocus() {
     var el = document.activeElement;
-    if (!el || !el.getAttribute) return null;
-    var key = el.getAttribute('data-focus-key');
-    if (!key) return null;
-    return { key: key, start: el.selectionStart, end: el.selectionEnd };
+    var key = el && el.getAttribute ? el.getAttribute('data-focus-key') : null;
+    return key ? { key: key, start: el.selectionStart, end: el.selectionEnd } : null;
   }
   function restoreFocus(f) {
     if (!f) return;
-    var el = document.querySelector('[data-focus-key="' + f.key + '"]');
+    var el = document.querySelector('[data-role="' + f.key + '"]');
     if (!el) return;
     el.focus();
     if (typeof f.start === 'number' && el.setSelectionRange) { try { el.setSelectionRange(f.start, f.end); } catch (e) {} }
   }
 
-  /* ---- top bar ---- */
-  function renderTopBar() {
-    return '<header class="panel" data-role="top-bar">' +
-      renderHeaderRow() +
-      renderBreadcrumb() +
-      renderStaleNotice() +
-      renderContextStrip() +
-      renderUnresolvedTray() +
-      '</header>';
+  /* ---- top: header row and stage track ---- */
+  function renderTop() {
+    return '<header data-role="top">' + renderHeaderRow() + renderStageTrack() + renderStageQuestions() + '</header>';
   }
 
   function renderHeaderRow() {
-    var h = '<div data-role="app-header">';
-    h += '<h1>' + esc(UI_TEXT.appTitle) + ' <span class="tag">' + esc(UI_TEXT.wireframeTag) + '</span> <span class="small muted">' + esc(FLOW.meta.scenario) + '</span></h1>';
-    h += renderSearch();
-    h += '<div data-role="mode-toggle" role="group">' +
-      '<button type="button" data-action="set-mode" data-mode="live"' + attr('aria-pressed', state.mode === 'live' ? 'true' : 'false') + '>' + esc(UI_TEXT.modeLive) + '</button>' +
-      '<button type="button" data-action="set-mode" data-mode="training"' + attr('aria-pressed', state.mode === 'training' ? 'true' : 'false') + '>' + esc(UI_TEXT.modeTraining) + '</button>' +
+    return '<div data-role="header-row">' +
+      '<h1>' + esc(UI_TEXT.title) + ' <span>' + esc(FLOW.meta.scenario) + '</span></h1>' +
+      renderSearch() +
+      '<button type="button" class="btn-toggle" data-action="toggle-coaching" data-role="coaching-toggle"' + attr('aria-pressed', state.coaching ? 'true' : 'false') + '>' + esc(UI_TEXT.coachingToggle) + '</button>' +
+      '<button type="button" data-action="reset" data-role="new-call">' + esc(UI_TEXT.newCall) + '</button>' +
       '</div>';
-    h += '<button type="button" data-action="toggle-note" data-role="note-button"' + attr('aria-pressed', state.ui.noteOpen ? 'true' : 'false') + '>' + esc(UI_TEXT.noteButton) + '</button>';
-    h += '<button type="button" data-action="toggle-debug" data-role="debug-button"' + attr('aria-pressed', state.ui.debugOpen ? 'true' : 'false') + '>' + esc(UI_TEXT.debugButton) + (state.flags.length ? ' (' + state.flags.length + ')' : '') + '</button>';
-    h += '<button type="button" class="btn-quiet" data-action="reset" data-role="reset-button">' + esc(UI_TEXT.resetButton) + '</button>';
-    h += '</div>';
-    return h;
   }
 
   function renderSearch() {
     var results = state.ui.searchOpen ? searchNodes(state.ui.search) : [];
     var h = '<div data-role="search" role="search">';
-    h += '<input type="search" data-role="search-input" data-focus-key="search" autocomplete="off"' +
-      attr('placeholder', UI_TEXT.searchPlaceholder) + attr('value', state.ui.search) + attr('aria-expanded', state.ui.searchOpen ? 'true' : 'false') + '>';
+    h += '<input type="search" data-role="search-input" data-focus-key="search-input" autocomplete="off"' +
+      attr('placeholder', UI_TEXT.searchPlaceholder) + attr('value', state.ui.search) + attr('aria-label', UI_TEXT.searchPlaceholder) + '>';
     if (state.ui.searchOpen) {
-      h += '<ul data-role="search-results">';
-      if (!results.length) h += '<li><span class="search-empty">' + esc(UI_TEXT.searchNoResults) + '</span></li>';
+      h += '<div data-role="search-results">';
+      if (!results.length) h += '<div class="search-empty">' + esc(UI_TEXT.searchEmpty) + '</div>';
       results.forEach(function (n) {
-        h += '<li><button type="button" data-action="search-jump" data-role="search-result"' + attr('data-node-id', n.id) + '>' +
-          '<span class="tag">' + esc(STAGE[n.stageId].label) + '</span> <strong>' + esc(n.label) + '</strong><br><span class="small muted">' + esc(n.prompt) + '</span></button></li>';
+        h += '<button type="button" data-role="search-result" data-action="jump" data-via="searched"' + attr('data-node-id', n.id) + '>' +
+          esc(n.prompt) + '<span>' + esc(STAGE[n.stageId].label) + '</span></button>';
       });
-      h += '</ul>';
+      h += '</div>';
     }
-    h += '</div>';
-    return h;
+    return h + '</div>';
   }
 
-  function renderChip(step, i, stateName) {
-    var n = NODES[step.nodeId];
-    var tag = UI_TEXT.chipTags[step.arrivedVia];
-    var line2 = '';
-    if (step.status === 'answered') line2 = '→ ' + step.answer;
-    else if (step.status === 'exit') line2 = '→ ' + UI_TEXT.chipExit[step.exit];
-    else if (UI_TEXT.chipStatus[step.status]) line2 = UI_TEXT.chipStatus[step.status];
-    var h = '<li>';
-    h += '<button type="button" data-role="breadcrumb-chip" data-action="rewind"' + attr('data-index', stateName === 'stale' ? null : i) +
-      attr('data-state', stateName) + attr('data-arrived', step.arrivedVia) + attr('data-node-id', n.id) +
-      attr('aria-current', stateName === 'current' ? 'step' : null) + (stateName === 'stale' ? ' disabled' : '') + '>';
-    h += '<span>' + (i + 1) + '. ' + esc(n.label) + (tag ? ' <span class="tag">' + esc(tag) + '</span>' : '') + '</span>';
-    if (line2) h += '<span class="chip-answer">' + esc(line2) + '</span>';
-    h += '</button></li>';
-    return h;
+  function renderStageTrack() {
+    var node = currentNode();
+    var currentOrder = STAGE[node.stageId].order;
+    var h = '<nav data-role="stage-track"' + attr('aria-label', UI_TEXT.stageTrackLabel) + '>';
+    STAGES.forEach(function (s, i) {
+      var st = s.order < currentOrder ? 'done' : (s.order === currentOrder ? 'current' : 'todo');
+      var open = state.ui.stageOpen === s.id;
+      h += '<div data-role="stage"' + attr('data-state', st) + attr('data-stage-id', s.id) + '>' +
+        '<button type="button" data-role="stage-button" data-action="open-stage"' + attr('data-stage-id', s.id) + attr('aria-expanded', open ? 'true' : 'false') + '>' +
+        '<span class="stage-dot">' + (i + 1) + '</span><span class="stage-name">' + esc(s.label) + '</span></button></div>';
+    });
+    return h + '</nav>';
   }
 
-  function renderBreadcrumb() {
-    var h = '<nav aria-label="' + esc(UI_TEXT.breadcrumbLabel) + '"><ol data-role="breadcrumb">';
+  function renderStageQuestions() {
+    var sid = state.ui.stageOpen;
+    if (!sid) return '';
+    var node = currentNode();
+    var h = '<section data-role="stage-questions">';
+    h += '<header><h3>' + esc(fmt(UI_TEXT.stageQuestionsTitle, { stage: STAGE[sid].label })) + '</h3>' +
+      '<span class="muted">' + esc(UI_TEXT.stageQuestionsHint) + '</span>' +
+      '<button type="button" class="btn-text" data-action="open-stage"' + attr('data-stage-id', sid) + '>' + esc(UI_TEXT.close) + '</button></header>';
+    h += '<ul>';
+    FLOW.nodes.filter(function (n) { return n.stageId === sid; }).forEach(function (n) {
+      var here = n.id === node.id;
+      h += '<li><button type="button" data-role="stage-question" data-action="jump" data-via="jumped"' + attr('data-node-id', n.id) + attr('aria-current', here ? 'true' : null) + (here ? ' disabled' : '') + '>' +
+        '<span class="risk-mark"' + attr('data-risk', n.risk) + '></span><span>' + esc(n.label) + (here ? ' <span class="muted">(' + esc(UI_TEXT.youAreHere) + ')</span>' : '') + '</span></button></li>';
+    });
+    return h + '</ul></section>';
+  }
+
+  /* ---- the path ---- */
+  function renderPath() {
+    var h = '<main data-role="path"' + attr('aria-label', UI_TEXT.pathLabel) + '><ol data-role="steps">';
     state.path.forEach(function (step, i) {
-      var st = i === state.cursor ? 'current' : (i > state.cursor ? 'ahead' : 'past');
-      h += renderChip(step, i, st);
-      if (i < state.path.length - 1) h += '<li class="crumb-sep" aria-hidden="true">›</li>';
+      if (i === state.cursor) h += '<li data-role="step" data-state="current">' + renderQuestionCard(step, i) + '</li>';
+      else h += renderStepSummary(step, i, i < state.cursor ? 'past' : 'ahead');
     });
     if (state.stale) {
-      h += '<li class="crumb-stale-group" data-role="stale-group"><span class="small muted">' + esc(UI_TEXT.staleGroup) + '</span>';
-      h += '<ol data-role="breadcrumb" class="crumb-stale-list">';
-      state.stale.steps.forEach(function (step, j) { h += renderChip(step, state.stale.changedAt + 1 + j, 'stale'); });
-      h += '</ol></li>';
+      h += '<li data-role="step" data-state="stale">' + renderStaleNotice() + '</li>';
+      state.stale.steps.forEach(function (step, j) { h += renderStepSummary(step, state.stale.changedAt + 1 + j, 'stale'); });
     }
-    h += '</ol></nav>';
-    return h;
+    return h + '</ol></main>';
+  }
+
+  function stepNote(step) {
+    if (step.status === 'later') return UI_TEXT.stepNotes.later;
+    if (step.status === 'resolved-later') return UI_TEXT.stepNotes.resolvedLater;
+    if (step.status === 'none') return UI_TEXT.stepNotes.none;
+    if (step.status === 'moved-on') return UI_TEXT.stepNotes.movedOn;
+    return '';
+  }
+  function arrivalNote(step) {
+    if (step.arrivedVia === 'jumped') return UI_TEXT.stepNotes.jumped;
+    if (step.arrivedVia === 'searched') return UI_TEXT.stepNotes.searched;
+    return '';
+  }
+
+  function renderStepSummary(step, i, stateName) {
+    var n = NODES[step.nodeId];
+    var notes = [arrivalNote(step), stepNote(step)].filter(Boolean).join(' · ');
+    var clickable = stateName !== 'stale';
+    var h = '<li data-role="step"' + attr('data-state', stateName) + attr('data-node-id', n.id) + '>';
+    h += '<button type="button" data-role="step-summary" data-action="rewind"' + attr('data-index', clickable ? i : null) + (clickable ? '' : ' disabled') + '>';
+    h += '<span class="step-q">' + (i + 1) + '. ' + esc(n.label) + '</span>';
+    if (step.answer) h += '<span class="step-a">' + esc(step.answer) + '</span>';
+    if (notes) h += '<span class="step-note">' + esc(notes) + '</span>';
+    return h + '</button></li>';
   }
 
   function renderStaleNotice() {
-    if (!state.stale) return '';
     var n = state.stale.steps.length;
-    var title = fmt(UI_TEXT.staleNotice, { n: n, s: n === 1 ? '' : 's', y: n === 1 ? 'ies' : 'y' });
     return '<div data-role="stale-notice" role="status">' +
-      '<strong>' + esc(title) + '</strong>' +
-      '<span class="small">' + esc(fmt(UI_TEXT.staleDetail, { n: state.stale.changedAt + 1 })) + '</span>' +
-      '<button type="button" class="btn-primary" data-action="undo-stale" data-role="stale-undo">' + esc(UI_TEXT.staleUndo) + '</button>' +
-      '<button type="button" data-action="dismiss-stale" data-role="stale-dismiss">' + esc(UI_TEXT.staleDismiss) + '</button>' +
+      '<strong>' + esc(fmt(UI_TEXT.staleTitle, { n: n, s: n === 1 ? '' : 's', y: n === 1 ? 'ies' : 'y' })) + '</strong>' +
+      '<span class="muted">' + esc(fmt(UI_TEXT.staleHint, { n: state.stale.changedAt + 1 })) + '</span>' +
+      '<span class="row"><button type="button" class="btn-dark" data-action="undo-stale" data-role="stale-undo">' + esc(UI_TEXT.undo) + '</button>' +
+      '<button type="button" data-action="dismiss-stale" data-role="stale-dismiss">' + esc(UI_TEXT.dismiss) + '</button></span></div>';
+  }
+
+  function renderQuestionCard(step, i) {
+    var node = NODES[step.nodeId];
+    var stage = STAGE[node.stageId];
+    var revisiting = state.cursor < state.path.length - 1;
+    var h = '<article data-role="question-card"' + attr('data-node-id', node.id) + attr('data-risk', node.risk) + attr('data-fresh', state.ui.fresh ? 'true' : null) + '>';
+    h += '<div class="card-top"><span>' + esc(fmt(UI_TEXT.stepFor, { n: i + 1, stage: stage.label })) + '</span>' +
+      (arrivalNote(step) ? '<span>· ' + esc(arrivalNote(step)) + '</span>' : '') +
+      '<span class="spacer"></span>' +
+      (i > 0 ? '<button type="button" class="btn-text" data-action="rewind" data-role="back"' + attr('data-index', i - 1) + '>' + esc(UI_TEXT.back) + '</button>' : '') +
       '</div>';
-  }
-
-  function renderContextStrip() {
-    var h = '<section data-role="context-strip" aria-label="' + esc(UI_TEXT.contextLabel) + '">';
-    FLOW.contextFields.forEach(function (f) {
-      var v = state.context[f.key] || '';
-      var id = 'ctx-' + f.key;
-      h += '<div data-role="context-field"' + attr('data-key', f.key) + attr('data-set', v ? 'true' : 'false') + '>';
-      h += '<label' + attr('for', id) + '>' + esc(f.label) + '</label>';
-      if (f.type === 'select') {
-        h += '<select' + attr('id', id) + ' data-role="context-input"' + attr('data-key', f.key) + attr('data-focus-key', id) + '>';
-        f.options.forEach(function (o) { h += '<option' + attr('value', o) + (o === v ? ' selected' : '') + '>' + esc(o || '—') + '</option>'; });
-        h += '</select>';
-      } else {
-        h += '<input type="text"' + attr('id', id) + ' data-role="context-input"' + attr('data-key', f.key) + attr('data-focus-key', id) + attr('value', v) + '>';
-      }
-      h += '</div>';
-    });
-    h += '</section>';
-    return h;
-  }
-
-  function renderUnresolvedTray() {
-    if (!state.unresolved.length) return '';
-    var h = '<div data-role="unresolved-tray"><span class="muted">' + esc(UI_TEXT.unresolvedLabel) + '</span>';
-    state.unresolved.forEach(function (id) {
-      h += '<button type="button" data-action="return" data-role="unresolved-chip"' + attr('data-node-id', id) + '>' + esc(NODES[id].label) + ' · ' + esc(UI_TEXT.returnTo) + '</button>';
-    });
-    h += '</div>';
-    return h;
-  }
-
-  /* ---- main ---- */
-  function renderMain() {
-    var h = '<main data-role="main">';
-    h += renderNodeCard();
-    if (state.ui.noteOpen) h += renderNotePanel();
-    if (state.ui.debugOpen) h += renderDebug();
-    h += '</main>';
-    return h;
-  }
-
-  function renderNodeCard() {
-    var step = currentStep();
-    var node = currentNode();
-    var stage = stageOf(node);
-    var idx = STAGES.indexOf(stage);
-    var h = '<article class="panel" data-role="node-card"' + attr('data-node-id', node.id) + attr('data-risk', node.risk) + attr('data-fresh', state.ui.freshNode ? 'true' : null) + '>';
-    h += '<div class="stage-line"><span class="tag">' + esc(fmt(UI_TEXT.stageOf, { n: idx + 1, total: STAGES.length })) + '</span><strong>' + esc(stage.label) + '</strong><span class="small muted">' + esc(node.label) + '</span></div>';
-    if (node.risk) h += '<div data-role="risk-banner"' + attr('data-risk', node.risk) + '>' + esc(UI_TEXT.riskLabel[node.risk]) + '</div>';
+    if (node.risk === 'elevated' || node.risk === 'critical') h += '<div data-role="risk-line"' + attr('data-risk', node.risk) + '>' + esc(UI_TEXT.riskLine[node.risk]) + '</div>';
     h += '<h2 data-role="prompt">' + esc(node.prompt) + '</h2>';
+    if (revisiting) h += '<p data-role="revisit-line">' + esc(fmt(UI_TEXT.revisit, { n: i + 1 })) + '</p>';
 
     if (node.terminal) {
-      h += '<div data-role="terminal"><strong>' + esc(UI_TEXT.terminalTitle) + '</strong><p class="small">' + esc(UI_TEXT.terminalHint) + '</p>' +
-        '<div class="btn-row"><button type="button" class="btn-primary" data-action="toggle-note">' + esc(UI_TEXT.noteButton) + '</button>' +
-        '<button type="button" data-action="reset">' + esc(UI_TEXT.resetButton) + '</button></div></div>';
+      h += '<div data-role="end-card"><h3>' + esc(UI_TEXT.endTitle) + '</h3><p>' + esc(UI_TEXT.endHint) + '</p>' +
+        '<button type="button" class="btn-dark" data-action="reset">' + esc(UI_TEXT.newCall) + '</button></div>';
     } else {
-      h += '<ol data-role="answers">';
-      node.answers.forEach(function (a, i) {
-        var prev = state.cursor < state.path.length - 1 && step.answer === a.label;
-        h += '<li><button type="button" data-role="answer-button" data-action="answer"' + attr('data-index', i) + attr('data-previous', prev ? 'true' : null) + '>' +
-          '<span class="key" aria-hidden="true">' + (i + 1) + '</span><span>' + esc(a.label) + '</span>' +
-          (prev ? '<span class="tag prev">' + esc(UI_TEXT.previouslyChosen) + '</span>' : '') + '</button></li>';
+      h += '<div data-role="answers">';
+      node.answers.forEach(function (a, k) {
+        var prev = revisiting && step.answer === a.label;
+        h += '<button type="button" data-role="answer" data-action="answer"' + attr('data-index', k) + attr('data-previous', prev ? 'true' : null) + '>' +
+          '<span>' + esc(a.label) + '</span>' + (prev ? '<span class="prev">' + esc(UI_TEXT.previously) + '</span>' : '') + '</button>';
       });
-      h += '</ol>';
-      h += '<div data-role="exits">';
-      h += '<button type="button" data-action="exit" data-exit="na" data-role="exit-na">' + esc(UI_TEXT.exitNa) + '</button>';
-      if (node.id !== stage.offScriptNodeId) h += '<button type="button" data-action="exit" data-exit="offscript" data-role="exit-offscript">' + esc(UI_TEXT.exitOffScript) + '</button>';
-      h += '<button type="button" data-action="exit" data-exit="park" data-role="exit-park">' + esc(UI_TEXT.exitPark) + '</button>';
+      h += '</div>';
+      h += '<div data-role="other-ways">';
+      if (node.id !== stage.noneOfTheseNodeId) h += '<button type="button" class="btn-text" data-action="none-of-these" data-role="none-of-these">' + esc(UI_TEXT.noneOfThese) + '</button>';
+      h += '<button type="button" class="btn-text" data-action="later" data-role="later">' + esc(UI_TEXT.later) + '</button>';
       h += '</div>';
     }
 
-    h += '<div data-role="node-tools">';
-    h += '<button type="button" data-action="toggle-lateral" data-role="lateral-button"' + attr('aria-expanded', state.ui.lateralOpen ? 'true' : 'false') + '>' + esc(UI_TEXT.lateralButton) + '</button>';
-    h += '<button type="button" class="btn-quiet" data-action="toggle-flag" data-role="flag-button"' + attr('aria-expanded', state.ui.flagOpen ? 'true' : 'false') + '>' + esc(UI_TEXT.flagButton) + '</button>';
-    h += '</div>';
-
-    if (state.ui.lateralOpen) h += renderLateralPanel(node);
-    if (state.ui.flagOpen) h += renderFlagForm(node);
-    if (state.mode === 'training') h += renderTraining(node);
-
-    h += '</article>';
-    return h;
-  }
-
-  function renderLateralPanel(node) {
-    var stageId = state.ui.lateralStage || node.stageId;
-    var h = '<section data-role="lateral-panel" aria-label="' + esc(UI_TEXT.lateralTitle) + '">';
-    h += '<header><h3>' + esc(UI_TEXT.lateralTitle) + '</h3><span class="small muted">' + esc(UI_TEXT.lateralHint) + '</span>' +
-      '<button type="button" class="btn-quiet" data-action="toggle-lateral">' + esc(UI_TEXT.close) + '</button></header>';
-    h += '<div data-role="lateral-stage-tabs">';
-    STAGES.forEach(function (s) {
-      h += '<button type="button" data-action="lateral-stage"' + attr('data-stage-id', s.id) + attr('aria-pressed', s.id === stageId ? 'true' : 'false') + '>' + esc(s.label) + '</button>';
-    });
-    h += '</div><ul data-role="lateral-list">';
-    FLOW.nodes.filter(function (n) { return n.stageId === stageId; }).forEach(function (n) {
-      var here = n.id === node.id;
-      h += '<li><button type="button" data-role="lateral-item" data-action="lateral"' + attr('data-node-id', n.id) + attr('aria-current', here ? 'true' : null) + (here ? ' disabled' : '') + '>' +
-        '<span class="risk-dot"' + attr('data-risk', n.risk) + '></span><strong>' + esc(n.label) + '</strong><span class="small muted">' + esc(n.prompt) + '</span>' +
-        (here ? '<span class="tag">' + esc(UI_TEXT.lateralCurrent) + '</span>' : '') + '</button></li>';
-    });
-    h += '</ul></section>';
-    return h;
-  }
-
-  function renderFlagForm(node) {
-    var h = '<form data-role="flag-form" data-action="submit-flag">';
-    h += '<h3>' + esc(UI_TEXT.flagTitle) + ' <span class="muted">' + esc(node.label) + '</span></h3>';
-    h += '<fieldset>';
-    Object.keys(UI_TEXT.flagKinds).forEach(function (k, i) {
-      h += '<label><input type="radio" name="kind"' + attr('value', k) + (i === 0 ? ' checked' : '') + '> ' + esc(UI_TEXT.flagKinds[k]) + '</label>';
-    });
-    h += '</fieldset>';
-    h += '<textarea name="comment" rows="2"' + attr('placeholder', UI_TEXT.flagCommentPlaceholder) + '></textarea>';
-    h += '<div class="btn-row"><button type="submit" class="btn-primary">' + esc(UI_TEXT.flagSubmit) + '</button>' +
-      '<button type="button" class="btn-quiet" data-action="toggle-flag">' + esc(UI_TEXT.flagCancel) + '</button></div>';
-    h += '</form>';
-    return h;
-  }
-
-  function renderTraining(node) {
-    var h = '<section data-role="training-block">';
-    if (node.why) h += '<details open><summary>' + esc(UI_TEXT.whyTitle) + '</summary><p class="small">' + esc(node.why) + '</p></details>';
-    if (node.dialogue && node.dialogue.length) {
-      h += '<details><summary>' + esc(UI_TEXT.dialogueTitle) + '</summary><ul data-role="dialogue">';
-      node.dialogue.forEach(function (d) { h += '<li' + attr('data-who', d.who) + '><span class="who">' + esc(d.who) + '</span>' + esc(d.text) + '</li>'; });
-      h += '</ul></details>';
+    if (state.coaching && (node.why || (node.dialogue && node.dialogue.length))) {
+      h += '<div data-role="coaching">';
+      if (node.why) h += '<section><h3>' + esc(UI_TEXT.coachingWhy) + '</h3><p>' + esc(node.why) + '</p></section>';
+      if (node.dialogue && node.dialogue.length) {
+        h += '<section><h3>' + esc(UI_TEXT.coachingExample) + '</h3><ul data-role="dialogue">';
+        node.dialogue.forEach(function (d) { h += '<li' + attr('data-who', d.who) + '><span class="who">' + esc(UI_TEXT.speakers[d.who] || d.who) + '</span>' + esc(d.text) + '</li>'; });
+        h += '</ul></section>';
+      }
+      h += '</div>';
     }
-    h += '</section>';
+
+    if (state.ui.feedbackOpen) h += renderFeedbackForm();
+    else h += '<p class="small" data-role="feedback-row"><button type="button" class="btn-text small" data-action="toggle-feedback" data-role="feedback-link">' + esc(UI_TEXT.feedbackLink) + '</button></p>';
+
+    return h + '</article>';
+  }
+
+  function renderFeedbackForm() {
+    var h = '<form data-role="feedback-form" data-action="send-feedback"><h3>' + esc(UI_TEXT.feedbackTitle) + '</h3><fieldset>';
+    Object.keys(UI_TEXT.feedbackKinds).forEach(function (k, i) {
+      h += '<label><input type="radio" name="kind"' + attr('value', k) + (i === 0 ? ' checked' : '') + '> ' + esc(UI_TEXT.feedbackKinds[k]) + '</label>';
+    });
+    h += '</fieldset><textarea name="comment" rows="2"' + attr('placeholder', UI_TEXT.feedbackPlaceholder) + '></textarea>';
+    h += '<div class="row"><button type="submit" class="btn-dark">' + esc(UI_TEXT.feedbackSend) + '</button>' +
+      '<button type="button" class="btn-text" data-action="toggle-feedback">' + esc(UI_TEXT.feedbackCancel) + '</button></div></form>';
     return h;
   }
 
-  function renderNotePanel() {
-    var text = buildNote();
-    return '<section class="panel" data-role="note-panel" aria-label="' + esc(UI_TEXT.noteTitle) + '">' +
-      '<div class="btn-row"><h3>' + esc(UI_TEXT.noteTitle) + '</h3>' +
-      '<button type="button" class="btn-primary" data-action="copy-note" data-role="note-copy">' + esc(state.ui.noteCopied ? UI_TEXT.noteCopied : UI_TEXT.noteCopy) + '</button>' +
-      '<button type="button" data-action="toggle-note">' + esc(UI_TEXT.close) + '</button></div>' +
-      '<textarea data-role="note-text" readonly>' + esc(text) + '</textarea>' +
-      '</section>';
+  /* ---- guidance ---- */
+  function renderGuide() {
+    var node = currentNode();
+    var h = '<aside data-role="guide"><h2>' + esc(UI_TEXT.guideTitle) + '</h2>';
+    var any = false;
+    ['never', 'escalate', 'ask', 'watch', 'resource'].forEach(function (type) {
+      var blocks = node.content.filter(function (c) { return c.type === type; });
+      if (!blocks.length) return;
+      any = true;
+      h += '<section data-role="guide-group"' + attr('data-type', type) + '><h3>' + esc(UI_TEXT.groups[type]) + '</h3><ul>';
+      blocks.forEach(function (b) {
+        h += '<li data-role="guide-item">' + (type === 'resource' ? '<a' + attr('href', b.url || '#') + '>' + esc(b.text) + '</a>' : esc(b.text)) + '</li>';
+      });
+      h += '</ul></section>';
+    });
+    if (!any) h += '<p data-role="guide-empty">' + esc(UI_TEXT.guideEmpty) + '</p>';
+    return h + '</aside>';
+  }
+
+  /* ---- footer and behind the scenes ---- */
+  function renderFoot() {
+    var h = '<footer data-role="foot"><span>' + esc(UI_TEXT.keysHint) + '</span><span>' + esc(fmt(UI_TEXT.contentVersion, { v: FLOW.meta.contentVersion })) + '</span><span class="spacer"></span>' +
+      '<button type="button" class="btn-text small" data-action="toggle-debug" data-role="debug-toggle"' + attr('aria-expanded', state.ui.debugOpen ? 'true' : 'false') + '>' + esc(UI_TEXT.behind) + (state.feedback.length ? ' (' + state.feedback.length + ')' : '') + '</button>';
+    if (state.ui.debugOpen) h += renderDebug();
+    return h + '</footer>';
   }
 
   function renderDebug() {
     var c = counts();
-    var h = '<section class="panel" data-role="debug" aria-label="' + esc(UI_TEXT.debugTitle) + '">';
-    h += '<div class="btn-row"><h3>' + esc(UI_TEXT.debugTitle) + '</h3><button type="button" data-action="toggle-debug">' + esc(UI_TEXT.close) + '</button></div>';
-    h += '<div data-role="debug-counts">';
-    Object.keys(UI_TEXT.debugCounts).forEach(function (k) { h += '<span><b>' + c[k] + '</b>' + esc(UI_TEXT.debugCounts[k]) + '</span>'; });
-    h += '</div>';
-    h += '<h3>' + esc(UI_TEXT.debugFlags) + '</h3>';
-    if (!state.flags.length) h += '<p class="small muted">' + esc(UI_TEXT.debugFlagsEmpty) + '</p>';
+    var h = '<section data-role="debug"><p>' + esc(fmt(UI_TEXT.behindSummary, c)) + '</p>';
+    h += '<h3>' + esc(UI_TEXT.behindFeedback) + '</h3>';
+    if (!state.feedback.length) h += '<p class="muted">' + esc(UI_TEXT.behindFeedbackEmpty) + '</p>';
     else {
-      h += '<ul data-role="flag-list">';
-      state.flags.forEach(function (f) {
-        h += '<li><span class="tag">' + esc(UI_TEXT.flagKinds[f.kind]) + '</span> <strong>' + esc(NODES[f.nodeId].label) + '</strong> <span class="muted">(' + esc(f.nodeId) + ', ' + esc(f.mode) + ')</span>' +
-          (f.comment ? '<br>' + esc(f.comment) : '') + '<br><span class="muted small">' + esc(f.at) + '</span></li>';
+      h += '<ul data-role="feedback-list">';
+      state.feedback.forEach(function (f) {
+        h += '<li><strong>' + esc(NODES[f.question].label) + '</strong> · ' + esc(UI_TEXT.feedbackKinds[f.kind]) + (f.comment ? '<br>' + esc(f.comment) : '') + '<br><span class="muted small">' + esc(f.question) + ' · ' + esc(f.at) + '</span></li>';
       });
       h += '</ul>';
     }
-    h += '<h3>' + esc(UI_TEXT.debugLog) + '</h3><ol data-role="event-log">';
+    h += '<h3>' + esc(UI_TEXT.behindLog) + '</h3><ol data-role="event-log">';
     state.log.slice().reverse().forEach(function (e) {
-      h += '<li><span class="ev-time">' + esc(e.at.slice(11, 23)) + '</span><span class="ev-type">' + esc(e.type) + '</span><span>' + esc(JSON.stringify(e.detail)) + '</span></li>';
+      h += '<li><span class="muted">' + esc(e.at.slice(11, 23)) + '</span><span class="ev-type">' + esc(e.type) + '</span><span>' + esc(JSON.stringify(e.detail)) + '</span></li>';
     });
     h += '</ol>';
-    var view = { mode: state.mode, cursor: state.cursor, path: state.path, stale: state.stale ? { changedAt: state.stale.changedAt, reason: state.stale.reason, steps: state.stale.steps } : null, context: state.context, unresolved: state.unresolved };
-    h += '<h3>' + esc(UI_TEXT.debugState) + '</h3><pre data-role="state-json">' + esc(JSON.stringify(view, null, 2)) + '</pre>';
-    h += '</section>';
-    return h;
-  }
-
-  /* ---- rail ---- */
-  function renderRail() {
-    var node = currentNode();
-    var h = '<aside class="panel" data-role="rail" aria-label="' + esc(UI_TEXT.railTitle) + '">';
-    h += '<h3>' + esc(UI_TEXT.railTitle) + '</h3>';
-    var order = ['never', 'escalate', 'ask', 'watch', 'resource'];
-    var any = false;
-    order.forEach(function (type) {
-      var blocks = node.content.filter(function (c) { return c.type === type; });
-      if (!blocks.length) return;
-      any = true;
-      h += '<section data-role="content-group"' + attr('data-type', type) + '><h3>' + esc(UI_TEXT.groups[type]) + '</h3>';
-      blocks.forEach(function (b) {
-        h += '<div data-role="content-block"' + attr('data-type', type) + '>';
-        if (type === 'resource') h += '<a' + attr('href', b.url || '#') + '>' + esc(b.text) + '</a>';
-        else h += esc(b.text);
-        h += '</div>';
-      });
-      h += '</section>';
-    });
-    if (!any) h += '<p data-role="rail-empty">' + esc(UI_TEXT.railEmpty) + '</p>';
-    h += '</aside>';
-    return h;
-  }
-
-  function renderFooter() {
-    return '<footer data-role="footer"><span>' + esc(UI_TEXT.footerKeys) + '</span><span>' + esc(fmt(UI_TEXT.footerVersion, { v: FLOW.meta.contentVersion })) + '</span><span>' + esc(FLOW.meta.disclaimer) + '</span></footer>';
+    var view = { cursor: state.cursor, path: state.path, stale: state.stale ? { changedAt: state.stale.changedAt, reason: state.stale.reason, steps: state.stale.steps } : null, coaching: state.coaching };
+    h += '<h3>' + esc(UI_TEXT.behindState) + '</h3><pre data-role="state-json">' + esc(JSON.stringify(view, null, 2)) + '</pre>';
+    return h + '</section>';
   }
 
   /* ---------------------------------------------------------- */
-  /* Events: delegated, translate DOM events into actions        */
+  /* Events: delegated; handlers only translate to actions       */
   /* ---------------------------------------------------------- */
   var root = document.getElementById('app');
 
@@ -1837,54 +1604,37 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
     var action = el.getAttribute('data-action');
     switch (action) {
       case 'answer': dispatch({ type: 'answer', index: Number(el.getAttribute('data-index')) }); break;
-      case 'exit': dispatch({ type: 'exit', exit: el.getAttribute('data-exit') }); break;
-      case 'lateral': dispatch({ type: 'lateral', nodeId: el.getAttribute('data-node-id') }); break;
-      case 'return': dispatch({ type: 'return', nodeId: el.getAttribute('data-node-id') }); break;
-      case 'search-jump': dispatch({ type: 'search-jump', nodeId: el.getAttribute('data-node-id') }); break;
+      case 'jump': dispatch({ type: 'jump', nodeId: el.getAttribute('data-node-id'), via: el.getAttribute('data-via') }); break;
       case 'rewind': if (el.hasAttribute('data-index')) dispatch({ type: 'rewind', index: Number(el.getAttribute('data-index')) }); break;
-      case 'set-mode': dispatch({ type: 'set-mode', mode: el.getAttribute('data-mode') }); break;
-      case 'lateral-stage': dispatch({ type: 'lateral-stage', stageId: el.getAttribute('data-stage-id') }); break;
-      case 'copy-note': copyNote(); break;
+      case 'open-stage': dispatch({ type: 'open-stage', stageId: el.getAttribute('data-stage-id') }); break;
       default: dispatch({ type: action }); break;
     }
   });
 
-  root.addEventListener('change', function (ev) {
-    var el = ev.target;
-    if (el.getAttribute('data-role') === 'context-input') dispatch({ type: 'set-context', key: el.getAttribute('data-key'), value: el.value });
-  });
-
   root.addEventListener('input', function (ev) {
-    var el = ev.target;
-    if (el.getAttribute('data-role') === 'search-input') dispatch({ type: 'search', value: el.value });
+    if (ev.target.getAttribute('data-role') === 'search-input') dispatch({ type: 'search', value: ev.target.value });
   });
 
   root.addEventListener('submit', function (ev) {
-    var form = ev.target.closest('form[data-action="submit-flag"]');
+    var form = ev.target.closest('form[data-action="send-feedback"]');
     if (!form) return;
     ev.preventDefault();
     var kind = form.querySelector('input[name="kind"]:checked');
-    dispatch({ type: 'submit-flag', kind: kind ? kind.value : Object.keys(UI_TEXT.flagKinds)[0], comment: form.querySelector('textarea[name="comment"]').value.trim() });
+    dispatch({ type: 'send-feedback', kind: kind ? kind.value : Object.keys(UI_TEXT.feedbackKinds)[0], comment: form.querySelector('textarea[name="comment"]').value.trim() });
   });
 
   root.addEventListener('keydown', function (ev) {
-    var el = ev.target;
-    if (el.getAttribute && el.getAttribute('data-role') === 'search-input' && ev.key === 'Enter') {
+    if (ev.target.getAttribute && ev.target.getAttribute('data-role') === 'search-input' && ev.key === 'Enter') {
       var first = searchNodes(state.ui.search)[0];
-      if (first) { ev.preventDefault(); dispatch({ type: 'search-jump', nodeId: first.id }); }
+      if (first) { ev.preventDefault(); dispatch({ type: 'jump', nodeId: first.id, via: 'searched' }); }
     }
   });
 
   document.addEventListener('keydown', function (ev) {
     var t = ev.target;
-    var typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT');
-    if (ev.key === 'Escape') {
-      if (typing) t.blur();
-      dispatch({ type: 'close-panels' });
-      return;
-    }
+    var typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA');
+    if (ev.key === 'Escape') { if (typing) t.blur(); dispatch({ type: 'close-panels' }); return; }
     if (typing) return;
-    if (ev.key === '/') { ev.preventDefault(); var s = document.querySelector('[data-role="search-input"]'); if (s) s.focus(); return; }
     if (/^[1-9]$/.test(ev.key) && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
       var node = currentNode();
       var i = Number(ev.key) - 1;
@@ -1892,24 +1642,10 @@ kbd { font-family: var(--font-mono); border: var(--bw-1) solid var(--g-4); borde
     }
   });
 
-  function copyNote() {
-    var ta = document.querySelector('[data-role="note-text"]');
-    if (!ta) return;
-    var done = function () { dispatch({ type: 'note-copied' }); };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(ta.value).then(done, function () { legacyCopy(ta); done(); });
-    } else { legacyCopy(ta); done(); }
-  }
-  function legacyCopy(ta) {
-    ta.focus(); ta.select();
-    try { document.execCommand('copy'); } catch (e) {}
-  }
-
-  /* ---------------------------------------------------------- */
-  logEvent('visit', { nodeId: FLOW.startNodeId, via: 'start', step: 1 });
+  logEvent('visit', { question: FLOW.startNodeId, via: 'start', step: 1 });
   render();
 
-  // Exposed for the smoke test and for poking at in the console. Read-only intent.
+  // Exposed for the smoke test and for poking at in the console.
   window.__frd = { getState: function () { return JSON.parse(JSON.stringify(state)); }, flow: FLOW, dispatch: dispatch };
 })();
 </script>

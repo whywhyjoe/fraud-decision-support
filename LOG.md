@@ -7,6 +7,34 @@ Newest first.
 
 ---
 
+## 2026-09-16 — demo v2: the flow is the interface
+
+Reworked after review of v1. The first cut was too complex for what the
+client has said so far, and it had the recognisable Claude-default look.
+
+Removed: call-note generation, the captured-facts strip and `setsContext`,
+the third exit, stage tabs on the lateral panel, the unresolved tray, the
+live/training mode split, breadcrumb chips. Kept: going back with stale
+steps and undo, jumping, find a question, feedback, behind the scenes.
+
+Changed: a stage track across the top and the steps as a vertical chain,
+with the current question as the one large card. Jumping is clicking a
+stage on the track. Training mode became a *Coaching notes* toggle. The
+three exits became two links under the answers. Every word on screen is
+question, step or stage.
+
+Typography and shape, after checking the published lists of AI-design
+tells: 16px body, 14px floor, sentence case everywhere, no tracked labels,
+no pills, no coloured left borders, 10–14px radii per the client's design
+system, greyscale with red and amber only for risk. The fast test now
+enforces the size floor and the uppercase ban.
+
+Data model: stage keys renamed to `skipToNodeId` and `noneOfTheseNodeId`;
+`contextFields` and node-level exit overrides dropped. Content unchanged
+apart from the five *none of these fit* questions.
+
+---
+
 ## 2026-09-16 — wireframe v1
 
 First build of the demo: one self-contained HTML file with one scenario

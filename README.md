@@ -1,11 +1,14 @@
 # frd-decision-support
 
-A click-through wireframe of a guided decision-support tool for front-line
-bank fraud reps: part call flowchart, part just-in-time training. It exists to
-provoke requirements from a client who does not yet know what they want.
+A click-through demo of a guided call tool for front-line bank fraud reps.
+The rep answers one question at a time; the tool shows what to say, what to
+watch for, what never to say, and where the resources are. Because real calls
+wander, the rep can go back, change an answer, jump to a different question,
+or skip one and return.
 
-**Everything in it is placeholder. It is not bank policy** and the page says
-so on a banner that cannot be dismissed.
+It exists to draw requirements out of a client who does not yet know what
+they want. **Everything in it is placeholder. It is not bank policy**, and a
+banner says so on every screen.
 
 ## Running it
 
@@ -13,65 +16,58 @@ Open `app/fraud-decision-support.html` in a browser. That is the whole
 deployment: one file, no build, no server, no network, no storage. It works
 from a `file://` URL inside a locked-down corporate browser.
 
-## The three interactions to demo first
+## What to show, in order
 
-Do them in this order. The third one is the point of the demo.
+1. **Answer through a call.** Number keys 1 to 9 work. Watch the stage
+   track fill in across the top and the steps stack up on the left.
+2. **Go back and change an answer.** Click any earlier step, or **Back** on
+   the current card. Pick a different answer: the later steps stay on screen
+   struck through, with a notice and **Undo**. Pick the same answer instead
+   and the call simply carries on.
+3. **Jump.** Click a stage on the track to see its questions and go straight
+   to one. The steps so far are kept and the jump is noted.
+4. **Coaching notes.** Toggle it on: every question gains *why this matters*
+   and an example exchange. Same content, different mode.
+5. **Find a question.** Type `elder` in the search box for a customer who
+   opens mid-story.
+6. **Something wrong with this step?** Under every question. Feedback lands
+   on the **Behind the scenes** panel in the footer, with an event log that
+   shows jumps and rewinds are measurable.
 
-1. **Full path.** Live mode, keys `1` through `9`. Take the obvious answer at
-   every node until you reach a resolution node, then press **Call note** and
-   show the assembled case note.
-2. **Lateral jump.** Start over. On the first node press **Jump to another
-   answer in this stage** and pick *Possible coaching on the line*. The path
-   is kept, the chip is marked *jumped*, and the node is critical-risk.
-3. **Rewind with a changed answer.** Start over, answer three or four nodes,
-   then click the second breadcrumb chip. Choose a *different* answer. The
-   later steps go struck-through in the breadcrumb and a notice says how many
-   no longer apply, with **Undo**. Click Undo. Then do it again and choose the
-   *same* answer: the path is walked forward and nothing is invalidated.
-
-Then, if there is time: **I don't know yet** parks a node in an *Unresolved*
-tray; the search box jumps mid-story (try `elder`); **Training** adds *why
-this matters* and sample dialogue to every node; **Flag this node** feeds the
-**Debug** screen, which also shows an event log of lateral jumps and rewinds.
-
-## The data model
+## The content model
 
 All content is one JSON object in the `#flow-data` block near the top of the
-HTML file. The render logic contains no scenario strings.
+HTML file. The page logic contains no scenario strings.
 
 | Key | What it holds |
 | --- | --- |
-| `stages[]` | `id`, `order`, `label`, plus where a stage's *not applicable* and *off-script* exits go |
-| `nodes[]` | `id`, `stageId`, `label` (short, for chips), `prompt`, `risk`, `content[]`, `answers[]`, and training-only `why` and `dialogue[]` |
-| `answers[]` | `label`, `nextNodeId`, optional `setsContext` |
-| `content[]` | `type` of `ask`, `watch`, `never`, `escalate` or `resource`, with `text` and (for resources) `url` |
-| `contextFields[]` | the editable facts strip: `key`, `label`, `type`, `options` |
+| `stages[]` | `id`, `order`, `label`, and where *none of these fit* and *come back later* go for that stage |
+| `nodes[]` | one question: `id`, `stageId`, `label` (short), `prompt`, `risk`, `content[]`, `answers[]`, plus coaching-only `why` and `dialogue[]` |
+| `answers[]` | `label`, `nextNodeId` |
+| `content[]` | `type` of `never`, `escalate`, `ask`, `watch` or `resource`, with `text` and (for resources) `url` |
 
-Full field reference and authoring rules: [`docs/01-content-model.md`](docs/01-content-model.md).
+Field-by-field reference and authoring rules: [`docs/01-content-model.md`](docs/01-content-model.md).
 
-## Adding a node
+## Adding a question
 
 1. Add an object to `nodes[]` with a unique `id`, an existing `stageId`, a
    `label`, a `prompt`, and one to nine `answers` pointing at existing ids.
-   A resolution node has `"terminal": true` and `"answers": []`.
+   An end-of-call question has `"terminal": true` and `"answers": []`.
 2. Point at least one existing answer at it, or it is unreachable.
 3. Run `node --test tests/flow.test.mjs`. It fails on a dangling id, an
-   unreachable node, or a node with no route to a resolution.
-
-The three exits (*not applicable*, *off-script*, *I don't know yet*) come for
-free from the stage; a node can override the first with `naNextNodeId` and
-the third with `parkNextNodeId`.
+   unreachable question, or a question with no route to an end of call.
 
 ## What is deliberately stubbed
 
 - **Resource links** are `href="#"`.
-- **Persistence.** State is in memory and is lost on reload. There is no
-  localStorage, no backend, no login.
-- **Analytics.** The debug screen's event log stands in for it.
-- **Authoring.** Content is edited in the file. No UI for it.
+- **Persistence.** State is in memory and is lost on reload. No storage, no
+  backend, no login.
+- **Analytics.** The event log behind the scenes stands in for it.
+- **Authoring.** Content is edited in the file.
 - **One scenario.** No scenario picker, no mobile layout, no accessibility
   work beyond semantic markup and keyboard operation.
-- **Flags** go to an in-memory list on the debug screen, nowhere else.
+- **Case notes and captured facts** were in the first cut and removed: the
+  client has not said they want them, and they crowded the screen.
 
 ## Where to look
 
