@@ -7,6 +7,18 @@ Newest first.
 
 ---
 
+## 2026-09-22 — content 0.4: guidance in the topic register
+
+All 120 guidance blocks rewritten to match the topic style set in v3. Each
+block is now the thing itself under its heading: a *never* item names what
+not to do or disclose, a *check or ask* item names what to establish, a
+*watch for* item names the signal, an *escalate when* item names the
+condition and where it goes. No quoted lines to say remain outside the
+coaching-notes dialogue. Types, counts and resource links unchanged; no
+logic or layout change.
+
+---
+
 ## 2026-09-16 — demo v3: flow lines, half-screen guidance, topics
 
 Reworked after review of v2.

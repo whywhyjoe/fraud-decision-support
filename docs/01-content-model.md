@@ -12,7 +12,12 @@ Write labels as knowledge-base entries, not script lines: "Account takeover
 red flags", "Bank impersonation", "Household use possible". Write prompts
 as the assessment question a rep answers: "Were unauthorised profile
 changes found?" Write answers as findings, not quotes: "Shared a code or
-passcode", not "Says they read out a code".
+passcode", not "Says they read out a code". Write guidance blocks the same
+way, as the thing itself under its heading: a *never* item names what not
+to do ("A callback to any number supplied during the call"), a *check or
+ask* item names what to establish ("Last four digits before blocking"), a
+*watch for* item names the signal, an *escalate when* item names the
+condition. No quoted lines to say; the heading carries the verb.
 
 ## Top level
 
@@ -77,15 +82,13 @@ passcode", not "Says they read out a code".
 
 | `type` | Heading | Rendered as | Use for |
 | --- | --- | --- | --- |
-| `never` | Never | Dark filled block, loudest | What must not be said or done. |
-| `escalate` | Escalate when | Red-outlined block | The condition that ends the rep's involvement. |
-| `ask` | Check or ask | Plain block | What to establish, and suggested wording where it helps. |
-| `watch` | Watch for | Shaded block | Signals to listen for. |
+| `never` | Never | Dark filled block, loudest | The thing not to do or disclose, as a noun phrase. |
+| `escalate` | Escalate when | Red-outlined block | The condition, and where it goes after the colon. |
+| `ask` | Check or ask | Plain block | What to establish, as a noun phrase. |
+| `watch` | Watch for | Shaded block | The signal, and what it means if it helps. |
 | `resource` | Resources | A link block. Needs `url`. All are `#` for now. | A procedure, guide or tool. |
 
 Order within a group is authoring order. Groups render in the order above.
-The heading carries the type; write the text as a full sentence anyway, so
-it also reads correctly in a plain-text export later.
 
 ## What the tests refuse
 

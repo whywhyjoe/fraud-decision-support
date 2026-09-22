@@ -91,10 +91,11 @@ lets the search box filter on every keystroke through a full re-render.
 ### Topics, not script lines — 2026-09-16
 Labels and prompts read as knowledge-base entries ("Bank impersonation",
 "Which indicators are present?") rather than what the customer said.
-**Rejected:** scripted phrasing, which reads as a call script and ties an
-entry to one moment in one call. **Costs:** the coaching-notes dialogue is
-now the only place customer wording appears; the *ask* blocks still quote
-suggested wording.
+Guidance blocks follow: each is the thing itself under its heading, never
+a quoted line to say. **Rejected:** scripted phrasing, which reads as a
+call script and ties an entry to one moment in one call. **Costs:** the
+coaching-notes dialogue is the only place customer or rep wording appears;
+a rep who wants words to say has to open it.
 
 ### Stages live on the flow, not in a separate track — 2026-09-16
 Stage labels are rows in the flow list; the stages to come are faint rows

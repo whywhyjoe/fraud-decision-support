@@ -10,9 +10,9 @@ the `project-state` skill.
 
 | | |
 | --- | --- |
-| **Version** | 0.3.0 — third cut: flow lines, half-screen guidance, topics |
+| **Version** | 0.3.1 — v3 layout, content 0.4 (guidance in the topic register) |
 | **Deployed** | Nowhere. The file is opened locally. |
-| **Last shipped** | 2026-09-16, demo v3 |
+| **Last shipped** | 2026-09-22, content 0.4 |
 | **Content** | One scenario, 47 topics, placeholder throughout |
 
 ## Next committed step

@@ -388,7 +388,7 @@ input, textarea {
 {
   "meta": {
     "scenario": "Inbound call — customer reports unauthorised card transactions",
-    "contentVersion": "0.3-placeholder",
+    "contentVersion": "0.4-placeholder",
     "disclaimer": "Placeholder content for discussion — not bank policy"
   },
 
@@ -416,7 +416,7 @@ input, textarea {
       "content": [
         { "type": "ask", "text": "Full name, date of birth, and two knowledge questions from the verification panel." },
         { "type": "watch", "text": "Long pauses before answers, or answers read out slowly as if from a screen." },
-        { "type": "never", "text": "Never read the card number, balance, or any recent transaction to the caller before verification passes." },
+        { "type": "never", "text": "Card number, balance or recent transactions disclosed before verification passes." },
         { "type": "resource", "text": "Identity verification procedure (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -433,8 +433,8 @@ input, textarea {
         { "who": "customer", "text": "I can't remember what I set as my memorable place, sorry." }
       ],
       "content": [
-        { "type": "ask", "text": "Offer the alternative knowledge question before moving to secondary verification." },
-        { "type": "watch", "text": "The caller repeating your question out loud before answering it." },
+        { "type": "ask", "text": "The alternative knowledge question, before moving to secondary verification." },
+        { "type": "watch", "text": "The caller repeating each question aloud before answering it." },
         { "type": "resource", "text": "Identity verification procedure (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -451,8 +451,8 @@ input, textarea {
         { "who": "rep", "text": "I'm going to call you back on the mobile number we have on file. It ends in the digits I'll read to you now." }
       ],
       "content": [
-        { "type": "ask", "text": "Confirm the caller can take a call on the number ending in the last two digits you read out." },
-        { "type": "never", "text": "Never call back a number the caller gives you during the call." },
+        { "type": "ask", "text": "That the caller can take a call on the number ending in the two digits read out." },
+        { "type": "never", "text": "A callback to any number supplied during the call." },
         { "type": "resource", "text": "Callback verification steps (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -468,9 +468,9 @@ input, textarea {
         { "who": "customer", "text": "Forget the questions, just cancel the card." }
       ],
       "content": [
-        { "type": "ask", "text": "Explain what can and cannot be done without verification, in one sentence." },
-        { "type": "never", "text": "Never confirm whether any specific transaction exists on the account." },
-        { "type": "escalate", "text": "The caller becomes aggressive or threatens staff — follow the abusive-caller process." }
+        { "type": "ask", "text": "What can and cannot be done without verification, in one sentence." },
+        { "type": "never", "text": "Confirmation that any specific transaction exists on the account." },
+        { "type": "escalate", "text": "The caller becomes aggressive or threatens staff: abusive-caller process." }
       ],
       "answers": [
         { "label": "Card block only",       "nextNodeId": "verify-unverified-block" },
@@ -483,7 +483,7 @@ input, textarea {
       "why": "A block is reversible and protects the customer. A discussion is not reversible and protects nobody.",
       "content": [
         { "type": "ask", "text": "Last four digits and the name on the card." },
-        { "type": "watch", "text": "A caller who pushes to also change the address or phone number — that is not a block, that is a takeover." },
+        { "type": "watch", "text": "A push to also change the address or phone number. That is a takeover attempt, not a block." },
         { "type": "resource", "text": "Card block and reissue guide (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -499,9 +499,9 @@ input, textarea {
         { "who": "rep", "text": "No problem. Are you somewhere you can talk freely?" }
       ],
       "content": [
-        { "type": "watch", "text": "Muffled conversation, answers that arrive after a pause, the caller relaying your questions." },
-        { "type": "never", "text": "Never ask 'is someone telling you what to say?' — it tips off the third party and ends the call." },
-        { "type": "escalate", "text": "Coaching suspected AND the caller asks to change contact details, add a payee, or move money — hand to a fraud specialist." },
+        { "type": "watch", "text": "Muffled conversation, answers that arrive after a pause, the caller relaying questions to someone else." },
+        { "type": "never", "text": "Asking whether someone is telling the caller what to say. It tips off the third party and ends the call." },
+        { "type": "escalate", "text": "Coaching suspected and the caller asks to change contact details, add a payee or move money: fraud specialist." },
         { "type": "resource", "text": "Third-party coaching guidance (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -518,9 +518,9 @@ input, textarea {
         { "who": "rep", "text": "For security I'll need to call you back on your registered number. Is now a good time, or would later suit you better?" }
       ],
       "content": [
-        { "type": "ask", "text": "Offer a time window rather than an immediate callback if the caller hesitates." },
-        { "type": "never", "text": "Never describe the callback as being about the third party." },
-        { "type": "escalate", "text": "The caller refuses a callback and insists on completing a payment or detail change now." }
+        { "type": "ask", "text": "A time window for the callback rather than an immediate one, if the caller hesitates." },
+        { "type": "never", "text": "Describing the callback as being about the third party." },
+        { "type": "escalate", "text": "Callback refused and the caller insists on completing a payment or detail change now." }
       ],
       "answers": [
         { "label": "Accepted",   "nextNodeId": "resolve-callback-scheduled" },
@@ -532,8 +532,8 @@ input, textarea {
       "prompt": "None of the listed situations apply. Which is closest?",
       "why": "Most off the expected path moments in this stage are a customer who wants to tell the story first. Let them, then bring it back — you have not lost anything.",
       "content": [
-        { "type": "ask", "text": "Acknowledge, then: 'I want to get this right for you, so let me finish confirming who I'm speaking with.'" },
-        { "type": "never", "text": "Never let empathy substitute for a verification step." }
+        { "type": "ask", "text": "Acknowledge the situation, then complete verification before anything else." },
+        { "type": "never", "text": "Empathy in place of a verification step." }
       ],
       "answers": [
         { "label": "Caller describing the incident before verification", "nextNodeId": "verify-open" },
@@ -550,8 +550,8 @@ input, textarea {
         { "who": "customer", "text": "There are three payments to a shop I've never heard of." }
       ],
       "content": [
-        { "type": "ask", "text": "'Tell me in your own words what you've seen.' Then listen for whether they did anything themselves." },
-        { "type": "watch", "text": "The customer mentions a phone call, text or email that started this — route to the scam branch, not fraud." },
+        { "type": "ask", "text": "The customer's own account of what they have seen, and whether they did anything themselves." },
+        { "type": "watch", "text": "Any call, text or email that started this. That is the scam branch, not fraud." },
         { "type": "resource", "text": "Scam vs fraud decision aid (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -566,8 +566,8 @@ input, textarea {
       "prompt": "Is unauthorised activity still occurring?",
       "why": "If it is ongoing, blocking comes before everything else, including scope. Every minute of investigation is another transaction.",
       "content": [
-        { "type": "ask", "text": "'Do you see anything from today, or anything showing as pending?'" },
-        { "type": "watch", "text": "Pending transactions the customer has not noticed — read the pending list, not just posted." }
+        { "type": "ask", "text": "Anything from today, and anything showing as pending." },
+        { "type": "watch", "text": "Pending transactions the customer has not noticed. Read the pending list, not just posted." }
       ],
       "answers": [
         { "label": "Yes: today or pending",  "nextNodeId": "triage-block-now" },
@@ -582,8 +582,8 @@ input, textarea {
         { "who": "rep", "text": "I'm going to block the card right now so nothing else can go through, and then we'll go through what's happened." }
       ],
       "content": [
-        { "type": "ask", "text": "Confirm the last four digits before blocking. If more than one card, ask which." },
-        { "type": "never", "text": "Never say 'the money is gone' or 'you'll get it all back' — neither is yours to promise." },
+        { "type": "ask", "text": "Last four digits before blocking. Which card, if more than one." },
+        { "type": "never", "text": "Promises about the money: neither that it is gone nor that it will all come back." },
         { "type": "resource", "text": "Card block and reissue guide (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -596,9 +596,9 @@ input, textarea {
       "prompt": "Why is the block being declined?",
       "why": "A declined block is a signal in itself. Sometimes practical, sometimes a family member, and sometimes because someone has told them not to.",
       "content": [
-        { "type": "watch", "text": "'They told me not to cancel it' — someone else is directing this customer." },
-        { "type": "never", "text": "Never threaten to block against the customer's wishes as a way to end the discussion." },
-        { "type": "escalate", "text": "The customer says a third party instructed them to keep the card active." }
+        { "type": "watch", "text": "A reason that comes from someone else: told not to cancel, told to keep it open." },
+        { "type": "never", "text": "Threatening to block against the customer's wishes to end the discussion." },
+        { "type": "escalate", "text": "A third party instructed the customer to keep the card active." }
       ],
       "answers": [
         { "label": "Practical need for the card",  "nextNodeId": "triage-present" },
@@ -611,7 +611,7 @@ input, textarea {
       "prompt": "Were the transactions card-present or card-not-present?",
       "why": "Card-present fraud with the card still in the customer's wallet is rare and points at cloning or a family member. Card-not-present is the common case.",
       "content": [
-        { "type": "ask", "text": "Read the merchant channel from the transaction detail rather than asking the customer to guess." },
+        { "type": "ask", "text": "The merchant channel from the transaction detail, not from the customer's guess." },
         { "type": "resource", "text": "Reading transaction channel codes (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -628,8 +628,8 @@ input, textarea {
         { "who": "customer", "text": "I used it at the petrol station Tuesday and haven't seen it since." }
       ],
       "content": [
-        { "type": "ask", "text": "Last use they are sure of. Was the PIN entered in front of anyone?" },
-        { "type": "watch", "text": "Card 'lost' immediately after a large cash withdrawal — note it, don't challenge it." }
+        { "type": "ask", "text": "Last use the customer is sure of. Whether the PIN was entered in front of anyone." },
+        { "type": "watch", "text": "A card reported lost immediately after a large cash withdrawal. Note it; do not challenge it." }
       ],
       "answers": [
         { "label": "Established: proceed to block", "nextNodeId": "triage-block-now" }
@@ -640,7 +640,7 @@ input, textarea {
       "prompt": "Which team owns this?",
       "why": "The tool covers one scenario. Routing out early is better than forcing a merchant dispute through a fraud flow.",
       "content": [
-        { "type": "ask", "text": "'So I send you to the right team: is this about money you didn't spend, or about something you bought?'" },
+        { "type": "ask", "text": "Whether this is about money the customer did not spend, or something they bought." },
         { "type": "resource", "text": "Team routing directory (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -654,8 +654,8 @@ input, textarea {
       "prompt": "None of the listed situations apply. Which is closest?",
       "why": "Customers jump ahead to refunds. Answer the question they asked in one sentence, then return to the question you need answered.",
       "content": [
-        { "type": "ask", "text": "'I'll explain exactly what happens with the money in a moment — first I need to know if this is still going on.'" },
-        { "type": "never", "text": "Never quote a refund timeline before the scope and pattern are known." }
+        { "type": "ask", "text": "Whether the activity is still ongoing, before anything about refunds." },
+        { "type": "never", "text": "A refund timeline before scope and pattern are known." }
       ],
       "answers": [
         { "label": "Refund questions ahead of triage",   "nextNodeId": "triage-ongoing" },
@@ -672,8 +672,8 @@ input, textarea {
         { "who": "rep", "text": "I'll read the last ten and you tell me which ones aren't yours." }
       ],
       "content": [
-        { "type": "ask", "text": "Read merchant, amount, date. Pause after each. Record the disputed total in the context strip." },
-        { "type": "watch", "text": "A recognisable merchant billed under a parent-company name." },
+        { "type": "ask", "text": "Merchant, amount and date for each transaction, with a pause after each. The disputed total." },
+        { "type": "watch", "text": "A familiar merchant billed under a parent-company name." },
         { "type": "resource", "text": "Merchant name lookup (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -687,8 +687,8 @@ input, textarea {
       "prompt": "Are any of the disputed merchants recognised?",
       "why": "Partial recognition is the most common honest confusion, and the most common dishonest claim. Either way the next node handles it without judgement.",
       "content": [
-        { "type": "ask", "text": "First and last disputed date. Total amount. Fill both fields in the context strip." },
-        { "type": "never", "text": "Never suggest the customer 'probably just forgot' a transaction." }
+        { "type": "ask", "text": "First and last disputed date. Total amount." },
+        { "type": "never", "text": "Suggesting the customer probably forgot a transaction." }
       ],
       "answers": [
         { "label": "None recognised",  "nextNodeId": "scope-possession" },
@@ -700,8 +700,8 @@ input, textarea {
       "prompt": "Could an authorised user or household member account for the rest?",
       "why": "Household use is not fraud for the bank's purposes and a dispute will be declined later. Better to ask now.",
       "content": [
-        { "type": "ask", "text": "'Does anyone else have access to the card details — a partner, a child, a carer?'" },
-        { "type": "watch", "text": "A carer or new 'helper' with access to an older customer's card — see the safeguarding branch." }
+        { "type": "ask", "text": "Who else has access to the card details: partner, child, carer." },
+        { "type": "watch", "text": "A carer or new helper with access to an older customer's card. See the safeguarding topic." }
       ],
       "answers": [
         { "label": "Possibly",  "nextNodeId": "scope-family" },
@@ -716,9 +716,9 @@ input, textarea {
         { "who": "customer", "text": "My son does use it sometimes. I'll ask him tonight." }
       ],
       "content": [
-        { "type": "ask", "text": "Offer a callback window. Note the transactions in question so the next rep has them." },
-        { "type": "never", "text": "Never say 'then it isn't fraud' — a household member using a card without permission can still be." },
-        { "type": "escalate", "text": "The customer seems afraid of the household member, or describes being pressured to hand over the card." }
+        { "type": "ask", "text": "A callback window. The transactions in question, noted for the next rep." },
+        { "type": "never", "text": "Ruling out fraud because a household member is involved. Use without permission can still be fraud." },
+        { "type": "escalate", "text": "The customer seems afraid of the household member, or describes pressure to hand over the card." }
       ],
       "answers": [
         { "label": "Will check and call back",          "nextNodeId": "resolve-callback-scheduled" },
@@ -730,8 +730,8 @@ input, textarea {
       "prompt": "Is the card in the customer's possession?",
       "why": "Combined with the channel, this is the fastest fraud-type classifier we have.",
       "content": [
-        { "type": "ask", "text": "'Do you have the physical card in front of you right now?'" },
-        { "type": "watch", "text": "Card present in the wallet plus chip transactions elsewhere — flag for possible cloning." }
+        { "type": "ask", "text": "Whether the physical card is with the customer right now." },
+        { "type": "watch", "text": "Card in the wallet plus chip transactions elsewhere: possible cloning." }
       ],
       "answers": [
         { "label": "Yes",       "nextNodeId": "risk-open" },
@@ -744,7 +744,7 @@ input, textarea {
       "prompt": "How will the transaction review be completed?",
       "why": "Guessing at scope produces a dispute that gets amended twice. A statement and a callback produces one that sticks.",
       "content": [
-        { "type": "ask", "text": "Send the statement by the customer's preferred channel and agree a callback." },
+        { "type": "ask", "text": "The customer's preferred channel for the statement. A callback time." },
         { "type": "resource", "text": "Sending statements securely (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -757,7 +757,7 @@ input, textarea {
       "prompt": "None of the listed situations apply. Which is closest?",
       "why": "Scope is slow and customers get impatient. Name the finish line: 'three more and we're done with the list.'",
       "content": [
-        { "type": "ask", "text": "Summarise what is captured so far before asking the next question." }
+        { "type": "ask", "text": "A summary of what is captured so far, before the next question." }
       ],
       "answers": [
         { "label": "Customer impatient with the review",        "nextNodeId": "scope-dates" },
@@ -771,7 +771,7 @@ input, textarea {
       "prompt": "Which pattern fits the evidence?",
       "why": "The pattern decides the remedy. Fraud gets a block and a dispute. A scam gets a scam claim. Account takeover gets a credential reset. Picking wrong costs the customer weeks.",
       "content": [
-        { "type": "ask", "text": "If undecided, run the signal checklist rather than guessing." },
+        { "type": "ask", "text": "The signal checklist, if the pattern is not clear. No guessing." },
         { "type": "resource", "text": "Scam vs fraud decision aid (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -786,8 +786,8 @@ input, textarea {
       "prompt": "Do any signals change the assessment?",
       "why": "Most calls end here, and that is fine. The two checks are cheap and catch the cases that are not fine.",
       "content": [
-        { "type": "ask", "text": "Any recent change to address, phone or email? Any vulnerability indicators on the profile?" },
-        { "type": "watch", "text": "Age over 65 plus a new authorised user, carer, or 'friend who helps with the banking'." }
+        { "type": "ask", "text": "Recent changes to address, phone or email. Vulnerability indicators on the profile." },
+        { "type": "watch", "text": "Age over 65 plus a new authorised user, carer, or friend who helps with the banking." }
       ],
       "answers": [
         { "label": "None",              "nextNodeId": "act-block" },
@@ -800,10 +800,10 @@ input, textarea {
       "prompt": "Were unauthorised profile changes or logins found?",
       "why": "A card block does nothing if the attacker has the online banking login. They will just order a new card to the new address.",
       "content": [
-        { "type": "ask", "text": "Read back the last three profile changes and ask the customer to confirm each one." },
-        { "type": "watch", "text": "A new device registered in the last 14 days that the customer does not recognise." },
-        { "type": "never", "text": "Never read the new (attacker's) contact details to the customer in full." },
-        { "type": "escalate", "text": "Confirmed unauthorised profile change — do not just block the card; go to the lock-down node." }
+        { "type": "ask", "text": "The last three profile changes, confirmed one by one with the customer." },
+        { "type": "watch", "text": "A device registered in the last 14 days that the customer does not recognise." },
+        { "type": "never", "text": "The attacker's new contact details read out in full." },
+        { "type": "escalate", "text": "A confirmed unauthorised profile change. A card block alone is not enough: account lock-down." }
       ],
       "answers": [
         { "label": "Confirmed unauthorised changes", "nextNodeId": "act-ato-lock" },
@@ -818,8 +818,8 @@ input, textarea {
         { "who": "customer", "text": "The bank rang me and said my account was compromised, so I moved it to the safe account they gave me." }
       ],
       "content": [
-        { "type": "ask", "text": "'How did they first get in touch — call, text, email, social media?'" },
-        { "type": "never", "text": "Never say 'you authorised it, so it's not fraud'. It is true and it ends the conversation you need to have." },
+        { "type": "ask", "text": "How first contact was made: call, text, email, social media." },
+        { "type": "never", "text": "Telling the customer it is not fraud because they authorised it. True, and it ends the conversation that is needed." },
         { "type": "resource", "text": "Scam vs fraud decision aid (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -833,8 +833,8 @@ input, textarea {
       "prompt": "What did the customer disclose or do?",
       "why": "Sharing a code means the attacker has, or had, live access. Moving money means a scam claim. Both can be true.",
       "content": [
-        { "type": "ask", "text": "'Did they ask you to read anything back to them — a code from a text, or from your card reader?'" },
-        { "type": "escalate", "text": "The customer is still on another line with the 'bank' right now." }
+        { "type": "ask", "text": "Whether anything was read back to the caller: a code from a text, or from a card reader." },
+        { "type": "escalate", "text": "The customer is still on another line with the supposed bank." }
       ],
       "answers": [
         { "label": "Shared a code or passcode",          "nextNodeId": "act-ato-lock" },
@@ -847,8 +847,8 @@ input, textarea {
       "prompt": "Is contact with the third party ongoing?",
       "why": "Ongoing contact means ongoing loss. It also means the customer may be coached during this very call.",
       "content": [
-        { "type": "watch", "text": "The customer defends the third party, or has been told the bank will 'try to stop them being together'." },
-        { "type": "never", "text": "Never call the third party a scammer to the customer's face on a first call." },
+        { "type": "watch", "text": "The customer defending the third party, or repeating warnings the third party gave about the bank." },
+        { "type": "never", "text": "Calling the third party a scammer on a first call." },
         { "type": "escalate", "text": "Ongoing contact plus further payments planned." }
       ],
       "answers": [
@@ -864,10 +864,10 @@ input, textarea {
         { "who": "customer", "text": "My neighbour does my shopping with the card. I don't really check it, she's very good to me." }
       ],
       "content": [
-        { "type": "ask", "text": "'Who helps you with your banking day to day?' Then listen — do not lead." },
-        { "type": "watch", "text": "New authorised user, regular round-sum withdrawals, a helper who 'handles all of that', reluctance to have the card blocked." },
-        { "type": "never", "text": "Never say 'it sounds like someone is taking advantage of you'." },
-        { "type": "escalate", "text": "Any of the watch-for indicators together with the customer being unable to explain their own transactions — safeguarding referral, not a dispute." },
+        { "type": "ask", "text": "Who helps the customer with banking day to day. Open question; no leading." },
+        { "type": "watch", "text": "New authorised user, regular round-sum withdrawals, a helper who handles everything, reluctance to block the card." },
+        { "type": "never", "text": "Telling the customer that someone is taking advantage of them." },
+        { "type": "escalate", "text": "Any indicator above together with the customer unable to explain their own transactions: safeguarding referral, not a dispute." },
         { "type": "resource", "text": "Vulnerable customer and safeguarding referral (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -884,9 +884,9 @@ input, textarea {
         { "who": "customer", "text": "No, no, keep the card open. (pause) Yes. Keep it open, it's fine." }
       ],
       "content": [
-        { "type": "watch", "text": "Answers that reverse after a pause. Background prompting. The customer asking you to repeat questions." },
-        { "type": "never", "text": "Never confront the third party through the customer." },
-        { "type": "escalate", "text": "Always — this node ends in a safeguarding hand-off, never in a normal close." },
+        { "type": "watch", "text": "Answers that reverse after a pause. Background prompting. Requests to repeat questions." },
+        { "type": "never", "text": "Confronting the third party through the customer." },
+        { "type": "escalate", "text": "Always. This topic ends in a safeguarding hand-off, never a normal close." },
         { "type": "resource", "text": "Third-party coaching guidance (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -900,7 +900,7 @@ input, textarea {
       "prompt": "Which group of signals dominates?",
       "why": "A checklist is slower than instinct and more consistent. Use it when instinct has nothing to say.",
       "content": [
-        { "type": "ask", "text": "Contact from anyone? Codes shared? Profile changes? New devices? Card in possession? Household access?" },
+        { "type": "ask", "text": "Contact from anyone. Codes shared. Profile changes. New devices. Card in possession. Household access." },
         { "type": "resource", "text": "Signal checklist card (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -914,7 +914,7 @@ input, textarea {
       "prompt": "None of the listed situations apply. Which is closest?",
       "why": "This is the stage where customers volunteer the detail that reclassifies the whole call. Off-script here is usually good news.",
       "content": [
-        { "type": "ask", "text": "'That's important — tell me more about that.'" }
+        { "type": "ask", "text": "More detail on whatever was just raised. New information at this stage usually changes the pattern." }
       ],
       "answers": [
         { "label": "Unsolicited contact disclosed late",   "nextNodeId": "risk-scam-entry" },
@@ -928,8 +928,8 @@ input, textarea {
       "prompt": "Are block and reissue complete?",
       "why": "If the card was blocked at triage this is a confirmation. If not, it happens now, before the dispute.",
       "content": [
-        { "type": "ask", "text": "Confirm the delivery address on file out loud before ordering the replacement." },
-        { "type": "watch", "text": "The delivery address was changed in the last 30 days — stop and go back to the takeover check." },
+        { "type": "ask", "text": "The delivery address on file, confirmed before the replacement is ordered." },
+        { "type": "watch", "text": "A delivery address changed in the last 30 days. Back to the account takeover check." },
         { "type": "resource", "text": "Card block and reissue guide (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -942,9 +942,9 @@ input, textarea {
       "prompt": "Are the lock-down steps complete?",
       "why": "Order matters: lock the login first, or the attacker undoes everything else while you are on the phone.",
       "content": [
-        { "type": "ask", "text": "Which device does the customer normally use? Everything else gets removed." },
-        { "type": "never", "text": "Never send the new credentials to the contact details the attacker set." },
-        { "type": "escalate", "text": "Outbound payments were set up during the compromise window — payments team, now." },
+        { "type": "ask", "text": "The device the customer normally uses. Every other device is removed." },
+        { "type": "never", "text": "New credentials sent to contact details the attacker set." },
+        { "type": "escalate", "text": "Outbound payments set up during the compromise window: payments team, immediately." },
         { "type": "resource", "text": "Account takeover lock-down checklist (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -956,8 +956,8 @@ input, textarea {
       "prompt": "Has a scam claim been opened?",
       "why": "A scam claim is assessed on whether the customer could reasonably have known. It needs the story, not just the transactions.",
       "content": [
-        { "type": "ask", "text": "Capture the story in the customer's words: first contact, what they were told, what they did." },
-        { "type": "never", "text": "Never promise a refund outcome. The claim is assessed later by someone else." },
+        { "type": "ask", "text": "The sequence in the customer's own words: first contact, what they were told, what they did." },
+        { "type": "never", "text": "A promised refund outcome. The claim is assessed later by someone else." },
         { "type": "resource", "text": "Scam claim form (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -969,9 +969,9 @@ input, textarea {
       "prompt": "Are the referral and payment hold in place?",
       "why": "This is the node the whole critical branch exists for. It is also the one reps skip because it feels like an accusation. It is not — it is a request for someone trained to take a look.",
       "content": [
-        { "type": "ask", "text": "Tell the customer a colleague who specialises in this will call them back. Agree a safe number and time." },
-        { "type": "never", "text": "Never describe the referral as being about the third party, and never use the word 'abuse' on the call." },
-        { "type": "escalate", "text": "Immediate risk to the customer's safety — follow the emergency process, not this one." },
+        { "type": "ask", "text": "A safe number and time for a specialist colleague to call back." },
+        { "type": "never", "text": "Describing the referral as being about the third party. The word abuse, on the call." },
+        { "type": "escalate", "text": "Immediate risk to the customer's safety: emergency process, not this one." },
         { "type": "resource", "text": "Vulnerable customer and safeguarding referral (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -983,8 +983,8 @@ input, textarea {
       "prompt": "Are the provisional credit criteria met?",
       "why": "Provisional credit is the single thing the customer will remember. Getting the explanation right matters more than the decision.",
       "content": [
-        { "type": "ask", "text": "Check: amount under threshold, first dispute in 12 months, card blocked." },
-        { "type": "never", "text": "Never call it a refund. It is provisional and can be reversed." },
+        { "type": "ask", "text": "Amount under threshold. First dispute in 12 months. Card blocked." },
+        { "type": "never", "text": "Calling it a refund. It is provisional and can be reversed." },
         { "type": "resource", "text": "Provisional credit criteria (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -997,7 +997,7 @@ input, textarea {
       "prompt": "Has the case been created and the reference given?",
       "why": "A customer with a reference number calls back once. A customer without one calls back three times.",
       "content": [
-        { "type": "ask", "text": "Read the reference twice. Ask the customer to read it back." },
+        { "type": "ask", "text": "The reference, read twice and read back by the customer." },
         { "type": "resource", "text": "Case creation guide (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -1012,8 +1012,8 @@ input, textarea {
         { "who": "rep", "text": "You'll get a letter within 5 working days, and the new card within 7. If you don't hear from us in 10 days, call us with the reference." }
       ],
       "content": [
-        { "type": "ask", "text": "State three things: when they hear from us, when the card arrives, what to do if neither happens." },
-        { "type": "never", "text": "Never say 'it's out of my hands now'." },
+        { "type": "ask", "text": "Three things: when the customer hears from us, when the card arrives, what to do if neither happens." },
+        { "type": "never", "text": "Telling the customer it is out of your hands." },
         { "type": "resource", "text": "Dispute timelines FAQ (placeholder)", "url": "#" }
       ],
       "answers": [
@@ -1026,7 +1026,7 @@ input, textarea {
       "prompt": "None of the listed situations apply. Which is closest?",
       "why": "At this stage, off the expected path usually means new information. Do not close a call over new information.",
       "content": [
-        { "type": "ask", "text": "'Before I finish up — is there anything else about this you've remembered?'" }
+        { "type": "ask", "text": "Anything else the customer has remembered, before the call closes." }
       ],
       "answers": [
         { "label": "New information changes the pattern", "nextNodeId": "risk-open" },
@@ -1040,7 +1040,7 @@ input, textarea {
       "prompt": "Case created, customer informed, timelines set.",
       "why": "The normal ending. Generate the call note before the next call, not after.",
       "content": [
-        { "type": "ask", "text": "Generate the call note and paste it into the case." }
+        { "type": "ask", "text": "The case note, written and attached to the case before the next call." }
       ],
       "answers": []
     },
@@ -1049,7 +1049,7 @@ input, textarea {
       "prompt": "Warm transfer to a specialist or team leader.",
       "why": "An escalation with a good note is a five-minute handover. Without one it is a repeat of the whole call.",
       "content": [
-        { "type": "ask", "text": "Generate the call note and hand it over with the transfer." },
+        { "type": "ask", "text": "The case note, handed over with the transfer." },
         { "type": "resource", "text": "Escalation contacts (placeholder)", "url": "#" }
       ],
       "answers": []
@@ -1059,8 +1059,8 @@ input, textarea {
       "prompt": "Callback logged to the number on file with a time window.",
       "why": "A callback that is not in the diary does not happen.",
       "content": [
-        { "type": "ask", "text": "Log the callback with the reason and the number ending. Generate the call note." },
-        { "type": "never", "text": "Never schedule a callback to a number given on this call." }
+        { "type": "ask", "text": "The callback logged with reason, number ending and time window." },
+        { "type": "never", "text": "A callback to a number given on this call." }
       ],
       "answers": []
     },
@@ -1069,8 +1069,8 @@ input, textarea {
       "prompt": "Options given: branch visit with ID, or callback to the number on file.",
       "why": "Unverified or unsafe calls end here. The customer still needs a path: branch visit, callback from the number on file, or a letter.",
       "content": [
-        { "type": "ask", "text": "Offer branch visit with ID, or a callback to the number on file." },
-        { "type": "escalate", "text": "Anything on this call suggested a third party — log the safeguarding concern even though the call could not proceed." }
+        { "type": "ask", "text": "Branch visit with ID, or a callback to the number on file." },
+        { "type": "escalate", "text": "Anything on the call suggested a third party: log the safeguarding concern even though the call could not proceed." }
       ],
       "answers": []
     },
@@ -1088,8 +1088,8 @@ input, textarea {
       "prompt": "Block done; verification and any dispute still to complete.",
       "why": "The block protects the account; the dispute still needs a verified customer.",
       "content": [
-        { "type": "ask", "text": "Branch visit with ID, or call back with the verification details to hand." },
-        { "type": "never", "text": "Never confirm which transactions are on the account." }
+        { "type": "ask", "text": "Branch visit with ID, or a call back with the verification details to hand." },
+        { "type": "never", "text": "Confirmation of which transactions are on the account." }
       ],
       "answers": []
     }
@@ -1442,7 +1442,7 @@ input, textarea {
 
   /* the connector between two boxes carries what was chosen at the upper one */
   function renderEdge(prevStep, st) {
-    var text = prevStep.answer || stepNote(prevStep) || '';
+    var text = prevStep.answer || '';
     return '<li data-role="edge"' + attr('data-state', st) + '>' + (text ? '<span>' + esc(text) + '</span>' : '') + '</li>';
   }
 

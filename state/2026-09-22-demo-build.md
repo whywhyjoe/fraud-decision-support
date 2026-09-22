@@ -1,9 +1,9 @@
 # State — demo build
 
-Last touched: 2026-09-16
+Last touched: 2026-09-22
 Mode: Joe
 Branch: `claude/fraud-decision-support-demo-oalc9g`, pushed
-State: v3 built, tested, committed. Waiting on the client demo.
+State: v3 layout with content 0.4, tested, committed. Waiting on the client demo.
 
 ## What this is
 
@@ -17,8 +17,8 @@ what order.
 
 - Three cuts in one day (v1 brief-complete, v2 simplified, v3 flow lines
   and half-screen guidance). `LOG.md` has each list of changes.
-- Content labels are knowledge-base topics now, not script lines; the
-  guidance text itself has not been re-edited since v1.
+- Labels, prompts, answers and all guidance blocks are in the knowledge-base
+  register (content 0.4). Only the coaching-notes dialogue quotes speech.
 - Every interaction is covered by `tests/smoke.mjs`; content graph, CSS
   tokens and the typography floor by `tests/flow.test.mjs`.
 
