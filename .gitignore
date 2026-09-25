@@ -7,3 +7,6 @@
 .env.local
 node_modules/
 __pycache__/
+
+# Real tenant paths. The committed shape is environments.sample.json.
+environments.json

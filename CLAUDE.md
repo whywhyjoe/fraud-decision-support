@@ -58,8 +58,8 @@ bite when the SharePoint work starts (`STATE.md`, deferred by design):
 8. **No URL in this repo is authoritative.** Production locations live in
    the page's properties and the site's config, set after deployment. Every
    URL the app fetches is tenant-relative or fully qualified from config,
-   never page-relative. The site path is not chosen yet; when you need a
-   real one, ask.
+   never page-relative. Real paths live in `environments.json` (gitignored;
+   shape in `environments.sample.json`). Production is not chosen; ask.
 9. **Never fail loudly at the visitor.** Every failure path degrades and
    logs to `console.debug`. A rep on a call never sees a red bar; content
    that fails validation shows behind the scenes only.
@@ -76,6 +76,7 @@ bite when the SharePoint work starts (`STATE.md`, deferred by design):
 | `docs/` | Durable reference. Start at `docs/README.md`. |
 | `tests/` | Fast content/CSS checks and one browser smoke. See `tests/README.md`. |
 | `state/` | Live threads of work. |
+| `environments.sample.json` | The shape of `environments.json`, which is gitignored and holds the real tenant paths and page column names. |
 
 When the SharePoint work starts the `sp-app` shape applies beside `app/`:
 `fraud-guide.app.js` and CSS served from a library, a generated

@@ -15,11 +15,13 @@ and none of this runs.
 - **Content in a library.** The scenario JSON (`content/*.json`, once the
   split in `STATE.md` has happened) lives in a document library. The
   library's version history is the content history.
-- **Binding in the page's properties.** Three columns on the page item:
-  content file name, content version, status. Nothing else; `meta` in the
-  JSON is the source for everything else.
-- **Its own site, for end users.** Not the DCS workbench. The site path is
-  not chosen yet; it is an open question in `STATE.md`.
+- **Binding in the page's properties.** The Site Pages library already
+  carries a set of flexible per-app columns; this app uses them as below.
+  `meta` in the JSON is the source for everything the columns do not name.
+- **Its own site, for end users.** Not the DCS workbench. A dev page exists
+  (one modern script web part, otherwise blank) and the library folder is
+  agreed; both are in `environments.json`, never here. Production is not
+  chosen; open question in `STATE.md`.
 
 ## Getting a page context
 
@@ -65,12 +67,34 @@ string on every deploy. How a republished content JSON beats the cache is
 an open question in `STATE.md`; do not assume a hard refresh, and never ask
 a rep for one.
 
+## Page columns
+
+The Site Pages library's flexible columns, and what this app reads in them.
+The internal names are in `environments.json` under `pageColumns`, so the
+loader never hardcodes them.
+
+| Column | Holds | Read by the loader |
+| --- | --- | --- |
+| `ItemType` | `fraud-decision-support`, so the loader can refuse a page it was not meant for | yes |
+| `Script` | Library-relative path of the player bundle to load | yes |
+| `Config` | File name of the content JSON, in the app's library folder | yes |
+| `Ver` | Content version. The candidate cache-buster: read in the same call as `Config`, appended to the fetch URL | yes |
+| `DisplayName` | The title shown in the player header | yes |
+| `Value1` | Status: `draft` or `live`. A draft page renders with the placeholder banner regardless of content | yes |
+| `Category` | The site's own grouping; the app does not read it | no |
+| `Title` | The page title; SharePoint's | no |
+
+The loader reads them with one `$select` on the page's own item, then
+fetches `Config` from the folder named in `environments.json`.
+
 ## Environments
 
-- `environments.json` is gitignored. It holds real tenant paths.
+- `environments.json` is gitignored. It holds real tenant paths: tenant,
+  site, page, library, folder and the column names above. Copy it from
+  `environments.sample.json`, which is committed and holds the shape only.
 - The per-environment `fraud-guide.webpart.html` embed snippets are
-  generated, not hand-edited.
-- The repo holds a `.sample.json` for any config, never the real one.
+  generated from it, not hand-edited.
+- No other file in git holds a real tenant path.
 
 ## The blank-in-view-mode class of bug
 

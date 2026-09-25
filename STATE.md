@@ -63,15 +63,17 @@ built until it has been used once.
 
 ## Open questions
 
-- **Which site hosts it.** An end-user site of its own, not the DCS
-  workbench, is decided; the tenant-relative site path is not. Every URL
-  rule in `CLAUDE.md` waits on it.
+- **Which production site hosts it.** An end-user site of its own, not the
+  DCS workbench, is decided. Dev has a page and a library folder, recorded
+  in `environments.json` (gitignored; shape in `environments.sample.json`).
+  Production is not chosen.
 - **How a republished content JSON beats the cache on SharePoint.** A
   version on the fetch URL only works if the player knows the version
   before it fetches, and a URL parameter cannot be relied on to reach the
-  rep. Candidates: read the version from the page property and append it;
-  read the item's modified stamp with the same REST call; or send
-  `cache: "no-store"` on the fetch and accept the cost. Decide when the
+  rep. Candidates: read the version from the page's `Ver` column (already
+  there, read in the same REST call as `Config`) and append it; read the
+  item's modified stamp with the same call; or send `cache: "no-store"` on
+  the fetch and accept the cost. Decide when the
   deployment work starts.
 
 - **Should a rep be able to jump to a topic in another stage?** Only the

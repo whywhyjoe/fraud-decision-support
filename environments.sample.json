@@ -1,0 +1,27 @@
+{
+  "_comment": "Copy to environments.json (gitignored) and fill in. Paths are tenant-relative. No file in git holds a real tenant path.",
+  "dev": {
+    "tenant": "https://<tenant>.sharepoint.com",
+    "site": "/sites/<site>",
+    "page": "/sites/<site>/SitePages/<page>.aspx",
+    "library": "<library>",
+    "folder": "<folder>/fraud-decision-support",
+    "pageColumns": {
+      "itemType": "ItemType",
+      "script": "Script",
+      "config": "Config",
+      "version": "Ver",
+      "displayName": "DisplayName",
+      "status": "Value1",
+      "category": "Category"
+    }
+  },
+  "prod": {
+    "tenant": "",
+    "site": "",
+    "page": "",
+    "library": "",
+    "folder": "",
+    "pageColumns": "same as dev"
+  }
+}
