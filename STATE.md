@@ -14,6 +14,7 @@ the `project-state` skill.
 | **Deployed** | Nowhere. The file is opened locally. |
 | **Last shipped** | 2026-09-22, content 0.4 |
 | **Content** | One scenario, 47 topics, placeholder throughout |
+| **BMO copy** | `app/fraud-decision-support-bmo.html`, content 0.5 (richer guidance). The original stays greyscale at 0.4 |
 
 ## Next committed step
 
@@ -43,8 +44,8 @@ built until it has been used once.
 - **SharePoint / sneakernet deployment.** Expected eventually. The
   single-file, no-`import`, no-CDN shape was chosen so it needs no rework
   then. Nothing else has been done toward it.
-- **Design pass.** Greyscale and token-driven on purpose. A designer restyles
-  by editing `:root` and targeting `data-role` attributes.
+- **Design pass.** The original stays greyscale and token-driven on purpose.
+  A first BMO-styled copy exists beside it; see `state/` for where it stands.
 
 ## Open questions
 

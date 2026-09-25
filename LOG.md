@@ -7,6 +7,30 @@ Newest first.
 
 ---
 
+## 2026-09-25 — BMO look: a restyled copy with a richer guidance column
+
+`app/fraud-decision-support-bmo.html`, beside the greyscale original, which
+is unchanged. Asked for so the client sees the tool in BMO's look, and sees
+that the guidance side can carry more than plain text.
+
+- **BMO look and feel** from the BMO SharePoint design system: its palette,
+  Fluent elevation ramp and motion tokens, Segoe UI. Radii kept as they were.
+  Components restyled in place; none of the design system's classes or Alpine.
+- **A short header**: blue gradient, the BMO roundel, the title, and a
+  workplace photo (the Security Hub hero, cropped to 41 KB and embedded),
+  with the toolbar floating over its lower edge.
+- **Motion**: the header enters once on load, the question card and guidance
+  rise in on each move, cards and answers lift on hover. All inside
+  `prefers-reduced-motion: no-preference`.
+- **Richer guidance** (content 0.5): a `brief` block (heading, paragraph with
+  bold, bullets) and a `steps` block (a numbered step graphic) on 24 topics,
+  including every topic on the demo's main route. Resources become document
+  cards with a drawn thumbnail: PDF page, slide deck, video, intranet page.
+  Eight new placeholder decks and videos. Thumbnails are CSS, not images.
+- **Tests take `APP`** to run either file. Both pass both tiers.
+
+---
+
 ## 2026-09-22 — content 0.4: guidance in the topic register
 
 All 120 guidance blocks rewritten to match the topic style set in v3. Each

@@ -8,7 +8,9 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const html = readFileSync(join(here, '..', 'app', 'fraud-decision-support.html'), 'utf8');
+// APP picks the file: the grayscale original by default, or the BMO copy.
+const app = process.env.APP || 'fraud-decision-support.html';
+const html = readFileSync(join(here, '..', 'app', app), 'utf8');
 
 function extractFlow() {
   const m = html.match(/<script type="application\/json" id="flow-data">([\s\S]*?)<\/script>/);
@@ -19,7 +21,8 @@ function extractFlow() {
 const flow = extractFlow();
 const nodeById = new Map(flow.nodes.map((n) => [n.id, n]));
 const stageById = new Map(flow.stages.map((s) => [s.id, s]));
-const CONTENT_TYPES = new Set(['ask', 'watch', 'never', 'escalate', 'resource']);
+const CONTENT_TYPES = new Set(['ask', 'watch', 'never', 'escalate', 'resource', 'brief', 'steps']);
+const FORMATS = new Set(['pdf', 'deck', 'video', 'page']);
 const RISKS = new Set([null, 'low', 'elevated', 'critical']);
 
 test('ids are unique and start node exists', () => {
@@ -91,6 +94,9 @@ test('content blocks and risk values are well-formed', () => {
       assert.ok(CONTENT_TYPES.has(c.type), `${n.id}: bad content type ${c.type}`);
       assert.ok(c.text, `${n.id}: empty content text`);
       if (c.type === 'resource') assert.ok(c.url, `${n.id}: resource without url`);
+      if (c.type === 'resource' && c.format) assert.ok(FORMATS.has(c.format) && c.meta, `${n.id}: document needs a known format and a meta line`);
+      if (c.type === 'brief') assert.ok(c.body || (c.points && c.points.length), `${n.id}: brief needs a body or points`);
+      if (c.type === 'steps') assert.ok(Array.isArray(c.items) && c.items.length >= 2 && c.items.length <= 5, `${n.id}: steps needs 2–5 items`);
     }
   }
 });

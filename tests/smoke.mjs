@@ -12,7 +12,7 @@ try { ({ chromium } = require('playwright')); }
 catch { console.error('playwright not resolvable. Run with NODE_PATH=$(npm root -g).'); process.exit(2); }
 
 const here = dirname(fileURLToPath(import.meta.url));
-const url = pathToFileURL(join(here, '..', 'app', 'fraud-decision-support.html')).href;
+const url = pathToFileURL(join(here, '..', 'app', process.env.APP || 'fraud-decision-support.html')).href;
 const t0 = Date.now();
 const launch = { headless: true };
 if (process.env.CHROMIUM_PATH) launch.executablePath = process.env.CHROMIUM_PATH;

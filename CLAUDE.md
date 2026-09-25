@@ -24,7 +24,8 @@ is not `xo-handoff` and `.xo-handoffs/`; don't cross-file them.
 ## Hard rules
 
 1. **One self-contained HTML file.** `app/fraud-decision-support.html` opens
-   from `file://` in a locked-down browser. No build step, no npm in the
+   from `file://` in a locked-down browser. Its BMO-styled copy,
+   `app/fraud-decision-support-bmo.html`, is held to every rule here too. No build step, no npm in the
    deliverable, no framework, no CDN, no ES `import`, no network, no storage.
    Dev-only tooling (the tests) is fine; it never ships.
 2. **Content lives only in the `#flow-data` JSON block.** The render logic
@@ -32,7 +33,8 @@ is not `xo-handoff` and `.xo-handoffs/`; don't cross-file them.
    table. A test enforces the first; keep the second by habit.
 3. **Every design value is a token in `:root`.** No raw colours, lengths or
    durations anywhere else in the CSS (media queries excepted). Grayscale
-   only; red, amber and green are reserved for risk severity. A test enforces
+   only in the original; the BMO copy uses the BMO palette. In both, red,
+   amber and green are reserved for risk severity (BMO red: roundel only). A test enforces
    it. This is what makes the designer's pass a restyle, not a rebuild.
 4. **Render is pure: state in, DOM out.** One `render()` per `dispatch()`.
    No DOM mutation in handlers. Every interactive element and content region
@@ -52,6 +54,7 @@ is not `xo-handoff` and `.xo-handoffs/`; don't cross-file them.
 | Path | What it is |
 | --- | --- |
 | `app/fraud-decision-support.html` | The deliverable. Styles, content, shell, logic, in that order. |
+| `app/fraud-decision-support-bmo.html` | The same demo in the BMO look, with richer guidance (content 0.5). A copy, not a build output. |
 | `docs/` | Durable reference. Start at `docs/README.md`. |
 | `tests/` | Fast content/CSS checks and one browser smoke. See `tests/README.md`. |
 | `state/` | Live threads of work. |
@@ -70,8 +73,10 @@ is not `xo-handoff` and `.xo-handoffs/`; don't cross-file them.
 
 ```
 node --test tests/flow.test.mjs                  # fast tier, <1s
-NODE_PATH=$(npm root -g) node tests/smoke.mjs    # full tier, Chromium, ~3s
+NODE_PATH=$(npm root -g) node tests/smoke.mjs    # full tier, Chromium, ~5s
 ```
+
+Prefix either with `APP=fraud-decision-support-bmo.html` to test the BMO copy.
 
 ---
 

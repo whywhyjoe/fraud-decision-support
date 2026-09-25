@@ -16,6 +16,12 @@ Open `app/fraud-decision-support.html` in a browser. That is the whole
 deployment: one file, no build, no server, no network, no storage. It works
 from a `file://` URL inside a locked-down corporate browser.
 
+`app/fraud-decision-support-bmo.html` is the same demo in the BMO look and
+feel, with a richer guidance side: formatted briefs, step graphics, and
+resources as document cards with PDF, slide and video thumbnails. Show it
+when the question is how the tool would look, or what the guidance side
+can hold.
+
 ## The screen
 
 Two halves. On the left, the call as a flow: stage labels, the steps taken

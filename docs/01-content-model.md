@@ -90,6 +90,25 @@ condition. No quoted lines to say; the heading carries the verb.
 
 Order within a group is authoring order. Groups render in the order above.
 
+### Richer blocks (BMO copy, content 0.5)
+
+`app/fraud-decision-support-bmo.html` also renders these. The original
+ignores the types it does not know.
+
+| `type` | Fields | Rendered as |
+| --- | --- | --- |
+| `brief` | `text` (the heading), `body` and/or `points[]` | A tinted block: heading, paragraph, bullets. First in the panel. |
+| `steps` | `text` (the heading), `items[]`, 2 to 5 | Numbered circles joined by a line. After *Watch for*. |
+
+In `body`, `points[]` and the plain groups' `text`, `**bold**` is the only
+markup; everything else is escaped.
+
+A `resource` may add `format` (`pdf`, `deck`, `video` or `page`), `thumb`
+(the drawn thumbnail: `text`, `table` or `form` for a PDF; `chart`, `steps`
+or `split` for a deck; `table` or `search` for a page) and `meta` (the line
+under the title, e.g. `PDF · 8 pages`). With a `format` it renders as a
+document card; `meta` is then required.
+
 ## What the tests refuse
 
 - A duplicate id, a dangling `nextNodeId`, or a stage target that does not
