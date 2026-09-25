@@ -41,9 +41,19 @@ built until it has been used once.
   if the client asks; `LOG.md` says what they were.
 - **Project profile in projects-standard.** First demo of its kind; a
   profile is earned by the second.
-- **SharePoint / sneakernet deployment.** Expected eventually. The
-  single-file, no-`import`, no-CDN shape was chosen so it needs no rework
-  then. Nothing else has been done toward it.
+- **SharePoint / sneakernet deployment.** Decided in shape, not started,
+  and waits until the feature set settles after the wider demo. Each
+  version is its own SharePoint page; the content JSON lives in a document
+  library; the page's library properties bind the two (content file name,
+  content version, status) and nothing more, so `meta` in the JSON stays
+  the source for everything else. The player reads the binding from its own
+  page item (`_spPageContextInfo.pageItemId`) and fetches the file
+  same-origin with a cache-busting version on the URL. The page holds a
+  small loader; the player script, CSS and the photo live in the scripts
+  library, not in a web part property. Precondition: the content and theme
+  split (`content/*.json`, `config/theme.json`, load order page properties
+  → URL → sibling script → inline block). The single-file, no-`import`,
+  no-CDN shape was chosen so none of this needs rework in the player.
 - **Design pass.** The original stays greyscale and token-driven on purpose.
   A first BMO-styled copy exists beside it; see `state/` for where it stands.
 
