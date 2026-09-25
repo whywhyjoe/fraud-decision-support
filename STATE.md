@@ -48,9 +48,11 @@ built until it has been used once.
   content version, status) and nothing more, so `meta` in the JSON stays
   the source for everything else. The player reads the binding from its own
   page item (`_spPageContextInfo.pageItemId`) and fetches the file
-  same-origin with a cache-busting version on the URL. The page holds a
-  small loader; the player script, CSS and the photo live in the scripts
-  library, not in a web part property. Precondition: the content and theme
+  same-origin. The page holds a web part with a small loader; the player
+  script, CSS and assets live in a library, as with every other app. Hand
+  edits to the JSON are guarded by the graph checks in the fast test, run
+  before upload, and by a red line behind the scenes when loaded content
+  fails them. Precondition: the content and theme
   split (`content/*.json`, `config/theme.json`, load order page properties
   → URL → sibling script → inline block). The single-file, no-`import`,
   no-CDN shape was chosen so none of this needs rework in the player.
@@ -58,6 +60,14 @@ built until it has been used once.
   A first BMO-styled copy exists beside it; see `state/` for where it stands.
 
 ## Open questions
+
+- **How a republished content JSON beats the cache on SharePoint.** A
+  version on the fetch URL only works if the player knows the version
+  before it fetches, and a URL parameter cannot be relied on to reach the
+  rep. Candidates: read the version from the page property and append it;
+  read the item's modified stamp with the same REST call; or send
+  `cache: "no-store"` on the fetch and accept the cost. Decide when the
+  deployment work starts.
 
 - **Should a rep be able to jump to a topic in another stage?** Only the
   current stage is listed; search reaches everything. Settled by the demo.
