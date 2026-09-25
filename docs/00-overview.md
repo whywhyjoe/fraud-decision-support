@@ -1,4 +1,4 @@
-# frd-decision-support — overview
+# fraud-decision-support — overview
 
 ## What this is
 

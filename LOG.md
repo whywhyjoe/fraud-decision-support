@@ -1,4 +1,4 @@
-# LOG — frd-decision-support
+# LOG — fraud-decision-support
 
 **Append-only.** One entry per ship or merge — not per session. Current state
 is in `STATE.md`.

@@ -1,4 +1,4 @@
-# frd-decision-support — docs index
+# fraud-decision-support — docs index
 
 Read `00` first. Read the rest when the table says to.
 

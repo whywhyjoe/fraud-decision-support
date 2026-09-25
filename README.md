@@ -1,4 +1,4 @@
-# frd-decision-support
+# fraud-decision-support
 
 A click-through demo of a guided call tool for front-line bank fraud reps.
 The rep works through one topic at a time; for each, the tool shows what to

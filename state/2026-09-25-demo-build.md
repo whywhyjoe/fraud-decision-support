@@ -1,8 +1,8 @@
 # State — demo build
 
-Last touched: 2026-09-22
+Last touched: 2026-09-25
 Mode: Joe
-Branch: `claude/fraud-decision-support-demo-oalc9g`, pushed
+Branch: `main` of `whywhyjoe/fraud-decision-support`, pushed. Earlier work lived on a `claude/…` branch of `whywhyjoe/frd-decision-support`; that repo is superseded.
 State: v3 layout with content 0.4, tested, committed. Waiting on the client demo.
 
 ## What this is

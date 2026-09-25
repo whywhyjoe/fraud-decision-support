@@ -1,4 +1,4 @@
-# STATE — frd-decision-support
+# STATE — fraud-decision-support
 
 **Rewritten, never appended.** History lives in `LOG.md`. Cap: 150 lines — if
 it is growing, something belongs in `LOG.md` or `docs/`.

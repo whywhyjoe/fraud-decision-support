@@ -1,4 +1,4 @@
-# frd-decision-support
+# fraud-decision-support
 
 A click-through wireframe of a guided decision-support tool for front-line
 bank fraud reps. A demo to provoke requirements, not production software.
