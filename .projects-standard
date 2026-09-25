@@ -1,6 +1,8 @@
 version = "0.2.0"
-profile = "_base"
+profile = "sp-app"
 fragments = []
-scaffolded = "2026-09-16"
-# Applied by hand, not by the scaffold skill: no profile exists for a demo
-# wireframe and the standard says not to invent one for a first project.
+scaffolded = "2026-09-25"
+# Started 2026-09-16 on the _base shape as a demo wireframe. Moved to sp-app
+# on 2026-09-25 once the destination was decided: an end-user tool hosted in
+# a SharePoint page web part. Neither suggested fragment (browser-tests,
+# design-system) exists in the standard yet; apply them when they do.

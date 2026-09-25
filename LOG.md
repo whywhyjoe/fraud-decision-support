@@ -31,6 +31,30 @@ that the guidance side can carry more than plain text.
 
 ---
 
+## 2026-09-25 — onto the sp-app profile
+
+The destination is decided: an end-user tool hosted full-page in a
+SharePoint page web part, on its own site, not part of the DCS workbench.
+That is what the `sp-app` profile of projects-standard 0.2.0 describes, so
+the repo moves onto it from the `_base` shape. Nothing existing overwritten.
+
+- `.projects-standard` stamps `sp-app`, scaffolded 2026-09-25, no fragments
+  (neither suggested one exists in the standard yet).
+- `CLAUDE.md` carries the sp-app family rules (no authoritative URL, never
+  fail loudly, writes carry a digest) and the layout the SharePoint work
+  will add beside `app/`.
+- `docs/02-hosting-and-deploy.md` and `docs/03-sharepoint-data.md` seeded
+  from the family's paid-for gotchas, with the decided deploy shape written
+  in and the site path left as an open question.
+- `tests/README.md` carries the fast-tier budget, the browser-suite rules
+  and the not-tested-here pointer to manual gates.
+- `STATE.md` says built versus live, which the profile's source-of-truth
+  axis requires, and gains the hosted manual gates.
+
+Placeholder values chosen: app slug `fraud-guide`. Site path: not chosen.
+
+---
+
 ## 2026-09-22 — content 0.4: guidance in the topic register
 
 All 120 guidance blocks rewritten to match the topic style set in v3. Each

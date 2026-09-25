@@ -1,10 +1,13 @@
 # fraud-decision-support
 
-A click-through wireframe of a guided decision-support tool for front-line
-bank fraud reps. A demo to provoke requirements, not production software.
+A guided call tool for front-line bank fraud reps: one question at a time,
+with the guidance for each. Today a click-through demo to provoke
+requirements; its destination is a buildless SharePoint app for end users,
+hosted full-page in a page web part on its own site, not part of the DCS
+workbench.
 
 `docs/` is how it works and why (read `docs/README.md` first); `STATE.md` is
-where things stand right now.
+where things stand right now, including what is built versus what is live.
 
 ## Work in progress — read before anything else
 
@@ -49,6 +52,21 @@ is not `xo-handoff` and `.xo-handoffs/`; don't cross-file them.
 7. **Not a Windows environment.** Nothing here may depend on PowerShell or
    `.cmd` tooling.
 
+The `sp-app` family rules also hold. The first is already rule 1; the rest
+bite when the SharePoint work starts (`STATE.md`, deferred by design):
+
+8. **No URL in this repo is authoritative.** Production locations live in
+   the page's properties and the site's config, set after deployment. Every
+   URL the app fetches is tenant-relative or fully qualified from config,
+   never page-relative. The site path is not chosen yet; when you need a
+   real one, ask.
+9. **Never fail loudly at the visitor.** Every failure path degrades and
+   logs to `console.debug`. A rep on a call never sees a red bar; content
+   that fails validation shows behind the scenes only.
+10. **Writes carry a digest.** If the app ever writes (feedback, events),
+    `POST /_api/contextinfo` first, cached until shortly before expiry, and
+    `keepalive: true` on the write. See `docs/03-sharepoint-data.md`.
+
 ## Layout
 
 | Path | What it is |
@@ -58,6 +76,12 @@ is not `xo-handoff` and `.xo-handoffs/`; don't cross-file them.
 | `docs/` | Durable reference. Start at `docs/README.md`. |
 | `tests/` | Fast content/CSS checks and one browser smoke. See `tests/README.md`. |
 | `state/` | Live threads of work. |
+
+When the SharePoint work starts the `sp-app` shape applies beside `app/`:
+`fraud-guide.app.js` and CSS served from a library, a generated
+`fraud-guide.webpart.html` embed snippet per environment, `boot-fraud-guide.js`
+to find context and load content, and `deploy/`. `docs/02-hosting-and-deploy.md`
+has the decided shape; none of those files exist yet.
 
 ## Where things go
 
@@ -80,7 +104,7 @@ Prefix either with `APP=fraud-decision-support-bmo.html` to test the BMO copy.
 
 ---
 
-Scaffolded by hand from [projects-standard](https://github.com/whywhyjoe/projects-standard)
-0.2.0, `_base` shape. No profile exists for a demo wireframe and none was
-invented (a profile is earned by the second project of its kind). This file
-wins over the shared method for this repo.
+Scaffolded from [projects-standard](https://github.com/whywhyjoe/projects-standard)
+0.2.0, profile `sp-app` (started on the `_base` shape as a demo wireframe on
+2026-09-16; moved to `sp-app` on 2026-09-25 once the destination was
+decided). This file wins over the shared method for this repo.

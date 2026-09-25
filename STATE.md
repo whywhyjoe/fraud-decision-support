@@ -11,7 +11,8 @@ the `project-state` skill.
 | | |
 | --- | --- |
 | **Version** | 0.3.1 — v3 layout, content 0.4 (guidance in the topic register) |
-| **Deployed** | Nowhere. The file is opened locally. |
+| **Built** | Two single-file demos in `app/`, opened from `file://` |
+| **Live** | Nothing. No tenant, site or library exists for it yet |
 | **Last shipped** | 2026-09-22, content 0.4 |
 | **Content** | One scenario, 47 topics, placeholder throughout |
 | **BMO copy** | `app/fraud-decision-support-bmo.html`, content 0.5 (richer guidance). The original stays greyscale at 0.4 |
@@ -30,6 +31,9 @@ built until it has been used once.
 
 - [ ] Open the file from `file://` in the client's actual locked-down browser
       (not a dev machine) and confirm it renders.
+- [ ] Once hosted: the page-property binding resolves, the content fetch
+      works in view mode for a rep with read-only rights, and a republished
+      JSON shows without a hard refresh. Tenant only; not a test.
 
 ## Deferred by design
 
@@ -39,8 +43,6 @@ built until it has been used once.
 - **Case notes and captured facts.** Built in v1, removed in v2: not asked
   for, and they crowded a screen meant for quick decisions. Bring back only
   if the client asks; `LOG.md` says what they were.
-- **Project profile in projects-standard.** First demo of its kind; a
-  profile is earned by the second.
 - **SharePoint / sneakernet deployment.** Decided in shape, not started,
   and waits until the feature set settles after the wider demo. Each
   version is its own SharePoint page; the content JSON lives in a document
@@ -61,6 +63,9 @@ built until it has been used once.
 
 ## Open questions
 
+- **Which site hosts it.** An end-user site of its own, not the DCS
+  workbench, is decided; the tenant-relative site path is not. Every URL
+  rule in `CLAUDE.md` waits on it.
 - **How a republished content JSON beats the cache on SharePoint.** A
   version on the fetch URL only works if the player knows the version
   before it fetches, and a URL parameter cannot be relied on to reach the

@@ -15,7 +15,25 @@ NODE_PATH=$(npm root -g) node tests/smoke.mjs
 Both test `app/fraud-decision-support.html` unless `APP` names another file
 in `app/`, e.g. `APP=fraud-decision-support-bmo.html`. Run both files.
 
+**Fast tier budget: 30s.** If it creeps past, move something to full; do not
+raise the budget. A check that does not need the DOM does not get a browser.
+
 The smoke needs `playwright` resolvable by `require` and a Chromium it can
 launch. With a globally installed Playwright, `NODE_PATH=$(npm root -g)` is
 enough; set `CHROMIUM_PATH` to point at a specific binary. Nothing here is
 part of the deliverable and nothing here is installed into the repo.
+
+## Browser-suite rules
+
+- Suites run in parallel when there is more than one; they share only
+  read-only static files.
+- No `waitUntil: 'networkidle'`: use `domcontentloaded` plus the explicit
+  wait you already need.
+- No `waitForTimeout`: wait on the real condition. The BMO copy's animation
+  waits are Playwright's own actionability checks, not sleeps.
+
+## Not tested here
+
+Live tenant behaviour (the page-property binding, the same-origin content
+fetch, caching after a republish, permissions) can only be verified in a
+tenant. That checklist is in `../STATE.md` under **Manual gates**.
