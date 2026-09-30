@@ -11,8 +11,8 @@ the `project-state` skill.
 | | |
 | --- | --- |
 | **Version** | 0.3.1 — v3 layout, content 0.4 (guidance in the topic register) |
-| **Built** | Two players, the web part loader (0.2.0: srcdoc frame, full-window takeover), the snippet template and renderer. Loader proven in `tests/loader.mjs` against SharePoint's headers |
-| **Live** | Dev page runs the BMO player full-window through loader 0.2.0, bound by the page's columns (page version 6.0, 2026-09-30). Library folder holds the loader, both players and both `flow.json` files, hash-checked. See `state/` |
+| **Built** | Two players, the web part loader (0.3.0, to the DCS L1 hosting method: entry file, nonce-stamped srcdoc frame, full-window takeover), the entry template and renderer. Loader proven in `tests/loader.mjs` against SharePoint's headers and CSP |
+| **Live** | Dev page (an App page, version 7.0) runs the BMO player full-window through loader 0.3.0, its Script Editor in external mode on `fraud-guide.webpart.html`, bound by the page's columns. Library folder holds the entry, the loader, both players and both `flow.json` files, hash-checked 2026-09-30. See `state/` |
 | **Last shipped** | 2026-09-22, content 0.4 |
 | **Content** | One scenario, 47 topics, placeholder throughout |
 | **BMO copy** | `app/fraud-decision-support-bmo.html`, content 0.5 (richer guidance). The original stays greyscale at 0.4 |
@@ -36,12 +36,16 @@ built until it has been used once.
       the footer and `Behind the scenes` show the served content version,
       `?fullpage=none` gives the in-page layout back. The page columns were
       already set and override the snippet defaults (`AppName`, `Ver`).
+- [x] Republished `flow.json` shows on an ordinary reload with a warm
+      cache (2026-09-30).
+- [x] Edit mode entered and left without a reload: placeholder while
+      editing, the guide back after Save (2026-09-30). The author's way in
+      is `?fullpage=none`, then Edit; `?Mode=Edit` does nothing on an App page.
 - [ ] Open the dev page as a read-only rep, not an owner: the page-item
-      lookup and the two library fetches must work with read rights.
-- [ ] Republish a changed `flow.json` and reload the page normally: the
-      change must show without a hard refresh (`no-cache` revalidation).
-- [ ] An author gets into edit mode with `?Mode=Edit` and sees the
-      placeholder, not the takeover.
+      lookup and the library fetches must work with read rights.
+- [ ] Before production: check the production site's `script-src` has a
+      nonce (the loader's main path) or `'unsafe-eval'` (its fallback). With
+      neither the guide shows only its quiet unavailable line.
 
 ## Deferred by design
 
@@ -74,10 +78,6 @@ built until it has been used once.
   DCS workbench, is decided. Dev has a page and a library folder, recorded
   in `environments.json` (gitignored; shape in `environments.sample.json`).
   Production is not chosen.
-- **How a republished content JSON beats the cache on SharePoint.**
-  Chosen for now: the loader fetches the player and content with
-  `cache: "no-cache"` (an ETag revalidation per load), so `Ver` is a label.
-  Open until the republish gate above is walked.
 
 - **Should a rep be able to jump to a topic in another stage?** Only the
   current stage is listed; search reaches everything. Settled by the demo.

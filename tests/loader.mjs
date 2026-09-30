@@ -1,8 +1,10 @@
 // Full tier. Proves the web part loader end to end without a tenant: a
 // fake page with the snippet, served over http together with the player,
 // the loader and a content file. The server behaves as a SharePoint library
-// does where it matters: .html is sent as a download, and the page carries a
-// CSP that forbids inline script but allows eval. What SharePoint would
+// does where it matters: .html is sent as a download, and pages carry a CSP
+// with no 'unsafe-inline'. The takeover page's CSP allows only 'self' and a
+// nonce (no eval), so the nonce path is proven on its own; the in-flow page's
+// allows eval and has no nonce, which proves the fallback. What SharePoint would
 // supply (the page item's columns) is absent, so the loader falls back to
 // the host's data-* defaults; that path is the one a freshly pasted snippet
 // takes.
@@ -33,15 +35,17 @@ const inline = JSON.parse(readFileSync(join(app, player), 'utf8').match(/<script
 inline.meta.contentVersion += ' (served)';
 writeFileSync(join(dir, 'content.json'), JSON.stringify(inline));
 const host = (fullpage) => `<div data-fraud-guide data-script="${player}" data-config="content.json" data-version="9.9" data-fullpage="${fullpage}"></div>`;
-const shell = (body, cls = '') => `<!doctype html><html><body class="${cls}"><header data-role="sp-chrome"><h1>Fake page</h1><a href="#">Site nav</a></header>
+const NONCE = 't3stn0nce';
+const shell = (body, cls = '', nonce = '') => `<!doctype html><html><body class="${cls}"><header data-role="sp-chrome"><h1>Fake page</h1><a href="#">Site nav</a></header>
+${nonce ? `<script nonce="${nonce}">window.__hostScriptRan = true;</script>` : ''}
 ${body}
 <script src="boot-fraud-guide.js"></script></body></html>`;
-writeFileSync(join(dir, 'page.html'), shell(host('takeover')));
+writeFileSync(join(dir, 'page.html'), shell(host('takeover'), '', NONCE));
 writeFileSync(join(dir, 'inflow.html'), shell(host('none')));
 writeFileSync(join(dir, 'edit.html'), shell(`<div data-fraud-guide data-script="${player}"></div>`, 'editmode'));
 
 // As SharePoint: .html from the library is an attachment the browser will
-// not render; pages carry a CSP with 'unsafe-eval' and no 'unsafe-inline'.
+// not render; pages carry a CSP with no 'unsafe-inline'.
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json' };
 const pages = new Set(['page.html', 'inflow.html', 'edit.html']);
 const server = createServer((req, res) => {
@@ -49,7 +53,8 @@ const server = createServer((req, res) => {
   try {
     const body = readFileSync(join(dir, name));
     const headers = { 'content-type': types[extname(name)] || 'application/octet-stream' };
-    if (pages.has(name)) headers['content-security-policy'] = "script-src 'self' 'unsafe-eval'";
+    if (name === 'page.html') headers['content-security-policy'] = `script-src 'self' 'nonce-${NONCE}'`;
+    else if (pages.has(name)) headers['content-security-policy'] = "script-src 'self' 'unsafe-eval'";
     else if (extname(name) === '.html') Object.assign(headers, { 'content-disposition': `attachment; filename="${name}"`, 'x-download-options': 'noopen' });
     res.writeHead(200, headers);
     res.end(body);
@@ -73,7 +78,7 @@ await page.waitForSelector('[data-fraud-guide][data-state="ready"]', { state: 'a
 const mounted = await page.evaluate((sel) => {
   const f = document.querySelector(sel);
   const h = document.querySelector('[data-fraud-guide]');
-  return { src: f.getAttribute('src'), srcdoc: !!f.getAttribute('srcdoc'), binding: h.dataset.bindingSource, source: h.dataset.contentSource };
+  return { src: f.getAttribute('src'), srcdoc: !!f.getAttribute('srcdoc'), binding: h.dataset.bindingSource, source: h.dataset.contentSource, scripts: h.dataset.scripts };
 }, frameSel);
 assert.equal(mounted.src, null);
 assert.ok(mounted.srcdoc);
@@ -84,7 +89,8 @@ ok('no page columns: the loader mounts from the snippet defaults, fetching the p
 const inner = page.frames().find((f) => f !== page.mainFrame());
 await inner.waitForSelector('[data-role="question-card"]');
 assert.match(await inner.evaluate(() => window.__frd.flow.meta.contentVersion), /\(served\)$/);
-ok('the player runs under a no-inline CSP and boots from the bound content file, not its inline block');
+assert.equal(mounted.scripts, 'nonce');
+ok('nonce path: under a CSP with a nonce and no eval, the player runs with the host nonce and boots from the bound content, not its inline block');
 
 const cover = await page.evaluate((sel) => {
   const layer = document.querySelector('[data-role="fraud-guide-layer"]');
@@ -107,7 +113,23 @@ ok('takeover: the frame covers the whole window, the page behind is inert and do
 assert.equal(await page.evaluate(() => document.querySelector('[data-fraud-guide]').getAttribute('data-fraud-guide-mounted')), 'fraud-guide');
 await page.evaluate(() => window.fraudGuideBoot.mountAll());
 assert.equal(await page.locator(frameSel).count(), 1);
-ok('mounting again is a no-op: the guard holds');
+await page.addScriptTag({ url: `${base}/boot-fraud-guide.js` });
+assert.equal(await page.locator(frameSel).count(), 1);
+assert.equal(await page.locator('[data-role="fraud-guide-layer"]').count(), 1);
+assert.equal(await page.locator('[data-role="fraud-guide-curtain"]').count(), 0);
+ok('mounting again is a no-op, and a second evaluation of the loader (a web part re-render) adds nothing');
+
+// An App page enters edit mode with no reload and no URL change; its
+// property pane is the signal. Leaving edit mode brings the guide back.
+await page.evaluate(() => { const d = document.createElement('div'); d.id = 'fake-pane'; d.setAttribute('data-automation-id', 'showPane'); document.body.appendChild(d); });
+await page.waitForSelector('[data-fraud-guide] p[role="status"]');
+assert.equal(await page.locator('[data-role="fraud-guide-layer"]').count(), 0);
+assert.equal(await page.locator(frameSel).count(), 0);
+assert.equal(await page.locator('[inert]').count(), 0);
+await page.evaluate(() => document.getElementById('fake-pane').remove());
+await page.waitForSelector(`[data-role="fraud-guide-layer"] ${frameSel}`, { state: 'attached' });
+await page.waitForFunction((sel) => { const f = document.querySelector(sel); return f && f.contentWindow && typeof f.contentWindow.__fraudGuideStart === 'function'; }, frameSel);
+ok("edit mode entered without a reload (an App page's property pane): the takeover lets go and a placeholder shows; leaving it brings the guide back");
 
 await page.evaluate(() => document.querySelector('[data-fraud-guide]').remove());
 await page.waitForFunction(() => !document.querySelector('[data-role="fraud-guide-layer"]') && !document.querySelector('[inert]'));
@@ -118,7 +140,8 @@ await page.waitForSelector('[data-fraud-guide][data-state="ready"]', { state: 'a
 await page.waitForFunction((sel) => Number(document.querySelector(sel).getAttribute('data-content-height')) > 0, frameSel);
 assert.equal(await page.locator('[data-role="fraud-guide-layer"]').count(), 0);
 assert.ok(parseInt(await page.evaluate((sel) => document.querySelector(sel).style.height, frameSel), 10) >= 480);
-ok("fullpage none: the frame stays in the page flow and the player's reported height sizes it");
+assert.equal(await page.evaluate(() => document.querySelector('[data-fraud-guide]').dataset.scripts), 'eval');
+ok("eval fallback and fullpage none: with no nonce on the page the player runs by eval, the frame stays in the page flow and the player's reported height sizes it");
 
 await page.goto(`${base}/edit.html`, { waitUntil: 'domcontentloaded' });
 await page.waitForSelector('[data-fraud-guide] p[role="status"]');

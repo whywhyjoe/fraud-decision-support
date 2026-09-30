@@ -1,39 +1,60 @@
 /*! boot-fraud-guide.js — the loader the page's web part points at.
  *
+ *  Built to the DCS Workbench hosting method (dcs-workbench-tools/docs/
+ *  01-hosting-and-boot.md, tier L1: a full-page app), with the mount shape of
+ *  bsp-sp-parts/_shared/dcs-part-boot.js. Where this file departs from them
+ *  it says so.
+ *
+ *  Entry: the Script Editor's external Script URL points at the generated
+ *  fraud-guide.webpart.html in the library (a host div and one <script src>
+ *  to this file, stamped with its hash). Changing this file means
+ *  re-rendering and re-uploading that entry file, never editing the page.
+ *
  *  What it does, in order:
- *   1. Waits for the host div (data-fraud-guide) and mounts it exactly once,
- *      re-mounting after SharePoint SPA navigation and when the page leaves
- *      edit mode. Same shape as bsp-sp-parts/_shared/dcs-part-boot.js: a
- *      guard attribute, a debounced MutationObserver, one bounded poll.
- *   2. Reads the page's own list item for the binding columns (ItemType,
+ *   1. Double-boot guard: the web part re-runs its scripts on re-render; a
+ *      second evaluation only asks the first to re-mount.
+ *   2. Waits for the host div (data-fraud-guide) and mounts it exactly once,
+ *      re-mounting after SPA navigation and when the page leaves edit mode:
+ *      a guard attribute, a debounced MutationObserver, one bounded poll.
+ *      Edit mode (?Mode=Edit, /_layouts/, or SharePoint's authoring DOM,
+ *      including an App page's property pane) gets a one-line placeholder
+ *      and never the takeover; leaving it re-mounts. Departure from DCS: no
+ *      History API patching, which an App page would not trip anyway (its
+ *      edit mode leaves the URL alone); the observer sees the DOM change.
+ *   3. Reads the page's own list item for the binding columns (ItemType,
  *      Script, Config, Ver, AppName, Value1). Host data-* attributes are the
- *      defaults when a column is empty, so a page works from the moment the
- *      snippet is pasted. data-columns maps them to the site's internal names.
- *   3. Loads the player. Script ending in .html: fetched as text, its inline
- *      scripts lifted out, the markup written into a srcdoc frame and the
- *      scripts run there with the frame's own eval, with the bound content
- *      set as window.FLOW first. Script ending in .js: injected script that
- *      mounts into the host itself (the shape after the content/theme split).
- *   4. Full page (data-fullpage): "takeover" lifts the frame into a fixed
- *      layer over the whole viewport and makes SharePoint's page inert behind
- *      it; "webview" redirects to SharePoint's own ?env=WebView; "none" keeps
- *      the frame in the page flow. Never in edit mode; ?fullpage=none on the
- *      page URL turns it off for one visit.
+ *      defaults when a column is empty. data-columns maps them to the site's
+ *      internal names.
+ *   4. In takeover mode, paints a curtain over the window before anything is
+ *      fetched, so a cold SharePoint load never shows the bare page.
+ *   5. Loads the player. Script ending in .html: fetched as text (a library
+ *      serves .html as a download, so <iframe src> stays blank), the bound
+ *      content spliced into its #flow-data block, the host page's CSP nonce
+ *      stamped on its scripts and styles, and the result written into a
+ *      srcdoc frame, which inherits the page's CSP. On a page with no nonce
+ *      the scripts are lifted out instead and run with the frame's eval
+ *      (the dev tenant's CSP allows 'unsafe-eval'; prod is unverified).
+ *      Script ending in .js: injected script that mounts into the
+ *      host itself (the shape after the content/theme split).
+ *   6. Full page (data-fullpage): "takeover" holds the frame in a fixed layer
+ *      over the whole window, SharePoint's page inert behind it (departure
+ *      from DCS L1, which leaves the suite bar showing: asked for);
+ *      "webview" redirects to SharePoint's ?env=WebView; "none" keeps the
+ *      frame in the page flow. ?fullpage=none on the page URL turns it off
+ *      for one visit.
  *
- *  Why fetch + srcdoc + eval, not <iframe src>: a SharePoint library serves
- *  .html as a download (Content-Disposition: attachment, X-Download-Options:
- *  noopen), so a frame pointed at it stays blank. A srcdoc frame inherits the
- *  page's CSP, which forbids inline scripts but allows 'unsafe-eval'; the
- *  scripts are therefore run with eval, as the Script Editor runs its own.
- *
- *  Rules it keeps (CLAUDE.md): no ES import, no CDN, no page-relative URL
- *  (everything is resolved against the folder this file was served from or
- *  is tenant-relative), never fail loudly at the visitor (console.debug).
- *  Uses the house helpers when present (dcsOnSpaNavigation, __dcsIsEditMode)
- *  and stand-ins when absent, so it runs on any site.
+ *  Rules it keeps (CLAUDE.md): no ES import, no CDN, no page-relative URL,
+ *  never fail loudly at the visitor (console.debug and one quiet line;
+ *  departure from DCS, which paints the error). Uses the house helpers when
+ *  present (dcsOnSpaNavigation) and stand-ins when absent.
  */
 (function () {
   'use strict';
+
+  if (window.fraudGuideBoot && typeof window.fraudGuideBoot.remount === 'function') {
+    window.fraudGuideBoot.remount();
+    return;
+  }
 
   var ID = 'fraud-guide';
   var LOG = '[fraud-guide]';
@@ -43,17 +64,31 @@
   var COLUMNS = { itemType: 'ItemType', script: 'Script', config: 'Config', version: 'Ver', appName: 'AppName', status: 'Value1' };
   var TEXT = {
     frameTitle: 'Fraud call guide',
+    loading: 'Opening the call guide…',
     editing: 'Fraud call guide is paused while you edit this page. Save or exit edit mode to use it.',
     unavailable: 'This tool is unavailable right now.'
   };
   var MIN_HEIGHT = 480;
   var TOP_LAYER = 2147483000;
+  var CURTAIN_STYLE = 'margin:0;padding:24px;font:16px/1.5 "Segoe UI",system-ui,sans-serif;color:CanvasText;';
   var SAFE_NAME = /^[A-Za-z0-9_-][A-Za-z0-9._-]*(\/[A-Za-z0-9_-][A-Za-z0-9._-]*)*$/;
+  var PLAYER_ENTRY = '__fraudGuideStart';
+  /* SharePoint's authoring DOM. The first three are the article-page signals
+     the house detector (fcu-standard.js) uses. An App page
+     (SingleWebPartAppPage, as the dev page is) edits with no URL change and
+     none of those: its signals, seen 2026-09-30, are the property pane
+     controls and the command bar's Edit button becoming Save. */
+  var EDIT_DOM = [
+    '[data-automation-id="authoringCanvas"]',
+    '[data-automation-id="pageCommandBarSaveButton"]',
+    '[data-automation-id="pageCommandBarPublishButton"]',
+    '[data-automation-id="showPane"]',
+    '[data-automation-id="propertyPaneClose"]',
+    'button[role="menuitem"][name="Save"]'
+  ].join(',');
 
-  var baseUrl = (function () {
-    var src = document.currentScript && document.currentScript.src;
-    return src ? src.slice(0, src.lastIndexOf('/')) : null;
-  })();
+  var self = document.currentScript;
+  var baseUrl = self && self.src ? self.src.slice(0, self.src.lastIndexOf('/')) : null;
   if (!baseUrl) { return; }
 
   function debug() { try { console.debug.apply(console, [LOG].concat([].slice.call(arguments))); } catch (e) {} }
@@ -66,21 +101,32 @@
     return location.origin + (m ? m[1] : '');
   }
 
+  /* Not the house __dcsIsEditMode: its stored edit intent never clears
+     (bsp-sp-parts/dev/vendor/fcu-standard-additions.js, item 6), which would
+     leave the guide suspended for the rest of the tab. Its signals are here. */
   function isEditMode() {
-    try { if (typeof window.__dcsIsEditMode === 'function') return !!window.__dcsIsEditMode(); } catch (e) {}
+    if (/\/_layouts\//i.test(location.pathname)) return true;
     if (document.body && document.body.classList.contains('editmode')) return true;
-    try {
-      var q = new URLSearchParams(location.search);
-      var m = (q.get('mode') || q.get('Mode') || '').toLowerCase();
-      if (m === 'edit' || m === 'design') return true;
-    } catch (e) {}
-    return !!(document.querySelector('[data-automation-id="authoringCanvas"]') ||
-      document.querySelector('[data-automation-id="pageCommandBarSaveButton"]') ||
-      document.querySelector('[data-automation-id="pageCommandBarPublishButton"]'));
+    var m = queryParam('mode');
+    if (m === 'edit' || m === 'design') return true;
+    return !!document.querySelector(EDIT_DOM);
   }
 
+  /* Case-insensitive on the name too: SharePoint writes Mode=Edit. */
   function queryParam(name) {
-    try { return (new URLSearchParams(location.search).get(name) || '').toLowerCase(); } catch (e) { return ''; }
+    try {
+      var found = '';
+      new URLSearchParams(location.search).forEach(function (v, k) { if (!found && k.toLowerCase() === name) found = v; });
+      return found.toLowerCase();
+    } catch (e) { return ''; }
+  }
+
+  /* The host page's CSP nonce: from this script's own element, else any
+     element SharePoint stamped. Read the property; the attribute is blanked. */
+  function hostNonce() {
+    if (self && self.nonce) return self.nonce;
+    var el = document.querySelector('script[nonce]') || document.querySelector('style[nonce]');
+    return (el && el.nonce) || '';
   }
 
   /* Column values are editable by any page author, so a relative name must be
@@ -140,7 +186,7 @@
   }
 
   /* Shape check only; the full graph checks run before every upload. Content
-     that fails falls back to the player's own inline block. */
+     that fails leaves the player on its own inline block. */
   function contentProblem(flow) {
     if (!flow || typeof flow !== 'object') return 'not an object';
     if (!flow.meta || typeof flow.meta !== 'object') return 'no meta';
@@ -163,21 +209,31 @@
       var problem = contentProblem(flow);
       if (problem) throw new Error('content fails its checks: ' + problem);
       return flow;
-    }).catch(function (e) { debug('bound content not used, the player falls back to its own:', e && e.message); return null; });
+    }).catch(function (e) { debug('bound content not used, the player keeps its own:', e && e.message); return null; });
   }
 
-  /* Parse the player without running it and lift its executable scripts out,
-     so the frame's CSP does not block them. Data blocks stay in the markup. */
-  function preparePlayer(html) {
+  /* Parse the player without running it, splice the bound content into its
+     #flow-data block, and stamp the host nonce so its scripts may run in the
+     srcdoc frame. Without a nonce the executable scripts come out of the
+     markup and run by eval once the frame has loaded. */
+  function preparePlayer(html, flow) {
     var doc = new DOMParser().parseFromString(html, 'text/html');
+    if (flow) {
+      var block = doc.getElementById('flow-data');
+      if (block) block.textContent = JSON.stringify(flow).replace(/</g, '\\u003c');
+      else debug('player has no #flow-data block; bound content not used');
+    }
+    var nonce = hostNonce();
     var scripts = [];
     [].slice.call(doc.querySelectorAll('script')).forEach(function (s) {
       var type = (s.getAttribute('type') || '').trim().toLowerCase();
-      if (type && type !== 'text/javascript') return;
-      scripts.push(s.textContent);
-      s.parentNode.removeChild(s);
+      var runs = !type || type === 'text/javascript';
+      if (runs) scripts.push(s.textContent);
+      if (nonce) s.setAttribute('nonce', nonce);
+      else if (runs) s.parentNode.removeChild(s); /* no nonce: run by eval, not refused by the CSP */
     });
-    return { markup: '<!DOCTYPE html>' + doc.documentElement.outerHTML, scripts: scripts };
+    if (nonce) [].slice.call(doc.querySelectorAll('style')).forEach(function (s) { s.setAttribute('nonce', nonce); });
+    return { markup: '<!DOCTYPE html>' + doc.documentElement.outerHTML, scripts: scripts, nonce: !!nonce };
   }
 
   /* ---------- full page ---------- */
@@ -197,13 +253,18 @@
   }
 
   /* A fixed layer on <body>, not inside the host: SharePoint's canvas has
-     transformed ancestors, which would make a fixed child relative to them. */
-  function takeOver(host, frame) {
+     transformed ancestors, which would make a fixed child relative to them.
+     Put up with a curtain first; the frame replaces it when it is ready. */
+  function takeOver(host) {
     var layer = document.createElement('div');
     layer.setAttribute('data-role', 'fraud-guide-layer');
     layer.style.cssText = 'position:fixed;top:0;right:0;bottom:0;left:0;margin:0;padding:0;background:Canvas;z-index:' + TOP_LAYER + ';';
-    frame.style.height = '100%';
-    layer.appendChild(frame);
+    var curtain = document.createElement('p');
+    curtain.setAttribute('data-role', 'fraud-guide-curtain');
+    curtain.setAttribute('role', 'status');
+    curtain.style.cssText = CURTAIN_STYLE;
+    curtain.textContent = TEXT.loading;
+    layer.appendChild(curtain);
 
     var inerted = [];
     [].slice.call(document.body.children).forEach(function (el) {
@@ -217,11 +278,20 @@
     document.body.appendChild(layer);
     host.setAttribute('data-fullpage-active', 'takeover');
 
-    return function release() {
+    var released = false;
+    function release() {
+      if (released) return;
+      released = true;
       if (layer.parentNode) layer.parentNode.removeChild(layer);
       inerted.forEach(function (el) { el.removeAttribute('inert'); });
       root.style.overflow = overflow;
       host.removeAttribute('data-fullpage-active');
+      if (host.__fraudGuideRelease === release) host.__fraudGuideRelease = null;
+    }
+    host.__fraudGuideRelease = release;
+    return {
+      release: release,
+      show: function (frame) { frame.style.height = '100%'; layer.replaceChild(frame, curtain); }
     };
   }
 
@@ -234,8 +304,6 @@
     host.appendChild(p);
   }
 
-  function quietUnavailable(host, why) { debug('unavailable:', why); note(host, TEXT.unavailable); }
-
   function sizeInFlow(frame) {
     var top = frame.getBoundingClientRect().top + window.pageYOffset;
     var avail = Math.max(MIN_HEIGHT, window.innerHeight - top);
@@ -243,10 +311,17 @@
     frame.style.height = Math.max(avail, posted) + 'px';
   }
 
-  function mountFrame(host, b, mode) {
+  function mountFrame(host, b, cover) {
+    function fail(why) {
+      if (cover) cover.release();
+      debug('unavailable:', why);
+      note(host, TEXT.unavailable);
+    }
+
     return Promise.all([getText(b.scriptUrl), loadContent(b.configUrl)]).then(function (got) {
-      var player = preparePlayer(got[0]);
+      if (cover && !host.__fraudGuideRelease) return; /* released while fetching: edit mode or navigation */
       var flow = got[1];
+      var player = preparePlayer(got[0], flow);
       host.setAttribute('data-content-source', flow ? 'config' : 'inline');
       host.setAttribute('data-content-version', flow && flow.meta.contentVersion ? flow.meta.contentVersion : '');
 
@@ -256,10 +331,9 @@
       frame.style.cssText = 'display:block;width:100%;border:0;margin:0;padding:0;';
       host.textContent = '';
 
-      var release = null, onResize = null, onMessage = null;
-      if (mode === 'takeover') {
-        release = takeOver(host, frame);
-        host.__fraudGuideRelease = release;
+      var onResize = null, onMessage = null;
+      if (cover) {
+        cover.show(frame);
       } else {
         host.appendChild(frame);
         onResize = function () { sizeInFlow(frame); };
@@ -276,14 +350,20 @@
       frame.addEventListener('load', function () {
         try {
           var w = frame.contentWindow;
-          if (flow) w.FLOW = flow;
-          player.scripts.forEach(function (code) { w.eval(code); });
+          var how = 'nonce';
+          if (!player.nonce) {
+            /* No nonce on this page: run the lifted scripts with the frame's
+               eval, which SharePoint's CSP allows ('unsafe-eval'). */
+            how = 'eval';
+            player.scripts.forEach(function (code) { w.eval(code); });
+          }
+          if (typeof w[PLAYER_ENTRY] !== 'function') throw new Error('the player did not start');
           host.setAttribute('data-state', 'ready');
-          if (mode === 'takeover') { try { frame.focus(); } catch (e) {} }
-          debug('ready', b.source, host.getAttribute('data-content-source'), host.getAttribute('data-content-version'));
+          host.setAttribute('data-scripts', how);
+          if (cover) { try { frame.focus(); } catch (e) {} }
+          debug('ready', b.source, host.getAttribute('data-content-source'), host.getAttribute('data-content-version'), how);
         } catch (e) {
-          if (release) release();
-          quietUnavailable(host, 'player failed to start: ' + (e && e.message ? e.message : e));
+          fail('player failed to start: ' + (e && e.message ? e.message : e));
         }
       }, { once: true });
       frame.srcdoc = player.markup;
@@ -292,32 +372,40 @@
       var timer = window.setInterval(function () {
         if (document.body.contains(host)) return;
         window.clearInterval(timer);
-        if (release) release();
+        if (cover) cover.release();
         if (onResize) window.removeEventListener('resize', onResize);
         if (onMessage) window.removeEventListener('message', onMessage);
         debug('unmounted');
       }, 1500);
-    });
+    }).catch(function (e) { fail('mount failed: ' + (e && e.message)); });
   }
 
   function mountScript(host, b) {
     window.__fraudGuideBinding = b;
     var s = document.createElement('script');
     s.src = withQuery(b.scriptUrl, { v: b.version });
-    s.onerror = function () { quietUnavailable(host, 'player script failed to load ' + s.src); };
+    var nonce = hostNonce();
+    if (nonce) s.nonce = nonce;
+    s.onerror = function () { debug('unavailable: player script failed to load', s.src); note(host, TEXT.unavailable); };
     document.head.appendChild(s);
   }
 
+  /* The curtain goes up before the page item is read, so the rep never sees
+     the bare page; anything that stops the mount takes it down again. */
   function mountLive(host) {
+    var cover = fullPageMode(host) === 'takeover' ? takeOver(host) : null;
+    function stop() { if (cover) cover.release(); }
     return readBinding(host).then(function (binding) {
       var b = settle(host, binding);
-      if (b.itemType !== ITEM_TYPE) { debug('page ItemType is', b.itemType, 'not', ITEM_TYPE, '; not mounting'); return; }
-      if (!b.scriptUrl) { debug('no usable Script column and no data-script default; not mounting'); return; }
+      if (b.itemType !== ITEM_TYPE) { stop(); debug('page ItemType is', b.itemType, 'not', ITEM_TYPE, '; not mounting'); return; }
+      if (!b.scriptUrl) { stop(); debug('no usable Script column and no data-script default; not mounting'); return; }
+      if (isEditMode() || (cover && !host.__fraudGuideRelease)) { stop(); return; } /* edit mode began while the binding was read */
       debug('mounting', b);
       host.setAttribute('data-binding-source', b.source);
-      if (/\.html?(\?|$)/i.test(b.scriptUrl)) return mountFrame(host, b, fullPageMode(host));
+      if (/\.html?(\?|$)/i.test(b.scriptUrl)) return mountFrame(host, b, cover);
+      stop();
       mountScript(host, b);
-    }).catch(function (e) { quietUnavailable(host, 'mount failed: ' + (e && e.message)); });
+    }).catch(function (e) { stop(); debug('unavailable: mount failed:', e && e.message); note(host, TEXT.unavailable); });
   }
 
   var pollTimer = null, pollUntil = 0, observer = null, debounceTimer = null;
@@ -331,7 +419,7 @@
       if (host.getAttribute(GUARD) === want) continue;
       host.setAttribute(GUARD, want);
       if (editing) {
-        if (host.__fraudGuideRelease) { host.__fraudGuideRelease(); host.__fraudGuideRelease = null; }
+        if (host.__fraudGuideRelease) host.__fraudGuideRelease();
         note(host, TEXT.editing, 'status');
         continue;
       }
@@ -360,16 +448,19 @@
 
   function boot() { mountAll(); schedulePoll(30000); startObserving(); }
 
-  /* SPA navigation: the house bus when present, else the family's pathname poll. */
+  /* SPA navigation: the house bus when present, else the family's pathname
+     poll. Edit mode keeps the pathname and changes the query, so the poll
+     watches the whole URL. */
   if (typeof window.dcsOnSpaNavigation === 'function') {
     window.dcsOnSpaNavigation(ID, function () { boot(); });
   } else {
-    var lastPath = location.pathname;
+    var lastUrl = location.pathname + location.search;
     window.setInterval(function () {
-      if (location.pathname !== lastPath) { lastPath = location.pathname; boot(); }
+      var now = location.pathname + location.search;
+      if (now !== lastUrl) { lastUrl = now; boot(); }
     }, 1500);
   }
 
+  window.fraudGuideBoot = { remount: boot, mountAll: mountAll, isEditMode: isEditMode, version: '0.3.0' };
   boot();
-  window.fraudGuideBoot = { remount: boot, mountAll: mountAll, isEditMode: isEditMode, version: '0.2.0' };
 })();

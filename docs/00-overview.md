@@ -156,13 +156,21 @@ scrolls the page rather than the tool (kept as `data-fullpage="webview"`);
 leaving the chrome. **Costs:** SharePoint's Edit button is covered, so an
 author uses `?Mode=Edit` or `?fullpage=none`.
 
-### The player is loaded as text into a srcdoc frame — 2026-09-30
-A library will not serve `.html` for display, and the page's CSP blocks
-inline script, so the loader fetches the player, runs its scripts with the
-frame's `eval`, and hands it the bound content as `window.FLOW`.
-**Rejected:** `<iframe src>` at the library file, which stays blank.
-**Costs:** the player cannot rely on its own URL (a `srcdoc` frame has
-none), and nothing in it may use an inline event handler attribute.
+### Hosting follows the DCS L1 method — 2026-09-30
+The loader is built to `dcs-workbench-tools/docs/01-hosting-and-boot.md`:
+an entry file named by the Script Editor's external Script URL, a
+double-boot guard, a curtain before anything is fetched, edit mode never
+taken over, and the player fetched as text into a `srcdoc` frame with the
+host page's CSP nonce stamped on its scripts (a library will not serve
+`.html` for display). Departures, each for a reason in
+`docs/02-hosting-and-deploy.md`: the whole window is covered, failures stay
+quiet (rule 9), no History API patching, `eval` as the fallback where a page
+has no nonce, and revalidating fetches rather than `Last-Modified` stamps.
+**Rejected:** a loader of this repo's own design, which is how the first one
+shipped a frame that would have been blank on the tenant; `<iframe src>` at
+the library file. **Costs:** the player cannot rely on its own URL (a
+`srcdoc` frame has none), and nothing in it may use an inline event handler
+attribute.
 
 ## Paid-for gotchas
 
@@ -187,3 +195,8 @@ none), and nothing in it may use an inline event handler attribute.
   thread said the dev page's web part was empty and its columns unset; both
   had been set by an earlier local session whose files were never
   committed. Read the page item before assuming.
+- **An App page edits without changing the URL**, and without the
+  authoring-DOM markers the house `fcu-standard.js` detector looks for, so
+  that detector (and the first loader) left the guide running under the
+  editor. `?Mode=Edit` is stripped on an App page and does nothing. The
+  signals are the property pane and the Edit button turning into Save.

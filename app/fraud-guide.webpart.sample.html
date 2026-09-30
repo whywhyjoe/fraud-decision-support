@@ -1,14 +1,16 @@
 <!--
-  Fraud call guide: the whole content of the page's script web part.
-  Generated per environment by tools/render-webpart.mjs from environments.json
-  into app/fraud-guide.webpart.html (gitignored). Do not hand-edit tokens here.
+  Fraud call guide: the entry file. Generated per environment by
+  tools/render-webpart.mjs from environments.json into
+  app/fraud-guide.webpart.html (gitignored), uploaded to the library folder
+  beside the loader, and named as the page's Script Editor external Script
+  URL (DCS L1 entry). Do not hand-edit tokens here.
 
   The data-* attributes are defaults, used only while the page's own columns
   (Script, Config, Ver, AppName, Value1) are empty. data-columns maps them to
   the site's internal names. data-fullpage: "takeover" covers the whole
   window, "webview" uses SharePoint's ?env=WebView, "none" keeps the chrome.
-  The loader URL carries its own hash, so a changed loader is re-rendered
-  and re-pasted; an unchanged one is cached.
+  The loader URL carries its own hash, so a changed loader means rendering
+  and uploading this file again; an unchanged one stays cached.
 -->
 <div data-fraud-guide
      data-script="{{SCRIPT}}"

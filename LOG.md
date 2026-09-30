@@ -7,6 +7,26 @@ Newest first.
 
 ---
 
+## 2026-09-30 — loader 0.3.0: the DCS L1 hosting method
+
+The loader now follows `dcs-workbench-tools/docs/01-hosting-and-boot.md`
+rather than a design of its own. Live on the dev page.
+
+- **Entry file.** The page's Script Editor is in external mode on
+  `fraud-guide.webpart.html` in the library; a loader change is an upload,
+  never a page edit (seen working the same day).
+- **Nonce, not eval.** The player's scripts run in the `srcdoc` frame by the
+  host page's CSP nonce, as DCSPad does; `eval` is only the fallback for a
+  page with no nonce. Content is spliced into `#flow-data`.
+- **Double-boot guard and a curtain** before anything is fetched.
+- **App-page edit mode.** Detected by its property pane and Save button, so
+  the takeover lets go while editing and comes back after, with no reload.
+  The house `__dcsIsEditMode()` is no longer consulted (sticky flag bug).
+- **Proved on the tenant:** nonce path, edit round trip, republished
+  content on an ordinary reload.
+
+---
+
 ## 2026-09-30 — loader 0.2.0 live on the dev page, full window
 
 The dev page (`environments.json`) now runs the BMO player through the

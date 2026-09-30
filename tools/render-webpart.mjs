@@ -1,8 +1,10 @@
 // Render the web part snippet for one environment. Stdlib only.
 //   node tools/render-webpart.mjs [dev|prod] [--script F] [--config F] [--ver V] [--name N] [--fullpage takeover|webview|none]
 // Reads environments.json (gitignored) and app/fraud-guide.webpart.sample.html,
-// writes app/fraud-guide.webpart.html (gitignored) and prints it. The output
-// is what goes into the page's script web part, once.
+// writes app/fraud-guide.webpart.html (gitignored) and prints it. That file is
+// the entry: upload it to the library folder beside the loader, and point the
+// page's Script Editor at it in external mode (the URL goes to stderr). Re-run
+// and re-upload whenever the loader changes; the page itself is not edited.
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -53,3 +55,6 @@ const out = sample
 
 writeFileSync(join(root, 'app', 'fraud-guide.webpart.html'), out);
 process.stdout.write(out);
+if (env.tenant) console.error(`
+Script Editor, external mode, Script URL:
+${env.tenant.replace(/\/+$/, '')}${folderUrl}/fraud-guide.webpart.html`);

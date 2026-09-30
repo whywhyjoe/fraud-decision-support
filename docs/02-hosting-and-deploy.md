@@ -1,13 +1,17 @@
 # Hosting, boot and deploy
 
-Seeded from the `sp-app` family's paid-for gotchas in projects-standard,
-kept where they apply to this app. The dev page runs the loader below
-(`STATE.md` says what is live); the `file://` demo is unaffected by any of it.
+The method is the DCS Workbench one, tier L1 (a full-page app):
+`dcs-workbench-tools/docs/01-hosting-and-boot.md`. Read it before changing
+how the guide loads. This file holds what is specific to this app and where
+it departs from that method. The dev page runs the loader below (`STATE.md`
+says what is live); the `file://` demo is unaffected by any of it.
 
 ## The decided shape
 
 - **One SharePoint page per version.** The page is the stable link a rep
-  gets. It holds a web part with a small loader and nothing else.
+  gets. It is an App page (`SingleWebPartAppPage`) holding one Modern Script
+  Editor in external mode, whose Script URL names the entry file
+  `fraud-guide.webpart.html` in the library. Nothing else is on the page.
 - **Player in a library.** Today the single-file players themselves,
   loaded into a frame by `app/boot-fraud-guide.js`; after the content/theme
   split, `fraud-guide.app.js`, its CSS and any assets (the BMO copy's header
@@ -59,17 +63,18 @@ assume step 1.
 
 A document library serves `.html` as a download (`Content-Disposition:
 attachment`, `X-Download-Options: noopen`), so `<iframe src>` pointed at the
-player stays blank. The loader fetches the player as text instead, lifts its
-executable `<script>` blocks out, writes the rest into a `srcdoc` frame and
-runs the scripts there with the frame's own `eval`. A `srcdoc` frame
-inherits the page's CSP, which allows `'unsafe-eval'` but no inline script;
-that is why the scripts are evaluated rather than left in the markup. The
-bound content file is fetched, shape-checked, and set as `window.FLOW` in the
-frame before the scripts run, so the player uses it through its ordinary
-`window.FLOW` path; content that fails the check leaves the player on its
-own inline block. The player's `?content=` boot is for hosting over plain
-http and is not used on SharePoint (a `srcdoc` frame has no query string).
-`tests/loader.mjs` serves its fixture with those same headers.
+player stays blank. The loader fetches the player as text, splices the bound
+content (fetched and shape-checked) into its `#flow-data` block, and writes
+it into a `srcdoc` frame. A `srcdoc` frame inherits the page's CSP, which has
+no `'unsafe-inline'`, so the loader stamps the host page's nonce on the
+player's scripts and styles, as DCSPad does. On a page with no nonce the
+scripts are lifted out instead and run with the frame's `eval`; the dev
+tenant allows `'unsafe-eval'`, production is unverified. Content that fails
+the check leaves the player on its own inline block. The host div's
+`data-scripts` says which path ran (`nonce` on the dev page, 2026-09-30).
+The player's `?content=` boot is for plain http hosting and is not used on
+SharePoint. `tests/loader.mjs` serves SharePoint's headers and proves both
+paths: a nonce-only CSP with no eval, and an eval-only CSP with no nonce.
 
 ## Full page
 
@@ -77,39 +82,52 @@ http and is not used on SharePoint (a `srcdoc` frame has no query string).
 
 | Value | What the rep gets |
 | --- | --- |
-| `takeover` (the snippet's default) | The frame in a fixed layer on `<body>` covering the whole window, above everything SharePoint draws; the page behind is `inert` and does not scroll; the frame takes focus so the number keys work at once. The frame scrolls, not the page. |
+| `takeover` (the snippet's default) | A curtain over the whole window as soon as the loader runs, then the frame in its place: a fixed layer on `<body>` above everything SharePoint draws, the page behind `inert` and not scrolling, focus in the frame so the number keys work at once. The frame scrolls, not the page. |
 | `webview` | A redirect to SharePoint's own `?env=WebView`, with the frame in the page flow. On the dev page this also hides the chrome, but it costs a reload, changes the rep's URL, and the page scrolls rather than the tool. |
 | `none` | The frame in the page flow below SharePoint's chrome, sized to the viewport or to the height the player reports, whichever is larger. |
 
-Never in edit mode, which shows a one-line placeholder instead. `?fullpage=none`
-on the page URL turns it off for one visit. The layer hangs off `<body>`, not
-the host, because SharePoint's canvas has transformed ancestors that would
-make a fixed child relative to them. When SPA navigation removes the host,
-the layer goes and the page is live again.
+The layer hangs off `<body>`, not the host, because SharePoint's canvas has
+transformed ancestors that would make a fixed child relative to them. When
+SPA navigation removes the host, the layer goes and the page is live again.
+DCS L1 pins under the suite bar instead; covering it was asked for.
 
-**An author reaches edit mode with `?Mode=Edit`** on the page URL, since the
-takeover covers SharePoint's Edit button (or opens the page with
-`?fullpage=none` and uses the button). Not yet walked on the tenant.
+**Edit mode.** Never taken over: a one-line placeholder instead, and the
+guide comes back when edit mode ends, without a reload (walked on the dev
+page 2026-09-30). An App page edits with no URL change, so the signals are
+DOM ones: its property pane (`data-automation-id="showPane"`,
+`"propertyPaneClose"`) and the command bar's Edit button turning into Save,
+beside the article-page signals the house `fcu-standard.js` uses. The house
+`__dcsIsEditMode()` itself is not called: its stored edit intent never clears
+(`bsp-sp-parts/dev/vendor/fcu-standard-additions.js`, item 6).
+
+**An author gets to edit mode through `?fullpage=none`**, then SharePoint's
+Edit button, since the takeover covers it. `?Mode=Edit` does not work on an
+App page: SharePoint strips it and opens the page in view mode.
 
 ## SPA navigation
 
-SharePoint's modern pages are a SPA. Poll `location.pathname` (about 1.5s)
-to detect navigation. Do not patch the History APIs; that fights
-SharePoint's own router and loses. For a full-page tool this matters at
-mount and unmount, not during use.
+SharePoint's modern pages are a SPA. The loader uses the house
+`dcsOnSpaNavigation` bus when the page has it, and otherwise polls the URL
+(path and query, about 1.5s). It does not patch the History APIs itself,
+which DCS does for edit mode: an App page's edit mode leaves the URL alone,
+so the patch would not see it, and the MutationObserver does. For a
+full-page tool this matters at mount and unmount, not during use.
 
 ## Caching
 
 SharePoint caches aggressively. "Stale after deploy" is the default
 experience, not an anomaly. Library files carry a day's `max-age`, so:
 
-- **The loader's URL** in the snippet carries a hash of the loader
+- **The entry file** is fetched by the web part itself with its own
+  `?pnp=<timestamp>`, so it is never stale.
+- **The loader's URL** in the entry file carries a hash of the loader
   (`?v=<sha>`, stamped by `tools/render-webpart.mjs`). A changed loader
-  means re-rendering and re-pasting the snippet.
+  means rendering and uploading the entry file again; the page is not edited.
 - **The player and its content** are fetched with `cache: "no-cache"`: an
-  unchanged file costs a 304 on its ETag, a republished one shows at once.
-  `Ver` is therefore a label, not the cache-buster. Not yet confirmed
-  against a republish; a manual gate in `STATE.md`.
+  unchanged file costs a revalidation (about 300 bytes), a republished one
+  shows on the next ordinary load. Confirmed on the dev page 2026-09-30.
+  `Ver` is therefore a label, not the cache-buster. DCS stamps `?v=` from
+  `Last-Modified` instead; for two fetched files, revalidation is enough.
 
 Never ask a rep for a hard refresh.
 
@@ -124,7 +142,7 @@ loader never hardcodes them.
 | `ItemType` | `fraud-decision-support`, so the loader can refuse a page it was not meant for | yes |
 | `Script` | Library-relative path of the player bundle to load | yes |
 | `Config` | File name of the content JSON, in the app's library folder | yes |
-| `Ver` | Content version. The candidate cache-buster: read in the same call as `Config`, appended to the fetch URL | yes |
+| `Ver` | Content version. A label: the fetch revalidates, so it is not the cache-buster | yes |
 | `AppName` | The frame's accessible title (the player's visible header comes from its content) | yes |
 | `Value1` | Status: `draft` or `live`. A draft page renders with the placeholder banner regardless of content | yes |
 | `Category` | The site's own grouping; the app does not read it | no |
@@ -143,7 +161,7 @@ is refused.
 - `environments.json` is gitignored. It holds real tenant paths: tenant,
   site, page, library, folder and the column names above. Copy it from
   `environments.sample.json`, which is committed and holds the shape only.
-- The per-environment `fraud-guide.webpart.html` embed snippets are
+- The per-environment `fraud-guide.webpart.html` entry files are
   generated from it, not hand-edited.
 - No other file in git holds a real tenant path.
 
@@ -161,7 +179,8 @@ What ships to the library folder named in `environments.json`, and how.
 
 | File | Role | Ships when |
 | --- | --- | --- |
-| `app/boot-fraud-guide.js` | The loader the web part points at | It changes; then re-render and re-paste the snippet, whose URL carries its hash |
+| `app/fraud-guide.webpart.html` | The entry file the web part's Script URL names. Generated, gitignored | The loader changes (its URL carries the loader's hash), or the snippet defaults do |
+| `app/boot-fraud-guide.js` | The loader | It changes; always with a fresh entry file |
 | `app/fraud-decision-support-bmo.html`, `app/fraud-decision-support.html` | The players, one per look. Loaded into a frame until the content/theme split makes them scripts | They change |
 | `<player>.flow.json` | The content the page's `Config` column names. Extracted from a player's `#flow-data` block (`JSON.stringify(flow, null, 2)` plus a newline) until the split | Content changes |
 
@@ -178,21 +197,26 @@ What ships to the library folder named in `environments.json`, and how.
 
 **One-time page setup** (once per page; a human does it on prod):
 
-1. `node tools/render-webpart.mjs dev` prints the snippet with the real
-   loader URL and column names. Paste it into the page's modern script web
-   part and publish. The `data-*` attributes are defaults, so the page works
-   before any column is set.
+1. `node tools/render-webpart.mjs dev` writes the entry file with the real
+   loader URL and column names, and prints the Script URL. Upload the entry
+   file with the rest. In the page's Modern Script Editor, turn on *Use
+   external script* and set *Script URL* to the printed URL; publish. The
+   `data-*` attributes are defaults, so the page works before any column is
+   set. From then on the page is never edited for a deploy.
 2. Set the page item's columns: `ItemType` = `fraud-decision-support`,
    `Script` and `Config` = the file names in the folder, `Ver` = the
    content version, `AppName`, `Value1` = `draft` or `live`. The columns
    override the defaults from then on.
 
-On dev the paste can be done over REST instead of by hand:
+On dev the web part can be set over REST instead of by hand:
 `POST /_api/sitepages/pages(<id>)/checkoutpage`, then `savepageasdraft`
 with the edited `CanvasContent1`, then `publish`. From that endpoint
-`CanvasContent1` is a JSON array of controls; the Script Editor's markup is
-`webPartData.properties.script` and `.scriptCode` (set both). From the list
-item the same field is HTML with entity-encoded JSON; do not edit that one.
+`CanvasContent1` is a JSON array of controls; the Script Editor's settings
+are in `webPartData.properties`: `useExternalScript: true` and
+`externalScript: <URL>` for the entry, and `script` / `scriptCode` for inline
+markup (kept equal to the entry file, so turning external mode off still
+works). From the list item the same field is HTML with entity-encoded JSON;
+do not edit that one.
 
 The loader's contract, for the split later: a `Script` ending in `.js` is
 injected into the page with `window.__fraudGuideBinding` set first, and the
