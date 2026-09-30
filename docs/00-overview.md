@@ -147,6 +147,23 @@ knowing its stage's defaults.
 brief forbade. **Costs:** the feedback form's draft text lives in the DOM
 until submit; any input that re-renders on `input` needs a `data-focus-key`.
 
+### On SharePoint the tool takes the whole window — 2026-09-30
+The loader lifts the player's frame into a fixed layer over everything
+SharePoint draws and makes the page behind it inert. A rep on a call needs
+nothing of the site around the tool. **Rejected:** SharePoint's
+`?env=WebView` alone, which costs a reload, changes the rep's link and
+scrolls the page rather than the tool (kept as `data-fullpage="webview"`);
+leaving the chrome. **Costs:** SharePoint's Edit button is covered, so an
+author uses `?Mode=Edit` or `?fullpage=none`.
+
+### The player is loaded as text into a srcdoc frame — 2026-09-30
+A library will not serve `.html` for display, and the page's CSP blocks
+inline script, so the loader fetches the player, runs its scripts with the
+frame's `eval`, and hands it the bound content as `window.FLOW`.
+**Rejected:** `<iframe src>` at the library file, which stays blank.
+**Costs:** the player cannot rely on its own URL (a `srcdoc` frame has
+none), and nothing in it may use an inline event handler attribute.
+
 ## Paid-for gotchas
 
 - **Claude's default UI has recognisable tells** and the first cut had all
@@ -160,3 +177,13 @@ until submit; any input that re-renders on `input` needs a `data-focus-key`.
   dim. Neither is real; a viewport screenshot after a short wait is right.
 - **`node --test tests/`** does not work on Node 22 with a directory
   argument; name the file.
+- **A SharePoint library serves `.html` as a download**, on a site that
+  allows custom script too (`Content-Disposition: attachment`,
+  `X-Download-Options: noopen`). The first loader pointed a frame at the
+  player and was built and tested only over plain http, where it worked;
+  on the tenant it would have been blank. `tests/loader.mjs` now serves the
+  same headers and CSP as SharePoint, and fails that loader.
+- **Page state claimed in a state file can be days stale.** The loader
+  thread said the dev page's web part was empty and its columns unset; both
+  had been set by an earlier local session whose files were never
+  committed. Read the page item before assuming.

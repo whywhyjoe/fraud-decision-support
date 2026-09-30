@@ -1,9 +1,10 @@
 // Render the web part snippet for one environment. Stdlib only.
-//   node tools/render-webpart.mjs [dev|prod] [--script F] [--config F] [--ver V] [--name N]
+//   node tools/render-webpart.mjs [dev|prod] [--script F] [--config F] [--ver V] [--name N] [--fullpage takeover|webview|none]
 // Reads environments.json (gitignored) and app/fraud-guide.webpart.sample.html,
 // writes app/fraud-guide.webpart.html (gitignored) and prints it. The output
 // is what goes into the page's script web part, once.
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -23,13 +24,26 @@ if (!env || !env.site || !env.library || !env.folder) {
   process.exit(2);
 }
 
+const attr = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;');
 const folderUrl = `${env.site}/${env.library}/${env.folder}`.replace(/\/+/g, '/');
+const loaderHash = createHash('sha256').update(readFileSync(join(root, 'app', 'boot-fraud-guide.js'))).digest('hex').slice(0, 10);
+
+// The loader reads these six; environments.json names their internal names.
+const pc = typeof env.pageColumns === 'object' ? env.pageColumns : {};
+const keys = ['itemType', 'script', 'config', 'version', 'appName', 'status'];
+const columns = Object.fromEntries(keys.filter((k) => pc[k]).map((k) => [k, pc[k]]));
+
+const fullpage = opt('--fullpage', 'takeover');
+if (!['takeover', 'webview', 'none'].includes(fullpage)) { console.error(`--fullpage must be takeover, webview or none, not ${fullpage}`); process.exit(2); }
+
 const values = {
-  BOOT_URL: `${folderUrl}/boot-fraud-guide.js`,
-  SCRIPT: opt('--script', 'fraud-decision-support-bmo.html'),
-  CONFIG: opt('--config', 'fraud-decision-support-bmo.flow.json'),
-  VER: opt('--ver', '0.5'),
-  DISPLAY_NAME: opt('--name', 'Fraud call guide'),
+  BOOT_URL: attr(`${folderUrl}/boot-fraud-guide.js?v=${loaderHash}`),
+  SCRIPT: attr(opt('--script', 'fraud-decision-support-bmo.html')),
+  CONFIG: attr(opt('--config', 'fraud-decision-support-bmo.flow.json')),
+  VER: attr(opt('--ver', '0.5')),
+  APP_NAME: attr(opt('--name', 'Fraud call guide')),
+  COLUMNS: attr(JSON.stringify(columns)),
+  FULLPAGE: fullpage,
 };
 
 const sample = readFileSync(join(root, 'app', 'fraud-guide.webpart.sample.html'), 'utf8');

@@ -11,8 +11,8 @@ the `project-state` skill.
 | | |
 | --- | --- |
 | **Version** | 0.3.1 — v3 layout, content 0.4 (guidance in the topic register) |
-| **Built** | Two players that also boot from `?content=`, the web part loader, the snippet template. Loader proven over http in `tests/loader.mjs` |
-| **Live** | Dev library folder holds the 25 Sep BMO player, its `flow.json` (identical to current content) and an older loader. The new loader and players are **not uploaded**; the page's web part is empty. See `state/` |
+| **Built** | Two players, the web part loader (0.2.0: srcdoc frame, full-window takeover), the snippet template and renderer. Loader proven in `tests/loader.mjs` against SharePoint's headers |
+| **Live** | Dev page runs the BMO player full-window through loader 0.2.0, bound by the page's columns (page version 6.0, 2026-09-30). Library folder holds the loader, both players and both `flow.json` files, hash-checked. See `state/` |
 | **Last shipped** | 2026-09-22, content 0.4 |
 | **Content** | One scenario, 47 topics, placeholder throughout |
 | **BMO copy** | `app/fraud-decision-support-bmo.html`, content 0.5 (richer guidance). The original stays greyscale at 0.4 |
@@ -31,12 +31,17 @@ built until it has been used once.
 
 - [ ] Open the file from `file://` in the client's actual locked-down browser
       (not a dev machine) and confirm it renders.
-- [ ] Dev page, first light: upload the bundle, paste the snippet, open the
-      page as a rep. The frame renders, `Behind the scenes` reports the
-      served content version, `?env=WebView` hides the chrome.
-- [ ] Then: set the page columns and confirm they override the snippet
-      defaults; confirm the content fetch works for a read-only rep; confirm
-      a bumped `Ver` shows a republished JSON without a hard refresh.
+- [x] Dev page, first light (2026-09-30, as the site owner): the tool fills
+      the window with no SharePoint chrome, answers and number keys work,
+      the footer and `Behind the scenes` show the served content version,
+      `?fullpage=none` gives the in-page layout back. The page columns were
+      already set and override the snippet defaults (`AppName`, `Ver`).
+- [ ] Open the dev page as a read-only rep, not an owner: the page-item
+      lookup and the two library fetches must work with read rights.
+- [ ] Republish a changed `flow.json` and reload the page normally: the
+      change must show without a hard refresh (`no-cache` revalidation).
+- [ ] An author gets into edit mode with `?Mode=Edit` and sees the
+      placeholder, not the takeover.
 
 ## Deferred by design
 
@@ -46,14 +51,13 @@ built until it has been used once.
 - **Case notes and captured facts.** Built in v1, removed in v2: not asked
   for, and they crowded a screen meant for quick decisions. Bring back only
   if the client asks; `LOG.md` says what they were.
-- **SharePoint / sneakernet deployment.** Decided in shape, not started,
-  and waits until the feature set settles after the wider demo. Each
+- **SharePoint production deployment.** The dev page is live (see above);
+  production waits until the feature set settles after the wider demo. Each
   version is its own SharePoint page; the content JSON lives in a document
   library; the page's library properties bind the two (content file name,
   content version, status) and nothing more, so `meta` in the JSON stays
-  the source for everything else. The player reads the binding from its own
-  page item (`_spPageContextInfo.pageItemId`) and fetches the file
-  same-origin. The page holds a web part with a small loader; the player
+  the source for everything else. The loader reads the binding from its own
+  page item by the page's path and fetches the files same-origin. The page holds a web part with a small loader; the player
   script, CSS and assets live in a library, as with every other app. Hand
   edits to the JSON are guarded by the graph checks in the fast test, run
   before upload, and by a red line behind the scenes when loaded content
@@ -70,14 +74,10 @@ built until it has been used once.
   DCS workbench, is decided. Dev has a page and a library folder, recorded
   in `environments.json` (gitignored; shape in `environments.sample.json`).
   Production is not chosen.
-- **How a republished content JSON beats the cache on SharePoint.** A
-  version on the fetch URL only works if the player knows the version
-  before it fetches, and a URL parameter cannot be relied on to reach the
-  rep. Candidates: read the version from the page's `Ver` column (already
-  there, read in the same REST call as `Config`) and append it; read the
-  item's modified stamp with the same call; or send `cache: "no-store"` on
-  the fetch and accept the cost. Decide when the
-  deployment work starts.
+- **How a republished content JSON beats the cache on SharePoint.**
+  Chosen for now: the loader fetches the player and content with
+  `cache: "no-cache"` (an ETag revalidation per load), so `Ver` is a label.
+  Open until the republish gate above is walked.
 
 - **Should a rep be able to jump to a topic in another stage?** Only the
   current stage is listed; search reaches everything. Settled by the demo.

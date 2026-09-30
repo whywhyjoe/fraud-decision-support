@@ -1,8 +1,11 @@
 // Full tier. Proves the web part loader end to end without a tenant: a
 // fake page with the snippet, served over http together with the player,
-// the loader and a content file. What SharePoint would supply (the page
-// item's columns) is absent, so the loader falls back to the host's data-*
-// defaults; that path is the one a freshly pasted snippet takes.
+// the loader and a content file. The server behaves as a SharePoint library
+// does where it matters: .html is sent as a download, and the page carries a
+// CSP that forbids inline script but allows eval. What SharePoint would
+// supply (the page item's columns) is absent, so the loader falls back to
+// the host's data-* defaults; that path is the one a freshly pasted snippet
+// takes.
 //   NODE_PATH=$(npm root -g) node tests/loader.mjs
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -29,18 +32,26 @@ copyFileSync(join(app, player), join(dir, player));
 const inline = JSON.parse(readFileSync(join(app, player), 'utf8').match(/<script type="application\/json" id="flow-data">([\s\S]*?)<\/script>/)[1]);
 inline.meta.contentVersion += ' (served)';
 writeFileSync(join(dir, 'content.json'), JSON.stringify(inline));
-writeFileSync(join(dir, 'page.html'), `<!doctype html><html><body><h1>Fake page</h1>
-<div data-fraud-guide data-script="${player}" data-config="content.json" data-version="9.9" data-fullpage="none"></div>
-<script src="boot-fraud-guide.js"></script></body></html>`);
-writeFileSync(join(dir, 'edit.html'), `<!doctype html><html><body class="editmode">
-<div data-fraud-guide data-script="${player}"></div><script src="boot-fraud-guide.js"></script></body></html>`);
+const host = (fullpage) => `<div data-fraud-guide data-script="${player}" data-config="content.json" data-version="9.9" data-fullpage="${fullpage}"></div>`;
+const shell = (body, cls = '') => `<!doctype html><html><body class="${cls}"><header data-role="sp-chrome"><h1>Fake page</h1><a href="#">Site nav</a></header>
+${body}
+<script src="boot-fraud-guide.js"></script></body></html>`;
+writeFileSync(join(dir, 'page.html'), shell(host('takeover')));
+writeFileSync(join(dir, 'inflow.html'), shell(host('none')));
+writeFileSync(join(dir, 'edit.html'), shell(`<div data-fraud-guide data-script="${player}"></div>`, 'editmode'));
 
+// As SharePoint: .html from the library is an attachment the browser will
+// not render; pages carry a CSP with 'unsafe-eval' and no 'unsafe-inline'.
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json' };
+const pages = new Set(['page.html', 'inflow.html', 'edit.html']);
 const server = createServer((req, res) => {
   const name = decodeURIComponent(req.url.split('?')[0]).replace(/^\//, '');
   try {
     const body = readFileSync(join(dir, name));
-    res.writeHead(200, { 'content-type': types[extname(name)] || 'application/octet-stream' });
+    const headers = { 'content-type': types[extname(name)] || 'application/octet-stream' };
+    if (pages.has(name)) headers['content-security-policy'] = "script-src 'self' 'unsafe-eval'";
+    else if (extname(name) === '.html') Object.assign(headers, { 'content-disposition': `attachment; filename="${name}"`, 'x-download-options': 'noopen' });
+    res.writeHead(200, headers);
     res.end(body);
   } catch { res.writeHead(404); res.end('not found'); }
 });
@@ -56,30 +67,64 @@ page.on('pageerror', (e) => errors.push(String(e)));
 page.on('console', (m) => { if (m.type() === 'error' && !/404/.test(m.text())) errors.push(m.text()); });
 const ok = (name) => console.log(`  ✓ ${name}`);
 
+const frameSel = 'iframe[data-role="fraud-guide-frame"]';
 await page.goto(`${base}/page.html`, { waitUntil: 'domcontentloaded' });
-const frame = await page.waitForSelector('iframe[data-role="fraud-guide-frame"]', { state: 'attached' });
-const src = await frame.getAttribute('src');
-assert.match(src, new RegExp(`${player.replace('.', '\\.')}\\?content=.*content\\.json&v=9\\.9&status=draft`));
-ok('no page columns: the loader mounts a frame from the snippet defaults, with content, version and status on the URL');
+await page.waitForSelector('[data-fraud-guide][data-state="ready"]', { state: 'attached' });
+const mounted = await page.evaluate((sel) => {
+  const f = document.querySelector(sel);
+  const h = document.querySelector('[data-fraud-guide]');
+  return { src: f.getAttribute('src'), srcdoc: !!f.getAttribute('srcdoc'), binding: h.dataset.bindingSource, source: h.dataset.contentSource };
+}, frameSel);
+assert.equal(mounted.src, null);
+assert.ok(mounted.srcdoc);
+assert.equal(mounted.binding, 'defaults');
+assert.equal(mounted.source, 'config');
+ok('no page columns: the loader mounts from the snippet defaults, fetching the player as text into a srcdoc frame (a library serves .html as a download)');
 
-const inner = page.frames().find((f) => f.url().includes(player));
+const inner = page.frames().find((f) => f !== page.mainFrame());
 await inner.waitForSelector('[data-role="question-card"]');
 assert.match(await inner.evaluate(() => window.__frd.flow.meta.contentVersion), /\(served\)$/);
-ok('the player boots from ?content=, not from its inline block');
+ok('the player runs under a no-inline CSP and boots from the bound content file, not its inline block');
 
-await page.waitForFunction(() => Number(document.querySelector('iframe[data-role="fraud-guide-frame"]').getAttribute('data-content-height')) > 0);
-assert.ok(parseInt(await page.evaluate(() => document.querySelector('iframe[data-role="fraud-guide-frame"]').style.height), 10) >= 480);
-ok('the player reports its height and the loader sizes the frame');
+const cover = await page.evaluate((sel) => {
+  const layer = document.querySelector('[data-role="fraud-guide-layer"]');
+  const r = document.querySelector(sel).getBoundingClientRect();
+  const top = document.elementFromPoint(640, 20);
+  return {
+    parent: !!layer && layer.parentNode === document.body, box: [r.left, r.top, r.width, r.height],
+    covered: !!top && top.getAttribute('data-role') === 'fraud-guide-frame',
+    inert: document.querySelector('[data-role="sp-chrome"]').closest('[inert]') !== null,
+    overflow: document.documentElement.style.overflow,
+  };
+}, frameSel);
+assert.ok(cover.parent, 'the layer is a child of <body>');
+assert.deepEqual(cover.box, [0, 0, 1280, 900]);
+assert.ok(cover.covered, 'the frame is on top at the header');
+assert.ok(cover.inert, 'the page behind is inert');
+assert.equal(cover.overflow, 'hidden');
+ok('takeover: the frame covers the whole window, the page behind is inert and does not scroll');
 
 assert.equal(await page.evaluate(() => document.querySelector('[data-fraud-guide]').getAttribute('data-fraud-guide-mounted')), 'fraud-guide');
 await page.evaluate(() => window.fraudGuideBoot.mountAll());
-assert.equal(await page.locator('iframe[data-role="fraud-guide-frame"]').count(), 1);
+assert.equal(await page.locator(frameSel).count(), 1);
 ok('mounting again is a no-op: the guard holds');
+
+await page.evaluate(() => document.querySelector('[data-fraud-guide]').remove());
+await page.waitForFunction(() => !document.querySelector('[data-role="fraud-guide-layer"]') && !document.querySelector('[inert]'));
+ok('SPA navigation away (host removed): the layer goes and the page is live again');
+
+await page.goto(`${base}/inflow.html?fullpage=none`, { waitUntil: 'domcontentloaded' });
+await page.waitForSelector('[data-fraud-guide][data-state="ready"]', { state: 'attached' });
+await page.waitForFunction((sel) => Number(document.querySelector(sel).getAttribute('data-content-height')) > 0, frameSel);
+assert.equal(await page.locator('[data-role="fraud-guide-layer"]').count(), 0);
+assert.ok(parseInt(await page.evaluate((sel) => document.querySelector(sel).style.height, frameSel), 10) >= 480);
+ok("fullpage none: the frame stays in the page flow and the player's reported height sizes it");
 
 await page.goto(`${base}/edit.html`, { waitUntil: 'domcontentloaded' });
 await page.waitForSelector('[data-fraud-guide] p[role="status"]');
 assert.equal(await page.locator('iframe').count(), 0);
-ok('edit mode: a placeholder, no player');
+assert.equal(await page.locator('[data-role="fraud-guide-layer"]').count(), 0);
+ok('edit mode: a placeholder, no player, no takeover');
 
 assert.deepEqual(errors, [], 'no console errors beyond the expected 404 for the page item');
 await browser.close();

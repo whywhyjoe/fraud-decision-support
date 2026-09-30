@@ -3,66 +3,97 @@
 Last touched: 2026-09-30
 Mode: Joe
 Branch: `main` of `whywhyjoe/fraud-decision-support`, pushed
-State: loader and players built and tested locally; nothing uploaded to the dev library yet; the page's web part is empty.
+State: loader 0.2.0 live on the dev page, full-window; first manual gate walked as the site owner. Three gates left, one needs a rep account.
 
 ## What this is
 
 Getting the demo onto the dev SharePoint page as a web part: a loader in
-the library that the page's script web part points at, the players booting
-from a content file in the same folder, and the page's own columns binding
-the two. `docs/02-hosting-and-deploy.md` has the procedure and the column
-mapping; `environments.json` (gitignored) has the real paths.
+the library that the page's script web part points at, the players and
+their content files in the same folder, and the page's own columns binding
+the two. `docs/02-hosting-and-deploy.md` has the procedure, the full-page
+modes and the column mapping; `environments.json` (gitignored) has the real
+paths.
 
 ## Done
 
-- `app/boot-fraud-guide.js`, the `?content=` boot in both players,
-  `app/fraud-guide.webpart.sample.html` + `tools/render-webpart.mjs`,
-  `tests/loader.mjs`. All green locally, both players.
-- The dev library folder already holds `fraud-decision-support-bmo.flow.json`,
-  byte-identical to the BMO player's inline content, so it needs no upload.
+- Loader 0.2.0 (`app/boot-fraud-guide.js`): player fetched as text into a
+  `srcdoc` frame, content validated and handed over as `window.FLOW`,
+  full-window takeover by default. `tests/loader.mjs` mimics SharePoint's
+  headers and CSP; green on both players, and it fails the previous loader.
+- Uploaded through the OneDrive mirror and hash-checked as served: the
+  loader, both players, `fraud-decision-support.flow.json` (new) and
+  `fraud-decision-support-bmo.flow.json` (unchanged).
+- Snippet rendered and pasted over REST; page published as version 6.0.
+  The 5.0 canvas is in the page's version history.
+- Gate 1 walked in Playwright as Joe (site owner): binding read from the
+  columns, content from `Config`, frame covers the 1400×900 window at every
+  probed point, first answer advances, number keys work, frame scrolls and
+  the page does not, `?fullpage=none` gives the in-page layout.
 
 ## Next
 
-- [ ] Upload to the dev folder: `boot-fraud-guide.js` (replaces the 25 Sep
-      file; the library keeps the old version), both players, and
-      `fraud-decision-support.flow.json` (extract it with the one-liner in
-      `tests/loader.mjs`, or take it from the deploy bundle the build
-      session sent). The build session could not: the Microsoft 365
-      connector has `Files.Read.All` only. Granting `Files.ReadWrite.All`
-      admin consent to that connector's app would let a session do it.
-- [ ] `node tools/render-webpart.mjs dev`, paste the output into the page's
-      modern script web part, publish.
-- [ ] Open the page as a rep and walk the first manual gate in `STATE.md`.
-      Record what broke in *Landmines* here; the blank-in-view-mode list
-      in `docs/02` is where to look first.
-- [ ] Set the page columns and walk the second gate.
+- [ ] Walk the three remaining gates in `STATE.md`: a read-only rep, a
+      republished `flow.json` without a hard refresh, `?Mode=Edit` for an
+      author. The rep gate needs an account with read rights only on the
+      dev site; none is known to this repo. Ask Joe for one, or have Joe
+      open the page as such a user.
+- [ ] Decide what happens to the uncommitted 25 Sep files in the working
+      tree (see *Open questions*).
+- [ ] Then the client demo can use the dev page instead of `file://`.
 
 ## Open questions
 
-- **Column internal names.** The loader selects `ItemType, Script, Config,
-  Ver, DisplayName, Value1` by those names. If the site's internal names
-  differ from the display names, set `data-columns` on the host
-  (`{"script":"InternalName", …}`) or fix `COLUMNS` in the loader.
-- **What was the 25 Sep `boot-fraud-guide.js` in the folder?** 9,810 bytes,
-  not in git, unreadable from the build session (the connector refuses
-  JavaScript). If it was yours and matters, pull it from version history
-  before it is replaced.
+- **The uncommitted 25 Sep files: keep, commit or delete?** Joe to decide.
+  `sp/boot-fraud-guide.js` is the loader that was live until today (its
+  technique is now in the committed loader). `deploy/deploy.mjs`,
+  `deploy/env.mjs`, `deploy/verify.mjs` are a node deploy script (mirror or
+  REST upload, hash parity, snippet, page columns, verify) written against
+  that older loader and snippet shape; the repo has no deploy script, so
+  it may be worth reworking rather than deleting. They are untracked and
+  were left untouched.
+- **The snippet-default path has not been seen on the tenant.** The page's
+  columns were already set on 25 Sep, so the live page takes the column
+  path. The default path is proven only in `tests/loader.mjs`. Proving it
+  live means clearing the columns on this page or a second scratch page;
+  neither was done. Joe to say if it matters.
 
 ## Landmines
 
-- **`.html` from a document library renders only on a site that allows
-  custom script.** The dev site has a script web part, so it does. A site
-  without it serves the file as a download and the frame stays blank; that
-  is the case for the content/theme split to solve, not a loader bug.
-- **`data-fullpage="webview"` redirects the page** to `?env=WebView` on
-  first load. It never fires in edit mode, and never when the parameter is
-  already present, so there is no loop; but an author who lands on the page
-  in view mode is redirected too. Set it to `none` in the snippet if that
-  is unwelcome.
+What broke on the way to first light, 2026-09-30:
+
+- **The committed loader could never have worked on SharePoint.** A library
+  serves `.html` with `Content-Disposition: attachment`, so `<iframe src>`
+  at the player is blank. Fixed by the fetch + `srcdoc` + `eval` technique;
+  the test now serves the same headers. Any new way of loading a library
+  file needs checking against the served headers, not plain http.
+- **This thread's previous file was stale about the tenant.** It said the
+  web part was empty and the columns unset. Both had been set on 25 Sep by
+  the uncommitted `deploy/` script (page version 5.0). Read the page item
+  (`ListItemAllFields`) before trusting a claim about page state.
+- **`DisplayName` does not exist on the site; `AppName` does.** A `$select`
+  naming a missing column fails the whole lookup with HTTP 400, and the
+  loader falls back to the snippet defaults silently. The snippet now
+  carries the names from `environments.json`.
+- **`/_api/sitepages/pages(id)/savepagedraft` is a 404**; the endpoint is
+  `savepageasdraft`. `CanvasContent1` from the sitepages API is a JSON
+  array; from `ListItemAllFields` it is HTML. Edit the JSON one.
+- **A failed save leaves the page checked out** to the caller. The first
+  paste attempt did; the retry's `publish` checked it back in.
+- **Swapping the loader breaks the page until the snippet is re-pasted**:
+  the old snippet's host (`#fraud-guide-root`) is not the new one's
+  (`[data-fraud-guide]`). Upload and paste in the same sitting.
+- **`pageerror: undefined` twice on every load** is SharePoint's own, not
+  the loader's; it was there with the 25 Sep loader too.
+- Hard rule 7 (no PowerShell) holds for the repo. The sp-env skill's
+  machine tooling is PowerShell and was not needed: the upload was a copy
+  into the mirror and every check ran through the skill's Playwright
+  profile from node.
+- **`.html` from a document library** never renders directly on any site;
+  that is not a custom-script setting. The frame technique above is the
+  only route until the content/theme split makes the player a `.js`.
 - **The binding lookup is by the page's server-relative path**
   (`getFileByServerRelativeUrl`), not `pageItemId`, because
   `_spPageContextInfo` is not reliably present on modern pages. A renamed
   page keeps working; a page reached through a redirect path does not.
-- **Playwright kills.** `pkill -f "http.server 8646"` kills the shell that
-  ran it if the pattern is in that shell's own command line. `tests/loader.mjs`
-  runs its own node http server for that reason.
+- **Playwright on this machine**: not global; use
+  `NODE_PATH=C:/dev/repos/sp-traffic-analytics/tools/node_modules`.

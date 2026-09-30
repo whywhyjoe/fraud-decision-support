@@ -7,6 +7,34 @@ Newest first.
 
 ---
 
+## 2026-09-30 — loader 0.2.0 live on the dev page, full window
+
+The dev page (`environments.json`) now runs the BMO player through the
+committed loader, bound by the page's own columns.
+
+- **The player loads as text into a `srcdoc` frame.** The loader built
+  earlier the same day pointed a frame at the library's `.html`, which a
+  SharePoint library serves as a download; on the tenant it would have been
+  blank. The fetch-and-eval technique comes from an uncommitted 25 Sep
+  loader that was already live on the page.
+- **Full-window takeover** (`data-fullpage="takeover"`, the snippet's
+  default): the tool covers everything SharePoint draws and the page behind
+  it is inert. `?fullpage=none` and edit mode leave the page alone.
+- **Content is validated in the loader** and handed to the player as
+  `window.FLOW`; failing content leaves the player on its inline block.
+  Player and content are fetched `no-cache`.
+- **`DisplayName` is `AppName`**, the column the site actually has. The
+  snippet now carries the internal column names from `environments.json`,
+  and the loader's URL carries its own hash.
+- **`tests/loader.mjs` serves the fixture as SharePoint does** (download
+  headers on `.html`, a CSP with eval and no inline script) and fails the
+  earlier loader.
+- **Uploaded** through the OneDrive mirror and hash-checked as served:
+  the loader, both players, both `flow.json` files. Snippet pasted over
+  REST; page published as version 6.0.
+
+---
+
 ## 2026-09-25 — BMO look: a restyled copy with a richer guidance column
 
 `app/fraud-decision-support-bmo.html`, beside the greyscale original, which

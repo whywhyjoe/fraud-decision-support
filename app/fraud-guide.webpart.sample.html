@@ -4,14 +4,17 @@
   into app/fraud-guide.webpart.html (gitignored). Do not hand-edit tokens here.
 
   The data-* attributes are defaults, used only while the page's own columns
-  (Script, Config, Ver, DisplayName, Value1) are empty. Set the columns and
-  the page needs no further edits; change data-fullpage to "none" to keep
-  the SharePoint chrome.
+  (Script, Config, Ver, AppName, Value1) are empty. data-columns maps them to
+  the site's internal names. data-fullpage: "takeover" covers the whole
+  window, "webview" uses SharePoint's ?env=WebView, "none" keeps the chrome.
+  The loader URL carries its own hash, so a changed loader is re-rendered
+  and re-pasted; an unchanged one is cached.
 -->
 <div data-fraud-guide
      data-script="{{SCRIPT}}"
      data-config="{{CONFIG}}"
      data-version="{{VER}}"
-     data-display-name="{{DISPLAY_NAME}}"
-     data-fullpage="webview"></div>
+     data-app-name="{{APP_NAME}}"
+     data-columns='{{COLUMNS}}'
+     data-fullpage="{{FULLPAGE}}"></div>
 <script src="{{BOOT_URL}}"></script>

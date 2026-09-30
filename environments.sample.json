@@ -11,7 +11,7 @@
       "script": "Script",
       "config": "Config",
       "version": "Ver",
-      "displayName": "DisplayName",
+      "appName": "AppName",
       "status": "Value1",
       "category": "Category"
     }
