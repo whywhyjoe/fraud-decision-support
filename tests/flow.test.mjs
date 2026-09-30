@@ -133,6 +133,14 @@ test('no font-size token is smaller than 14px and no uppercase transform exists'
   assert.ok(!/letter-spacing/.test(style), 'tracked labels are an AI-design tell');
 });
 
+test('the loader is a plain script: parses, no ES modules, no CDN, nothing hardcoded to a tenant', () => {
+  const src = readFileSync(join(here, '..', 'app', 'boot-fraud-guide.js'), 'utf8');
+  assert.doesNotThrow(() => new Function(src));
+  assert.ok(!/^\s*(import|export)\s/m.test(src), 'no ES modules in shipped code');
+  assert.ok(!/https?:\/\/(?!\S*\$)/.test(src.replace(/\/\*[\s\S]*?\*\//g, '')), 'no absolute URL in the loader');
+  assert.ok(!/sharepoint\.com/i.test(src), 'no tenant name in the loader');
+});
+
 test('render logic contains no scenario strings', () => {
   const script = html.slice(html.lastIndexOf('<script>'));
   for (const n of flow.nodes) {

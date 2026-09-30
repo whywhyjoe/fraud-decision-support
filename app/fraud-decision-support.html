@@ -1104,13 +1104,13 @@ input, textarea {
 <div id="app" data-role="shell"></div>
 
 <script>
-(function () {
+function __fraudGuideStart(FLOW) {
   'use strict';
 
   /* ---------------------------------------------------------- */
   /* Data                                                        */
   /* ---------------------------------------------------------- */
-  var FLOW = JSON.parse(document.getElementById('flow-data').textContent);
+  if (!FLOW) FLOW = JSON.parse(document.getElementById('flow-data').textContent);
   var NODES = {};
   FLOW.nodes.forEach(function (n) { NODES[n.id] = n; });
   var STAGES = FLOW.stages.slice().sort(function (a, b) { return a.order - b.order; });
@@ -1656,6 +1656,31 @@ input, textarea {
 
   // Exposed for the smoke test and for poking at in the console.
   window.__frd = { getState: function () { return JSON.parse(JSON.stringify(state)); }, flow: FLOW, dispatch: dispatch };
+}
+
+/* Boot. The player runs from three sources, first that works:
+   ?content=<url> fetched same-origin (SharePoint), window.FLOW set by a
+   sibling script (file://), or the inline #flow-data block (the frozen demo).
+   Inside a frame it also reports its height to the loader. */
+(function () {
+  function start(flow) {
+    __fraudGuideStart(flow || null);
+    if (window.parent === window || !window.ResizeObserver) return;
+    var post = function () {
+      try { window.parent.postMessage({ type: 'fraud-guide:height', height: document.documentElement.scrollHeight }, '*'); } catch (e) {}
+    };
+    new ResizeObserver(post).observe(document.body);
+    post();
+  }
+  var url = null;
+  try { url = new URLSearchParams(location.search).get('content'); } catch (e) {}
+  if (url) {
+    fetch(url, { credentials: 'same-origin' })
+      .then(function (r) { if (!r.ok) throw new Error('content HTTP ' + r.status); return r.json(); })
+      .then(start, function (e) { try { console.debug('[fraud-guide] content unavailable, using inline:', e.message); } catch (x) {} start(window.FLOW); });
+  } else {
+    start(window.FLOW);
+  }
 })();
 </script>
 </body>

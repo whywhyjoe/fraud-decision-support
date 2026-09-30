@@ -11,8 +11,8 @@ the `project-state` skill.
 | | |
 | --- | --- |
 | **Version** | 0.3.1 — v3 layout, content 0.4 (guidance in the topic register) |
-| **Built** | Two single-file demos in `app/`, opened from `file://` |
-| **Live** | Nothing. No tenant, site or library exists for it yet |
+| **Built** | Two players that also boot from `?content=`, the web part loader, the snippet template. Loader proven over http in `tests/loader.mjs` |
+| **Live** | Dev library folder holds the 25 Sep BMO player, its `flow.json` (identical to current content) and an older loader. The new loader and players are **not uploaded**; the page's web part is empty. See `state/` |
 | **Last shipped** | 2026-09-22, content 0.4 |
 | **Content** | One scenario, 47 topics, placeholder throughout |
 | **BMO copy** | `app/fraud-decision-support-bmo.html`, content 0.5 (richer guidance). The original stays greyscale at 0.4 |
@@ -31,9 +31,12 @@ built until it has been used once.
 
 - [ ] Open the file from `file://` in the client's actual locked-down browser
       (not a dev machine) and confirm it renders.
-- [ ] Once hosted: the page-property binding resolves, the content fetch
-      works in view mode for a rep with read-only rights, and a republished
-      JSON shows without a hard refresh. Tenant only; not a test.
+- [ ] Dev page, first light: upload the bundle, paste the snippet, open the
+      page as a rep. The frame renders, `Behind the scenes` reports the
+      served content version, `?env=WebView` hides the chrome.
+- [ ] Then: set the page columns and confirm they override the snippet
+      defaults; confirm the content fetch works for a read-only rep; confirm
+      a bumped `Ver` shows a republished JSON without a hard refresh.
 
 ## Deferred by design
 

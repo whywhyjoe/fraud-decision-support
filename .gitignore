@@ -10,3 +10,6 @@ __pycache__/
 
 # Real tenant paths. The committed shape is environments.sample.json.
 environments.json
+
+# Rendered per environment from app/fraud-guide.webpart.sample.html; holds a real path.
+app/fraud-guide.webpart.html

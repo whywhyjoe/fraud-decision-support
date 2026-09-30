@@ -75,14 +75,15 @@ bite when the SharePoint work starts (`STATE.md`, deferred by design):
 | `app/fraud-decision-support-bmo.html` | The same demo in the BMO look, with richer guidance (content 0.5). A copy, not a build output. |
 | `docs/` | Durable reference. Start at `docs/README.md`. |
 | `tests/` | Fast content/CSS checks and one browser smoke. See `tests/README.md`. |
+| `app/boot-fraud-guide.js` | The web part loader: host wait, page-column binding, frame or script mount, edit mode, SPA re-mount. |
+| `app/fraud-guide.webpart.sample.html` | The snippet template. `tools/render-webpart.mjs` renders it per environment to the gitignored `app/fraud-guide.webpart.html`. |
+| `tools/` | Dev-only, stdlib-only scripts. Nothing here ships. |
 | `state/` | Live threads of work. |
 | `environments.sample.json` | The shape of `environments.json`, which is gitignored and holds the real tenant paths and page column names. |
 
-When the SharePoint work starts the `sp-app` shape applies beside `app/`:
-`fraud-guide.app.js` and CSS served from a library, a generated
-`fraud-guide.webpart.html` embed snippet per environment, `boot-fraud-guide.js`
-to find context and load content, and `deploy/`. `docs/02-hosting-and-deploy.md`
-has the decided shape; none of those files exist yet.
+After the content/theme split the players become `fraud-guide.app.js` and
+CSS served from the library; the loader already handles a `.js` `Script`.
+`docs/02-hosting-and-deploy.md` has the deploy procedure.
 
 ## Where things go
 
@@ -101,7 +102,11 @@ node --test tests/flow.test.mjs                  # fast tier, <1s
 NODE_PATH=$(npm root -g) node tests/smoke.mjs    # full tier, Chromium, ~5s
 ```
 
-Prefix either with `APP=fraud-decision-support-bmo.html` to test the BMO copy.
+NODE_PATH=$(npm root -g) node tests/loader.mjs   # full tier, the loader over http, ~5s
+```
+
+Prefix any of them with `APP=fraud-decision-support-bmo.html` to test the BMO copy.
+```
 
 ---
 

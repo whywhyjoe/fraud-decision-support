@@ -106,8 +106,40 @@ Check in that order. The BMO copy already skips its first-paint
 
 ## Deploy
 
-Not yet written. When the SharePoint work starts, this section names the
-files, the libraries, the order, and the verification step: a deploy that
-cannot be verified is a deploy that silently half-happened. The sneakernet
-pattern (dev tenant closed-loop, prod by copy and a human-run harness) is
-the expected procedure.
+What ships to the library folder named in `environments.json`, and how.
+
+| File | Role | Ships when |
+| --- | --- | --- |
+| `app/boot-fraud-guide.js` | The loader the web part points at | It changes |
+| `app/fraud-decision-support-bmo.html`, `app/fraud-decision-support.html` | The players, one per look. Loaded in a frame until the content/theme split makes them scripts | They change |
+| `<player>.flow.json` | The content the page's `Config` column names. Extracted from a player's `#flow-data` block until the split | Content changes |
+
+1. Run both test tiers and `tests/loader.mjs`.
+2. Upload the changed files to the folder, replacing in place. The library
+   keeps prior versions. Any client that can write to the library works;
+   this repo has no deploy script yet (the sneakernet `deploy.ps1` pattern
+   applies when it is wanted).
+3. Bump `Ver` on the page item so the frame and content URLs change, or
+   tell the rep to reload until the cache question in `STATE.md` is settled.
+4. Verify in a browser as a rep would see it: the page renders the player,
+   the first topic is the start topic, and `Behind the scenes` shows the
+   served content version. Not a test; a manual gate in `STATE.md`.
+
+**One-time page setup** (a human does this, once per page):
+
+1. `node tools/render-webpart.mjs dev` prints the snippet with the real
+   loader URL. Paste it into the page's modern script web part and publish.
+   The `data-*` attributes are defaults, so the page works before any
+   column is set.
+2. Set the page item's columns: `ItemType` = `fraud-decision-support`,
+   `Script` and `Config` = the file names in the folder, `Ver` = the
+   content version, `DisplayName`, `Value1` = `draft` or `live`. The columns
+   override the defaults from then on.
+3. `data-fullpage="webview"` in the snippet sends the rep to the page's
+   `?env=WebView` view, which is SharePoint's own chrome-free rendering. Set
+   it to `none` to keep the chrome. It never fires in edit mode.
+
+The loader's contract, for the split later: a `Script` ending in `.js` is
+injected into the page with `window.__fraudGuideBinding` set first, and the
+script mounts into `[data-fraud-guide]` itself. Nothing else in the loader
+changes.

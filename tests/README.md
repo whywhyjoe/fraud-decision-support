@@ -5,11 +5,13 @@ One row per suite. Runtimes are measured, not guessed.
 | Suite | Tier | Runtime | What it proves |
 | --- | --- | --- | --- |
 | `flow.test.mjs` | fast | 0.3s | The content graph is well-formed (unique ids, every target resolves, every question reachable, every question can reach an end of call), the brief's content minimums hold, the CSS keeps every raw value inside `:root`, no font token is under 14px, nothing is uppercase or letter-spaced, and no scenario string is hardcoded in the script. |
+| `loader.mjs` | full | 5s | The web part loader end to end over http, without a tenant: a fake page with the snippet mounts a frame from the snippet defaults when the page-item lookup fails, the player boots from `?content=` rather than its inline block, height reporting sizes the frame, mounting again is a no-op, and edit mode shows a placeholder instead of the player. |
 | `smoke.mjs` | full | 5s; 28s on the BMO copy, which waits out its animations | The file boots from `file://` in Chromium with no console errors, and every interaction the demo depends on works end to end: full path with connectors carrying the answers and the stages ahead counting down, jump from the box's topic list, back and changed answer with stale steps and undo, the two exits, find a question, coaching notes and number keys, the guidance half at equal width, feedback behind the scenes with a complete event log. Also no rendered text under 14px and no horizontal overflow at 900px. |
 
 ```
 node --test tests/flow.test.mjs
 NODE_PATH=$(npm root -g) node tests/smoke.mjs
+NODE_PATH=$(npm root -g) node tests/loader.mjs
 ```
 
 Both test `app/fraud-decision-support.html` unless `APP` names another file

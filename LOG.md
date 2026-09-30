@@ -31,6 +31,30 @@ that the guidance side can carry more than plain text.
 
 ---
 
+## 2026-09-30 — web part loader and the ?content= boot
+
+The first SharePoint piece. `app/boot-fraud-guide.js` is the loader the
+page's script web part points at, built on the saved patterns rather than
+new ones: the host-wait, guard, debounced observer, bounded poll, edit-mode
+placeholder and SPA re-mount of `bsp-sp-parts/_shared/dcs-part-boot.js`;
+the folder-relative resolution and never-fail-loudly boot of the sneakernet
+`loader.js`; the page-context and pathname-poll rules of the `sp-app`
+family. It reads the page's own item for the binding columns, falls back to
+the snippet's `data-*` defaults, and mounts a `.html` player in a sized
+frame or a `.js` player into the host.
+
+Both players gained a boot wrapper: `?content=<url>` fetched same-origin,
+else `window.FLOW`, else the inline block; and height reporting to a parent
+frame. `app/fraud-guide.webpart.sample.html` plus `tools/render-webpart.mjs`
+render the per-environment snippet (gitignored). `tests/loader.mjs` drives
+the loader and player over a local http server.
+
+Not deployed from the build session: the Microsoft 365 connector has read
+scopes only. The bundle and the one-time page steps are in
+`docs/02-hosting-and-deploy.md`.
+
+---
+
 ## 2026-09-25 — onto the sp-app profile
 
 The destination is decided: an end-user tool hosted full-page in a
