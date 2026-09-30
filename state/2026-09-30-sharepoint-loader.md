@@ -31,28 +31,22 @@ is specific to this app and where it departs. `environments.json`
 
 ## Next
 
-- [ ] The read-only rep gate in `STATE.md`: permissions are verified (see
-      there); only a real run as a Read-only user is left. NewNerve Visitors
-      is empty; Joe adds a user or opens the page as one. Access for the
-      agent is not the issue: the sp-env profile is Joe's own, read-write.
-- [ ] Decide what happens to the uncommitted 25 Sep files in the working
-      tree (see *Open questions*).
-- [ ] Then the client demo can use the dev page instead of `file://`.
+- [ ] The client demo can use the dev page instead of `file://`.
+- [ ] The real run as a Read-only rep is left for production (Joe,
+      2026-09-30); permissions on dev are verified.
 
 ## Open questions
 
-- **The uncommitted 25 Sep files: keep, commit or delete?** Joe to decide.
-  `sp/boot-fraud-guide.js` is the loader that was live until 2026-09-30;
-  superseded. `deploy/deploy.mjs`, `deploy/env.mjs`, `deploy/verify.mjs` are
-  a node deploy script (mirror or REST upload, hash parity, web part and
-  page columns, verify) written against that older loader; the repo has no
-  deploy script, so reworking it may beat deleting it. Untracked, untouched.
 - **The snippet-default path has not been seen on the tenant.** The page's
   columns were set on 25 Sep, so the live page takes the column path. The
   default path is proven only in `tests/loader.mjs`. Joe to say if it matters.
 
 ## Companion documents
 
+- `.scratch/old-2026-09-25/` — **reference only**, gitignored: the loader
+  that was live before 2026-09-30 (`sp/`) and a node deploy script written
+  for it (`deploy/`). Never committed. Superseded; a starting point at most
+  when provisioning is built. Delete when that is done.
 - `.scratch/TODO-sp-loader-harmony.md` — **parked**, uncommitted. The
   cross-repo proposal to make the DCS hosting doc canonical. Joe is moving
   it to his dev root; nothing here depends on it.
@@ -73,7 +67,8 @@ is specific to this app and where it departs. `environments.json`
   against the served headers, not plain http.
 - **Page state claimed in a state file can be stale.** This thread's first
   file said the web part was empty and the columns unset; both had been set
-  on 25 Sep by the uncommitted `deploy/` script. Read the page item first.
+  on 25 Sep by a deploy script that was never committed (now in
+  `.scratch/old-2026-09-25/`). Read the page item first.
 - **`DisplayName` does not exist on the site; `AppName` does.** A `$select`
   naming a missing column fails the whole lookup (HTTP 400) and the loader
   falls back to the snippet defaults silently.

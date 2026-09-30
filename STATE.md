@@ -41,11 +41,10 @@ built until it has been used once.
 - [x] Edit mode entered and left without a reload: placeholder while
       editing, the guide back after Save (2026-09-30). The author's way in
       is `?fullpage=none`, then Edit; `?Mode=Edit` does nothing on an App page.
-- [ ] Open the dev page as a read-only rep, not an owner. Permissions
-      checked 2026-09-30: Visitors (Read) reach the page item and every file
-      the loader fetches, all inherited; Site Pages drafts are author-only,
-      so the page must stay published. Left: a real run as a Read-only user
-      (Visitors is empty on dev; adding one is Joe's call).
+- [x] Read-only rep on dev: permissions checked 2026-09-30 (Visitors reach
+      the page item and every file, all inherited; Site Pages drafts are
+      author-only, so the page must stay published). The real run as a
+      Read-only user is left for production, by Joe's call.
 - [ ] Before production: check the production site's `script-src` has a
       nonce (the loader's main path) or `'unsafe-eval'` (its fallback). With
       neither the guide shows only its quiet unavailable line.
@@ -59,7 +58,12 @@ built until it has been used once.
   for, and they crowded a screen meant for quick decisions. Bring back only
   if the client asks; `LOG.md` says what they were.
 - **SharePoint production deployment.** The dev page is live (see above);
-  production waits until the feature set settles after the wider demo. Each
+  production waits until the feature set settles after the wider demo.
+  Until then it is the manual *One-time page setup* in `docs/02`; a
+  sneakernet provisioning path (the sp-env harness's PnPjs `provision` and
+  `verify` ops, which cover the Site Pages columns but not the page's
+  column values or the external-mode web part) is deliberately not built
+  for a light demo. Each
   version is its own SharePoint page; the content JSON lives in a document
   library; the page's library properties bind the two (content file name,
   content version, status) and nothing more, so `meta` in the JSON stays
