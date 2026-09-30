@@ -31,9 +31,10 @@ is specific to this app and where it departs. `environments.json`
 
 ## Next
 
-- [ ] The read-only rep gate in `STATE.md`. Needs an account with read
-      rights only on the dev site; none is known to this repo. Ask Joe for
-      one, or have Joe open the page as such a user.
+- [ ] The read-only rep gate in `STATE.md`: permissions are verified (see
+      there); only a real run as a Read-only user is left. NewNerve Visitors
+      is empty; Joe adds a user or opens the page as one. Access for the
+      agent is not the issue: the sp-env profile is Joe's own, read-write.
 - [ ] Decide what happens to the uncommitted 25 Sep files in the working
       tree (see *Open questions*).
 - [ ] Then the client demo can use the dev page instead of `file://`.
@@ -83,6 +84,10 @@ is specific to this app and where it departs. `environments.json`
 - **`pageerror: undefined` twice on every load** is SharePoint's own.
 - Hard rule 7 (no PowerShell) holds: the upload was a copy into the sp-env
   mirror, every check ran through the sp-env Playwright profile from node.
+- **A rep sees only published page versions.** Site Pages keeps minor
+  versions with drafts visible to authors only; a page left as a draft is
+  invisible to Visitors while it looks fine to Joe. FCUPortal has no minor
+  versions, so an uploaded file is live for everyone at once.
 - **The binding lookup is by the page's server-relative path**, not
   `pageItemId`; a page reached through a redirect path does not bind.
 - **Playwright on this machine**: not global; use

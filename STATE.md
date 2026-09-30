@@ -41,8 +41,11 @@ built until it has been used once.
 - [x] Edit mode entered and left without a reload: placeholder while
       editing, the guide back after Save (2026-09-30). The author's way in
       is `?fullpage=none`, then Edit; `?Mode=Edit` does nothing on an App page.
-- [ ] Open the dev page as a read-only rep, not an owner: the page-item
-      lookup and the library fetches must work with read rights.
+- [ ] Open the dev page as a read-only rep, not an owner. Permissions
+      checked 2026-09-30: Visitors (Read) reach the page item and every file
+      the loader fetches, all inherited; Site Pages drafts are author-only,
+      so the page must stay published. Left: a real run as a Read-only user
+      (Visitors is empty on dev; adding one is Joe's call).
 - [ ] Before production: check the production site's `script-src` has a
       nonce (the loader's main path) or `'unsafe-eval'` (its fallback). With
       neither the guide shows only its quiet unavailable line.
