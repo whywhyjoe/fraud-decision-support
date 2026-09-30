@@ -13,7 +13,8 @@ Joe's edits from the work side (no GitHub write access there), applied
 here: the BMO copy's page title and header read "Fraud decision support",
 and its placeholder banner and `meta.disclaimer` read "INTERNAL -
 PLACEHOLDER CONTENT FOR APP DEV ONLY". The banner tests now require the word
-"placeholder" rather than the old phrase. The greyscale original is unchanged.
+"placeholder" rather than the old phrase. The greyscale original got the same
+edits.
 
 ---
 
