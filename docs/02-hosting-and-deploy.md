@@ -218,6 +218,41 @@ markup (kept equal to the entry file, so turning external mode off still
 works). From the list item the same field is HTML with entity-encoded JSON;
 do not edit that one.
 
+## Deploying to the work tenant (the demo)
+
+The lightest deploy: three files and one page. No content file (the player
+carries its content) and no page columns (the entry file's defaults serve).
+The work machine has git, Node and the synced FCUPortal folders; the work
+tenant has no PnP PowerShell, so every SharePoint step is in the browser.
+Where it lives: the FCUPortal site's `code` library, folder
+`fraud-decision-support` (sp-env's `code` root on the work tenant).
+
+1. `git pull`. Run `node --test tests/flow.test.mjs` with
+   `APP=fraud-decision-support-bmo.html`.
+2. `environments.json` (gitignored): copy `environments.sample.json` if it is
+   not there, and fill the `prod` block: `tenant`, `site`, `library` (`code`),
+   `folder` (`fraud-decision-support`), `page`.
+3. `node tools/render-webpart.mjs prod --no-config`. It writes
+   `app/fraud-guide.webpart.html` and prints the Script URL.
+4. If the `fraud-decision-support` folder is not in the library yet, create
+   it in the library in the browser. Then copy three files into it through
+   the synced FCUPortal code folder: `app/boot-fraud-guide.js`,
+   `app/fraud-decision-support-bmo.html`, `app/fraud-guide.webpart.html`.
+   Wait for them to show in the library.
+5. One-time page: a page holding only the Modern Script Editor (an App page,
+   like dev). In its settings: *Use external script* on, *Script URL* = the
+   URL from step 3, *Remove padding* on. Publish. A draft page is invisible
+   to readers.
+6. Open the page in view mode. Paste `tools/preflight-console.js` into the
+   browser console; it prints and copies a JSON report whose `verdict` says
+   whether the guide runs, and if not, why (the page's script policy, a
+   missing file, the entry not loaded). Paste it to JSFiddle or chat.
+
+To edit the page later: open it with `?fullpage=none`, then Edit.
+Redeploying a changed loader repeats steps 3 and 4 (the entry file carries
+the loader's hash); a changed player is step 4 alone. The page is not
+touched again.
+
 The loader's contract, for the split later: a `Script` ending in `.js` is
 injected into the page with `window.__fraudGuideBinding` set first, and the
 script mounts into `[data-fraud-guide]` itself. Nothing else in the loader

@@ -1,5 +1,7 @@
 // Render the web part snippet for one environment. Stdlib only.
-//   node tools/render-webpart.mjs [dev|prod] [--script F] [--config F] [--ver V] [--name N] [--fullpage takeover|webview|none]
+//   node tools/render-webpart.mjs [dev|prod] [--script F] [--config F | --no-config] [--ver V] [--name N] [--fullpage takeover|webview|none]
+// --no-config: no content file; the player runs on the content inside it (the
+// lightest deploy: loader, player and this entry file, nothing else).
 // Reads environments.json (gitignored) and app/fraud-guide.webpart.sample.html,
 // writes app/fraud-guide.webpart.html (gitignored) and prints it. That file is
 // the entry: upload it to the library folder beside the loader, and point the
@@ -41,7 +43,7 @@ if (!['takeover', 'webview', 'none'].includes(fullpage)) { console.error(`--full
 const values = {
   BOOT_URL: attr(`${folderUrl}/boot-fraud-guide.js?v=${loaderHash}`),
   SCRIPT: attr(opt('--script', 'fraud-decision-support-bmo.html')),
-  CONFIG: attr(opt('--config', 'fraud-decision-support-bmo.flow.json')),
+  CONFIG: args.includes('--no-config') ? '' : attr(opt('--config', 'fraud-decision-support-bmo.flow.json')),
   VER: attr(opt('--ver', '0.5')),
   APP_NAME: attr(opt('--name', 'Fraud call guide')),
   COLUMNS: attr(JSON.stringify(columns)),

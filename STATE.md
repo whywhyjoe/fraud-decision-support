@@ -45,9 +45,11 @@ built until it has been used once.
       the page item and every file, all inherited; Site Pages drafts are
       author-only, so the page must stay published). The real run as a
       Read-only user is left for production, by Joe's call.
-- [ ] Before production: check the production site's `script-src` has a
-      nonce (the loader's main path) or `'unsafe-eval'` (its fallback). With
-      neither the guide shows only its quiet unavailable line.
+- [ ] Work tenant, for the demo: deploy per `docs/02` *Deploying to the
+      work tenant* and run `tools/preflight-console.js` on the page. It
+      reports the one thing dev cannot tell us: whether the work page's
+      script policy has a nonce or `'unsafe-eval'`. With neither the guide
+      shows only its quiet unavailable line.
 
 ## Deferred by design
 
@@ -81,10 +83,10 @@ built until it has been used once.
 
 ## Open questions
 
-- **Which production site hosts it.** An end-user site of its own, not the
-  DCS workbench, is decided. Dev has a page and a library folder, recorded
-  in `environments.json` (gitignored; shape in `environments.sample.json`).
-  Production is not chosen.
+- **Which production site hosts it long-term.** An end-user site of its
+  own, not the DCS workbench, is decided but not chosen. For the demo, Joe
+  deploys to the work tenant's FCUPortal `code` library (2026-09-30);
+  `docs/02` has the steps.
 
 - **Should a rep be able to jump to a topic in another stage?** Only the
   current stage is listed; search reaches everything. Settled by the demo.

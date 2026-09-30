@@ -3,7 +3,7 @@
 Last touched: 2026-09-30
 Mode: Joe
 Branch: `main` of `whywhyjoe/fraud-decision-support`, pushed
-State: loader 0.3.0 live on the dev page to the DCS L1 hosting method; three of four manual gates walked. Left: a read-only rep, and the production CSP check.
+State: loader 0.3.0 live on dev and ready for the work tenant: three files, one page, a console preflight. Waiting on Joe's work-side deploy.
 
 ## What this is
 
@@ -31,9 +31,12 @@ is specific to this app and where it departs. `environments.json`
 
 ## Next
 
-- [ ] The client demo can use the dev page instead of `file://`.
-- [ ] The real run as a Read-only rep is left for production (Joe,
-      2026-09-30); permissions on dev are verified.
+- [ ] Joe deploys to the work tenant (FCUPortal `code` library) with
+      `docs/02` *Deploying to the work tenant*, and pastes back the
+      preflight report. If its verdict is not Ready, fix from the report.
+      The client demo happens there, not on dev.
+- [ ] The real run as a Read-only rep also happens there (Joe, 2026-09-30);
+      permissions on dev are verified.
 
 ## Open questions
 

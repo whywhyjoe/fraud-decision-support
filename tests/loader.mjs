@@ -42,12 +42,13 @@ ${body}
 <script src="boot-fraud-guide.js"></script></body></html>`;
 writeFileSync(join(dir, 'page.html'), shell(host('takeover'), '', NONCE));
 writeFileSync(join(dir, 'inflow.html'), shell(host('none')));
+writeFileSync(join(dir, 'noconfig.html'), shell(`<div data-fraud-guide data-script="${player}" data-config="" data-fullpage="none"></div>`));
 writeFileSync(join(dir, 'edit.html'), shell(`<div data-fraud-guide data-script="${player}"></div>`, 'editmode'));
 
 // As SharePoint: .html from the library is an attachment the browser will
 // not render; pages carry a CSP with no 'unsafe-inline'.
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json' };
-const pages = new Set(['page.html', 'inflow.html', 'edit.html']);
+const pages = new Set(['page.html', 'inflow.html', 'noconfig.html', 'edit.html']);
 const server = createServer((req, res) => {
   const name = decodeURIComponent(req.url.split('?')[0]).replace(/^\//, '');
   try {
@@ -142,6 +143,14 @@ assert.equal(await page.locator('[data-role="fraud-guide-layer"]').count(), 0);
 assert.ok(parseInt(await page.evaluate((sel) => document.querySelector(sel).style.height, frameSel), 10) >= 480);
 assert.equal(await page.evaluate(() => document.querySelector('[data-fraud-guide]').dataset.scripts), 'eval');
 ok("eval fallback and fullpage none: with no nonce on the page the player runs by eval, the frame stays in the page flow and the player's reported height sizes it");
+
+await page.goto(`${base}/noconfig.html`, { waitUntil: 'domcontentloaded' });
+await page.waitForSelector('[data-fraud-guide][data-state="ready"]', { state: 'attached' });
+assert.equal(await page.evaluate(() => document.querySelector('[data-fraud-guide]').dataset.contentSource), 'inline');
+const own = page.frames().find((f) => f !== page.mainFrame());
+await own.waitForSelector('[data-role="question-card"]');
+assert.doesNotMatch(await own.evaluate(() => window.__frd.flow.meta.contentVersion), /\(served\)$/);
+ok('no content file (render --no-config): the player runs on the content inside it');
 
 await page.goto(`${base}/edit.html`, { waitUntil: 'domcontentloaded' });
 await page.waitForSelector('[data-fraud-guide] p[role="status"]');
