@@ -100,13 +100,10 @@ CSS served from the library; the loader already handles a `.js` `Script`.
 ```
 node --test tests/flow.test.mjs                  # fast tier, <1s
 NODE_PATH=$(npm root -g) node tests/smoke.mjs    # full tier, Chromium, ~5s
-```
-
-NODE_PATH=$(npm root -g) node tests/loader.mjs   # full tier, the loader over http, ~5s
+NODE_PATH=$(npm root -g) node tests/loader.mjs   # full tier, the loader under SharePoint-like headers, ~4s
 ```
 
 Prefix any of them with `APP=fraud-decision-support-bmo.html` to test the BMO copy.
-```
 
 ---
 
