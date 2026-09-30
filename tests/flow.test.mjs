@@ -108,7 +108,7 @@ test('scenario brief is met: critical nodes, never-say blocks, resource links', 
   assert.ok(nevers.length >= 3, 'several never-say blocks');
   const resources = new Set(flow.nodes.flatMap((n) => n.content).filter((c) => c.type === 'resource').map((c) => c.text));
   assert.ok(resources.size >= 4, 'at least four distinct resource links');
-  assert.match(flow.meta.disclaimer, /not bank policy/i);
+  assert.match(flow.meta.disclaimer, /placeholder/i);
 });
 
 test('CSS keeps raw values inside :root (designer restyles by tokens)', () => {

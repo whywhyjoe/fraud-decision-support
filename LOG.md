@@ -7,6 +7,16 @@ Newest first.
 
 ---
 
+## 2026-09-30 — BMO copy renamed "Fraud decision support"
+
+Joe's edits from the work side (no GitHub write access there), applied
+here: the BMO copy's page title and header read "Fraud decision support",
+and its placeholder banner and `meta.disclaimer` read "INTERNAL -
+PLACEHOLDER CONTENT FOR APP DEV ONLY". The banner tests now require the word
+"placeholder" rather than the old phrase. The greyscale original is unchanged.
+
+---
+
 ## 2026-09-30 — loader 0.3.0: the DCS L1 hosting method
 
 The loader now follows `dcs-workbench-tools/docs/01-hosting-and-boot.md`

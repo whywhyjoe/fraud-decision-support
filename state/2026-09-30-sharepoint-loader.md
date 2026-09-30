@@ -24,6 +24,8 @@ is specific to this app and where it departs. `environments.json`
 - Dev page is version 7.0: Script Editor with `useExternalScript` on the
   entry file. Library folder holds the entry, the loader, both players and
   both `flow.json` files, hash-checked.
+- The BMO copy carries Joe's work-side text edits (title, banner,
+  disclaimer; `LOG.md`), uploaded to the dev folder with its `flow.json`.
 - Walked live as Joe (site owner): nonce path runs, no CSP violations; the
   page picks up a new loader from an upload alone; edit mode in and out
   without a reload; a republished `flow.json` shows on an ordinary reload

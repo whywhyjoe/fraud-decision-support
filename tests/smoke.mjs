@@ -29,7 +29,7 @@ const ok = (name) => console.log(`  ✓ ${name}`);
 
 await page.goto(url, { waitUntil: 'domcontentloaded' });
 await page.waitForSelector('[data-role="question-card"]');
-assert.match(await page.textContent('[data-role="placeholder-banner"]'), /not bank policy/i);
+assert.match(await page.textContent('[data-role="placeholder-banner"]'), /placeholder/i);
 assert.equal(await at(), 'verify-open');
 assert.equal(await page.locator('[data-role="stage-label"]').count(), 5, 'current stage label plus four ahead');
 assert.equal(await page.locator('[data-role="stage-label"][data-state="ahead"]').count(), 4);
