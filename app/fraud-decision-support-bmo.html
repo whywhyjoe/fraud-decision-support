@@ -556,7 +556,8 @@ input:focus, textarea:focus { border-color: var(--accent); }
 .badge .icon { width: var(--icon-lg); height: var(--icon-lg); }
 [data-role="guide-body"] { padding: var(--s-5); columns: var(--guide-col) 2; column-gap: var(--s-5); }
 [data-role="guide-body"] > section { break-inside: avoid; }
-[data-role="guide-body"] > section + section { margin-top: var(--s-5); }
+[data-role="guide-body"] > section { margin-bottom: var(--s-5); }   /* bottom, not top: a top margin is dropped at the head of the second column */
+[data-role="guide-body"] > section:last-child { margin-bottom: 0; }
 /* the brief, the step graphic and the documents run across both columns */
 [data-role="guide-brief"], [data-role="guide-steps"], [data-role="guide-group"][data-type="resource"] { column-span: all; }
 [data-role="guide-group"] h3, [data-role="guide-steps"] h3 {

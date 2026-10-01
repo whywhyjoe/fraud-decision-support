@@ -7,6 +7,17 @@ Newest first.
 
 ---
 
+## 2026-10-01 — BMO round 1 on the dev page; guidance columns aligned
+
+The BMO player and its re-extracted `flow.json` are live in the dev
+library folder, hash-checked as served and read back on the page. The
+guidance groups are now spaced by a bottom margin, so the two columns'
+first headings line up under a brief (a top margin was dropped at the head
+of the second column). The page item's `Ver` label could not be updated:
+custom script is off on the dev site again.
+
+---
+
 ## 2026-10-01 — BMO copy: wide screens, Start over, FR, a development footer
 
 Joe's review points, BMO copy only (the greyscale original is unchanged).

@@ -1,8 +1,8 @@
 # State — SharePoint loader
 
-Last touched: 2026-09-30
+Last touched: 2026-10-01
 Mode: Joe
-Branch: `main` of `whywhyjoe/fraud-decision-support`, pushed
+Branch: `main` of `whywhyjoe/fraud-decision-support`
 State: loader 0.3.0 live on dev and ready for the work tenant: three files, one page, a console preflight. Waiting on Joe's work-side deploy.
 
 ## What this is
@@ -30,8 +30,20 @@ is specific to this app and where it departs. `environments.json`
   page picks up a new loader from an upload alone; edit mode in and out
   without a reload; a republished `flow.json` shows on an ordinary reload
   (tested with a changed version label, then restored and hash-checked).
+- 2026-10-01: the BMO player and a re-extracted
+  `fraud-decision-support-bmo.flow.json` (review round 1, `LOG.md`) copied
+  through the mirror; served hashes matched within a second. Read back
+  headless in the sp-env profile: footer "DEMO DEVELOPMENT: … Content
+  0.5-placeholder … See content code", Start over, FR, path 600 px and
+  guidance 1020 px in two columns at a 1700 px window. Dev page is now 9.0
+  (it was 9.0 before this upload; something else moved it on from 7.0).
 
 ## Next
+
+- [ ] The page item's `Ver` column still reads `0.5-placeholder (BMO look)`.
+      Only a label in frame mode (the loader uses it as a cache-buster for
+      a `.js` Script only). The update was refused; see the landmine on
+      custom script. Set it when custom script is back on.
 
 - [ ] Joe deploys to the work tenant (FCUPortal `code` library) with
       `docs/02` *Deploying to the work tenant*, and pastes back the
@@ -57,6 +69,16 @@ is specific to this app and where it departs. `environments.json`
   it to his dev root; nothing here depends on it.
 
 ## Landmines
+
+- **Custom script is off on the dev site again** (2026-10-01): even Joe's
+  effective permissions lack AddAndCustomizePages, and a
+  `ValidateUpdateListItem` on the page item fails HTTP 500 "Additions to
+  this Web site have been blocked" (not a lock or quota: `ReadOnly` and
+  `WriteLocked` are false, storage is negligible). SharePoint Online turns
+  custom script back off about 24 hours after it is allowed. Library file
+  uploads and the running page are unaffected; page and page-item edits
+  are blocked. Turning it back on is a tenant-admin setting, Joe's to
+  change.
 
 - **The dev page is an App page** (`SingleWebPartAppPage`). Its edit mode
   changes neither the URL nor the article-page authoring markers; the
