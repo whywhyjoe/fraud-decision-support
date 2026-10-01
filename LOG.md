@@ -7,6 +7,34 @@ Newest first.
 
 ---
 
+## 2026-10-01 — BMO copy: wide screens, Start over, FR, a development footer
+
+Joe's review points, BMO copy only (the greyscale original is unchanged).
+
+- **Responsive.** Up to 1280px of page the two columns are equal halves, as
+  before. Wider, the call path holds at 600px (`--path-w`) and the guidance
+  column takes the rest, up to a 1920px page (`--page-max`), so more of it
+  sits above the fold.
+- **Guidance in two internal columns** whenever the guidance column is about
+  780px or wider (`--guide-col`, CSS columns, so no media query): the never,
+  escalate, check and watch groups balance across two columns; the brief,
+  the step graphic and the documents run across both, and the documents fill
+  as many cards per row as fit (`--doc-min`). Stacked below 1000px it applies
+  too, since the column is then full width.
+- **Start over** replaces "Start a new call", which read as if the app
+  dialled the phone system.
+- **FR** button at the right end of the toolbar, a mock: it does nothing.
+- **The footer is plainly development-only.** It starts *DEMO DEVELOPMENT:*;
+  *Behind the scenes* is now *See content code*.
+- **No talk of the interface or of development content outside the footer
+  and the banner.** `contentVersion` loses "(BMO look)"; resource titles
+  lose "(placeholder)"; coaching lines that spoke of the tool, its nodes or
+  branches, "Placeholder policy", and the critical risk line's "on the
+  right" are reworded.
+- The smoke test checks the wide layout, FR and the footer on the BMO copy.
+
+---
+
 ## 2026-09-30 — BMO copy renamed "Fraud decision support"
 
 Joe's edits from the work side (no GitHub write access there), applied

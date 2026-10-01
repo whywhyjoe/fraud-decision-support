@@ -171,7 +171,10 @@
   --video-gradient: radial-gradient(circle at 70% 35%, var(--bmo-navy), var(--bmo-midnight) 60%, var(--bmo-slate));
   --video-track: rgba(255,255,255,.25);
 
-  --page-max: 1280px;
+  --page-max: 1920px;     /* the guidance column takes all the extra width */
+  --path-w: 600px;        /* the call path's width once the page is wider than two equal halves */
+  --guide-col: 340px;     /* narrowest internal guidance column; two fit from a guide about 780px wide */
+  --doc-min: 220px;       /* narrowest document card in the resources grid */
   --page-min: 900px;
   --banner-h: 36px;
   --control-h: 40px;
@@ -266,14 +269,16 @@ input:focus, textarea:focus { border-color: var(--accent); }
   box-shadow: var(--shadow-4);
 }
 
-/* ---------- page grid: two equal columns ---------- */
+/* ---------- page grid: path at its width, guidance takes the rest ---------- */
+/* Two equal halves until each half reaches --path-w; past that the path stays at
+   --path-w and the guidance column grows, so more of it sits above the fold. */
 [data-role="shell"] {
   max-width: var(--page-max);
   min-width: var(--page-min);
   margin: 0 auto;
   padding: var(--s-5) var(--s-5) var(--s-7);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: min(var(--path-w), calc((var(--full) - var(--s-6)) / 2)) minmax(0, 1fr);
   grid-template-areas: "top top" "path guide" "foot foot";
   column-gap: var(--s-6);
   row-gap: var(--s-5);
@@ -549,8 +554,11 @@ input:focus, textarea:focus { border-color: var(--accent); }
   background: var(--accent); color: var(--fg-on-accent);
 }
 .badge .icon { width: var(--icon-lg); height: var(--icon-lg); }
-[data-role="guide-body"] { padding: var(--s-5); }
+[data-role="guide-body"] { padding: var(--s-5); columns: var(--guide-col) 2; column-gap: var(--s-5); }
+[data-role="guide-body"] > section { break-inside: avoid; }
 [data-role="guide-body"] > section + section { margin-top: var(--s-5); }
+/* the brief, the step graphic and the documents run across both columns */
+[data-role="guide-brief"], [data-role="guide-steps"], [data-role="guide-group"][data-type="resource"] { column-span: all; }
 [data-role="guide-group"] h3, [data-role="guide-steps"] h3 {
   display: flex; align-items: center; gap: var(--s-2);
   font-size: var(--fs-lead); margin-bottom: var(--s-3);
@@ -606,7 +614,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
 [data-role="guide-steps"] li span:last-child { font-size: var(--fs-small); color: var(--fg-primary); }
 
 /* resources: document cards with a drawn thumbnail */
-[data-role="guide-group"][data-type="resource"] ul { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
+[data-role="guide-group"][data-type="resource"] ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--doc-min), 1fr)); gap: var(--s-4); }
 [data-role="guide-group"][data-type="resource"] [data-role="guide-item"] { padding: 0; margin: 0; background: transparent; display: block; }
 [data-role="doc"] {
   display: flex; flex-direction: column; height: var(--full);
@@ -682,6 +690,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
 /* ---------- footer and behind the scenes ---------- */
 [data-role="foot"] { display: flex; gap: var(--s-4); align-items: center; flex-wrap: wrap; color: var(--fg-secondary); font-size: var(--fs-small); border-top: var(--bw) solid var(--stroke-divider); padding-top: var(--s-4); }
 [data-role="foot"] .spacer { flex: 1; }
+[data-role="foot"] .dev-label { font-weight: var(--fw-semibold); color: var(--fg-heading); }
 [data-role="debug"] { margin-top: var(--s-4); background: var(--surface-raised); border: var(--bw) solid var(--stroke-divider); border-radius: var(--radius-lg); padding: var(--s-5); width: var(--full); color: var(--fg-primary); font-size: var(--fs-body); box-shadow: var(--shadow-4); }
 [data-role="debug"] h3 { margin: var(--s-4) 0 var(--s-2); }
 [data-role="debug"] pre { font-family: var(--font-mono); font-size: var(--fs-small); background: var(--surface-subtle); border-radius: var(--radius); padding: var(--s-4); max-height: var(--dropdown-max-h); overflow: auto; white-space: pre-wrap; margin: 0; }
@@ -724,7 +733,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
 {
   "meta": {
     "scenario": "Inbound call — customer reports unauthorised card transactions",
-    "contentVersion": "0.5-placeholder (BMO look)",
+    "contentVersion": "0.5-placeholder",
     "disclaimer": "INTERNAL - PLACEHOLDER CONTENT FOR APP DEV ONLY"
   },
 
@@ -753,10 +762,10 @@ input:focus, textarea:focus { border-color: var(--accent); }
         { "type": "ask", "text": "Full name, date of birth, and two knowledge questions from the verification panel." },
         { "type": "watch", "text": "Long pauses before answers, or answers read out slowly as if from a screen." },
         { "type": "never", "text": "Card number, balance or recent transactions disclosed before verification passes." },
-        { "type": "resource", "text": "Identity verification procedure (placeholder)", "url": "#", "format": "pdf", "thumb": "text", "meta": "PDF · 8 pages · updated Aug 2026" },
+        { "type": "resource", "text": "Identity verification procedure", "url": "#", "format": "pdf", "thumb": "text", "meta": "PDF · 8 pages · updated Aug 2026" },
         { "type": "brief", "text": "Verification comes first", "body": "Nothing about the account is discussed until the caller passes. An upset caller is **the most common reason** a step gets skipped.", "points": ["**Full name** and **date of birth**", "Two knowledge questions from the verification panel", "A card block can go ahead on less: see **Unverified caller**"] },
-        { "type": "resource", "text": "Verification refresher for new starters (placeholder)", "url": "#", "format": "deck", "thumb": "split", "meta": "Slides · 16 slides" },
-        { "type": "resource", "text": "Keeping an upset caller on track (placeholder)", "url": "#", "format": "video", "thumb": "video", "meta": "Video · 3 min" }
+        { "type": "resource", "text": "Verification refresher for new starters", "url": "#", "format": "deck", "thumb": "split", "meta": "Slides · 16 slides" },
+        { "type": "resource", "text": "Keeping an upset caller on track", "url": "#", "format": "video", "thumb": "video", "meta": "Video · 3 min" }
       ],
       "answers": [
         { "label": "Passed in full",                         "nextNodeId": "triage-open" },
@@ -774,7 +783,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
       "content": [
         { "type": "ask", "text": "The alternative knowledge question, before moving to secondary verification." },
         { "type": "watch", "text": "The caller repeating each question aloud before answering it." },
-        { "type": "resource", "text": "Identity verification procedure (placeholder)", "url": "#", "format": "pdf", "thumb": "text", "meta": "PDF · 8 pages · updated Aug 2026" },
+        { "type": "resource", "text": "Identity verification procedure", "url": "#", "format": "pdf", "thumb": "text", "meta": "PDF · 8 pages · updated Aug 2026" },
         { "type": "brief", "text": "Reading a partial failure", "body": "The **type** of failure matters more than the fact of it.", "points": ["Wrong knowledge answer: usually nerves", "Code not received: check the number on file", "Unsure of own details: a **coaching signal**"] }
       ],
       "answers": [
@@ -793,7 +802,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
       "content": [
         { "type": "ask", "text": "That the caller can take a call on the number ending in the two digits read out." },
         { "type": "never", "text": "A callback to any number supplied during the call." },
-        { "type": "resource", "text": "Callback verification steps (placeholder)", "url": "#", "format": "pdf", "thumb": "form", "meta": "PDF · 2 pages · checklist" },
+        { "type": "resource", "text": "Callback verification steps", "url": "#", "format": "pdf", "thumb": "form", "meta": "PDF · 2 pages · checklist" },
         { "type": "steps", "text": "Callback in four steps", "items": ["Read the last two digits", "End the call", "Dial the number on file", "Verify again on answer"] }
       ],
       "answers": [
@@ -826,7 +835,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
       "content": [
         { "type": "ask", "text": "Last four digits and the name on the card." },
         { "type": "watch", "text": "A push to also change the address or phone number. That is a takeover attempt, not a block." },
-        { "type": "resource", "text": "Card block and reissue guide (placeholder)", "url": "#", "format": "deck", "thumb": "steps", "meta": "Slides · 12 slides" }
+        { "type": "resource", "text": "Card block and reissue guide", "url": "#", "format": "deck", "thumb": "steps", "meta": "Slides · 12 slides" }
       ],
       "answers": [
         { "label": "Card blocked", "nextNodeId": "resolve-unverified-close" }
@@ -844,9 +853,9 @@ input:focus, textarea:focus { border-color: var(--accent); }
         { "type": "watch", "text": "Muffled conversation, answers that arrive after a pause, the caller relaying questions to someone else." },
         { "type": "never", "text": "Asking whether someone is telling the caller what to say. It tips off the third party and ends the call." },
         { "type": "escalate", "text": "Coaching suspected and the caller asks to change contact details, add a payee or move money: fraud specialist." },
-        { "type": "resource", "text": "Third-party coaching guidance (placeholder)", "url": "#", "format": "deck", "thumb": "split", "meta": "Slides · 18 slides" },
+        { "type": "resource", "text": "Third-party coaching guidance", "url": "#", "format": "deck", "thumb": "split", "meta": "Slides · 18 slides" },
         { "type": "brief", "text": "Coached callers are usually victims", "body": "Someone beside the caller is running the call. **A neutral private callback** breaks the pattern without confrontation.", "points": ["Muffled side conversation", "Answers that arrive after a pause", "Questions relayed to someone else"] },
-        { "type": "resource", "text": "Recognising a coached caller (placeholder)", "url": "#", "format": "video", "thumb": "video", "meta": "Video · 4 min" }
+        { "type": "resource", "text": "Recognising a coached caller", "url": "#", "format": "video", "thumb": "video", "meta": "Video · 4 min" }
       ],
       "answers": [
         { "label": "Clear evidence",                 "nextNodeId": "verify-coached-confirm" },
@@ -889,16 +898,16 @@ input:focus, textarea:focus { border-color: var(--accent); }
     {
       "id": "triage-open", "stageId": "triage", "label": "Nature of the report", "risk": null,
       "prompt": "Which best describes what is being reported?",
-      "why": "This one answer decides which half of the tool you are in. 'Someone contacted me and I paid' is a scam, not fraud, and is handled completely differently from here on.",
+      "why": "This one answer decides whether the call is handled as fraud or as a scam. 'Someone contacted me and I paid' is a scam, not fraud, and is handled completely differently from here on.",
       "dialogue": [
         { "who": "customer", "text": "There are three payments to a shop I've never heard of." }
       ],
       "content": [
         { "type": "ask", "text": "The customer's own account of what they have seen, and whether they did anything themselves." },
-        { "type": "watch", "text": "Any call, text or email that started this. That is the scam branch, not fraud." },
-        { "type": "resource", "text": "Scam vs fraud decision aid (placeholder)", "url": "#", "format": "pdf", "thumb": "table", "meta": "PDF · 1 page · decision table" },
+        { "type": "watch", "text": "Any call, text or email that started this. That makes it a scam, not fraud." },
+        { "type": "resource", "text": "Scam vs fraud decision aid", "url": "#", "format": "pdf", "thumb": "table", "meta": "PDF · 1 page · decision table" },
         { "type": "brief", "text": "Fraud or scam?", "body": "**Fraud**: the customer did not make the payment. **Scam**: the customer made it, after being deceived.", "points": ["Fraud → block and dispute", "Scam → scam claim, a different process", "Neither → route to the owning team"] },
-        { "type": "resource", "text": "Fraud and scam types at a glance (placeholder)", "url": "#", "format": "deck", "thumb": "chart", "meta": "Slides · 10 slides" }
+        { "type": "resource", "text": "Fraud and scam types at a glance", "url": "#", "format": "deck", "thumb": "chart", "meta": "Slides · 10 slides" }
       ],
       "answers": [
         { "label": "Unrecognised transactions",      "nextNodeId": "triage-ongoing" },
@@ -924,14 +933,14 @@ input:focus, textarea:focus { border-color: var(--accent); }
     {
       "id": "triage-block-now", "stageId": "triage", "label": "Immediate card block", "risk": "elevated",
       "prompt": "Has the card been blocked?",
-      "why": "Placeholder policy: block first, investigate second. A reissue is an inconvenience; an unblocked card is a liability.",
+      "why": "Block first, investigate second. A reissue is an inconvenience; an unblocked card is a liability.",
       "dialogue": [
         { "who": "rep", "text": "I'm going to block the card right now so nothing else can go through, and then we'll go through what's happened." }
       ],
       "content": [
         { "type": "ask", "text": "Last four digits before blocking. Which card, if more than one." },
         { "type": "never", "text": "Promises about the money: neither that it is gone nor that it will all come back." },
-        { "type": "resource", "text": "Card block and reissue guide (placeholder)", "url": "#", "format": "deck", "thumb": "steps", "meta": "Slides · 12 slides" },
+        { "type": "resource", "text": "Card block and reissue guide", "url": "#", "format": "deck", "thumb": "steps", "meta": "Slides · 12 slides" },
         { "type": "steps", "text": "Block sequence", "items": ["Confirm the last four digits", "Block the card", "Confirm the block aloud", "Order the replacement"] }
       ],
       "answers": [
@@ -960,7 +969,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
       "why": "Card-present fraud with the card still in the customer's wallet is rare and points at cloning or a family member. Card-not-present is the common case.",
       "content": [
         { "type": "ask", "text": "The merchant channel from the transaction detail, not from the customer's guess." },
-        { "type": "resource", "text": "Reading transaction channel codes (placeholder)", "url": "#", "format": "pdf", "thumb": "table", "meta": "PDF · 3 pages · reference table" },
+        { "type": "resource", "text": "Reading transaction channel codes", "url": "#", "format": "pdf", "thumb": "table", "meta": "PDF · 3 pages · reference table" },
         { "type": "brief", "text": "The channel as a classifier", "points": ["Card present, card in the wallet → cloning or a household member", "Card not present → the common case", "Mixed → the channel code on each transaction"] }
       ],
       "answers": [
@@ -987,10 +996,10 @@ input:focus, textarea:focus { border-color: var(--accent); }
     {
       "id": "triage-other", "stageId": "triage", "label": "Outside this scenario", "risk": null,
       "prompt": "Which team owns this?",
-      "why": "The tool covers one scenario. Routing out early is better than forcing a merchant dispute through a fraud flow.",
+      "why": "This is not a fraud call. Routing out early is better than forcing a merchant dispute through the fraud process.",
       "content": [
         { "type": "ask", "text": "Whether this is about money the customer did not spend, or something they bought." },
-        { "type": "resource", "text": "Team routing directory (placeholder)", "url": "#", "format": "page", "thumb": "table", "meta": "Intranet page · updated weekly" }
+        { "type": "resource", "text": "Team routing directory", "url": "#", "format": "page", "thumb": "table", "meta": "Intranet page · updated weekly" }
       ],
       "answers": [
         { "label": "Online banking access",     "nextNodeId": "resolve-transfer-out" },
@@ -1023,7 +1032,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
       "content": [
         { "type": "ask", "text": "Merchant, amount and date for each transaction, with a pause after each. The disputed total." },
         { "type": "watch", "text": "A familiar merchant billed under a parent-company name." },
-        { "type": "resource", "text": "Merchant name lookup (placeholder)", "url": "#", "format": "page", "thumb": "search", "meta": "Intranet tool" },
+        { "type": "resource", "text": "Merchant name lookup", "url": "#", "format": "page", "thumb": "search", "meta": "Intranet tool" },
         { "type": "brief", "text": "Reading the list together", "body": "Most reported fraud turns out to be **a subscription or a household member**. Reading slowly also calms the customer.", "points": ["Merchant, amount and date", "A pause after each line", "The disputed total at the end"] }
       ],
       "answers": [
@@ -1035,7 +1044,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
     {
       "id": "scope-dates", "stageId": "scope", "label": "Date range and recognition", "risk": null,
       "prompt": "Are any of the disputed merchants recognised?",
-      "why": "Partial recognition is the most common honest confusion, and the most common dishonest claim. Either way the next node handles it without judgement.",
+      "why": "Partial recognition is the most common honest confusion, and the most common dishonest claim. Either way the next question handles it without judgement.",
       "content": [
         { "type": "ask", "text": "First and last disputed date. Total amount." },
         { "type": "never", "text": "Suggesting the customer probably forgot a transaction." },
@@ -1097,7 +1106,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
       "why": "Guessing at scope produces a dispute that gets amended twice. A statement and a callback produces one that sticks.",
       "content": [
         { "type": "ask", "text": "The customer's preferred channel for the statement. A callback time." },
-        { "type": "resource", "text": "Sending statements securely (placeholder)", "url": "#", "format": "pdf", "thumb": "text", "meta": "PDF · 4 pages" }
+        { "type": "resource", "text": "Sending statements securely", "url": "#", "format": "pdf", "thumb": "text", "meta": "PDF · 4 pages" }
       ],
       "answers": [
         { "label": "Statement sent, continue with what is known", "nextNodeId": "scope-possession" },
@@ -1124,9 +1133,9 @@ input:focus, textarea:focus { border-color: var(--accent); }
       "why": "The pattern decides the remedy. Fraud gets a block and a dispute. A scam gets a scam claim. Account takeover gets a credential reset. Picking wrong costs the customer weeks.",
       "content": [
         { "type": "ask", "text": "The signal checklist, if the pattern is not clear. No guessing." },
-        { "type": "resource", "text": "Scam vs fraud decision aid (placeholder)", "url": "#", "format": "pdf", "thumb": "table", "meta": "PDF · 1 page · decision table" },
+        { "type": "resource", "text": "Scam vs fraud decision aid", "url": "#", "format": "pdf", "thumb": "table", "meta": "PDF · 1 page · decision table" },
         { "type": "brief", "text": "The pattern decides the remedy", "body": "Picking the wrong pattern **costs the customer weeks**.", "points": ["Unauthorised use → block and dispute", "Manipulation → scam claim", "Credential compromise → lock-down first"] },
-        { "type": "resource", "text": "Fraud and scam types at a glance (placeholder)", "url": "#", "format": "deck", "thumb": "chart", "meta": "Slides · 10 slides" }
+        { "type": "resource", "text": "Fraud and scam types at a glance", "url": "#", "format": "deck", "thumb": "chart", "meta": "Slides · 10 slides" }
       ],
       "answers": [
         { "label": "Unauthorised use, no contact with anyone",      "nextNodeId": "risk-fraud" },
@@ -1143,7 +1152,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
         { "type": "ask", "text": "Recent changes to address, phone or email. Vulnerability indicators on the profile." },
         { "type": "watch", "text": "Age over 65 plus a new authorised user, carer, or friend who helps with the banking." },
         { "type": "brief", "text": "Most calls end here", "body": "Two cheap checks catch **the cases that are not fine**.", "points": ["Recent contact-detail changes", "Vulnerability indicators on the profile"] },
-        { "type": "resource", "text": "Fraud and scam types at a glance (placeholder)", "url": "#", "format": "deck", "thumb": "chart", "meta": "Slides · 10 slides" }
+        { "type": "resource", "text": "Fraud and scam types at a glance", "url": "#", "format": "deck", "thumb": "chart", "meta": "Slides · 10 slides" }
       ],
       "answers": [
         { "label": "None",              "nextNodeId": "act-block" },
@@ -1177,7 +1186,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
       "content": [
         { "type": "ask", "text": "How first contact was made: call, text, email, social media." },
         { "type": "never", "text": "Telling the customer it is not fraud because they authorised it. True, and it ends the conversation that is needed." },
-        { "type": "resource", "text": "Scam vs fraud decision aid (placeholder)", "url": "#", "format": "pdf", "thumb": "table", "meta": "PDF · 1 page · decision table" }
+        { "type": "resource", "text": "Scam vs fraud decision aid", "url": "#", "format": "pdf", "thumb": "table", "meta": "PDF · 1 page · decision table" }
       ],
       "answers": [
         { "label": "Bank impersonation",        "nextNodeId": "risk-scam-bank" },
@@ -1225,7 +1234,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
         { "type": "watch", "text": "New authorised user, regular round-sum withdrawals, a helper who handles everything, reluctance to block the card." },
         { "type": "never", "text": "Telling the customer that someone is taking advantage of them." },
         { "type": "escalate", "text": "Any indicator above together with the customer unable to explain their own transactions: safeguarding referral, not a dispute." },
-        { "type": "resource", "text": "Vulnerable customer and safeguarding referral (placeholder)", "url": "#", "format": "deck", "thumb": "split", "meta": "Slides · 22 slides" },
+        { "type": "resource", "text": "Vulnerable customer and safeguarding referral", "url": "#", "format": "deck", "thumb": "split", "meta": "Slides · 22 slides" },
         { "type": "brief", "text": "Exploitation by someone trusted", "body": "Rarely self-reported. **The rep on the phone is often the only person positioned to notice.**", "points": ["A new helper or authorised user", "Regular round-sum withdrawals", "Reluctance to block the card"] }
       ],
       "answers": [
@@ -1245,9 +1254,9 @@ input:focus, textarea:focus { border-color: var(--accent); }
         { "type": "watch", "text": "Answers that reverse after a pause. Background prompting. Requests to repeat questions." },
         { "type": "never", "text": "Confronting the third party through the customer." },
         { "type": "escalate", "text": "Always. This topic ends in a safeguarding hand-off, never a normal close." },
-        { "type": "resource", "text": "Third-party coaching guidance (placeholder)", "url": "#", "format": "deck", "thumb": "split", "meta": "Slides · 18 slides" },
+        { "type": "resource", "text": "Third-party coaching guidance", "url": "#", "format": "deck", "thumb": "split", "meta": "Slides · 18 slides" },
         { "type": "brief", "text": "Nothing agreed on this call is reliable", "body": "The goal is **a safe callback**, not a resolution." },
-        { "type": "resource", "text": "Recognising a coached caller (placeholder)", "url": "#", "format": "video", "thumb": "video", "meta": "Video · 4 min" }
+        { "type": "resource", "text": "Recognising a coached caller", "url": "#", "format": "video", "thumb": "video", "meta": "Video · 4 min" }
       ],
       "answers": [
         { "label": "Third party audible",               "nextNodeId": "act-safeguard" },
@@ -1261,7 +1270,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
       "why": "A checklist is slower than instinct and more consistent. Use it when instinct has nothing to say.",
       "content": [
         { "type": "ask", "text": "Contact from anyone. Codes shared. Profile changes. New devices. Card in possession. Household access." },
-        { "type": "resource", "text": "Signal checklist card (placeholder)", "url": "#", "format": "pdf", "thumb": "form", "meta": "PDF · 1 page · printable card" }
+        { "type": "resource", "text": "Signal checklist card", "url": "#", "format": "pdf", "thumb": "form", "meta": "PDF · 1 page · printable card" }
       ],
       "answers": [
         { "label": "Unauthorised use",   "nextNodeId": "risk-fraud" },
@@ -1290,7 +1299,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
       "content": [
         { "type": "ask", "text": "The delivery address on file, confirmed before the replacement is ordered." },
         { "type": "watch", "text": "A delivery address changed in the last 30 days. Back to the account takeover check." },
-        { "type": "resource", "text": "Card block and reissue guide (placeholder)", "url": "#", "format": "deck", "thumb": "steps", "meta": "Slides · 12 slides" },
+        { "type": "resource", "text": "Card block and reissue guide", "url": "#", "format": "deck", "thumb": "steps", "meta": "Slides · 12 slides" },
         { "type": "steps", "text": "Block and reissue", "items": ["Confirm the address on file", "Block the card", "Order the replacement", "Give the delivery window"] }
       ],
       "answers": [
@@ -1306,7 +1315,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
         { "type": "ask", "text": "The device the customer normally uses. Every other device is removed." },
         { "type": "never", "text": "New credentials sent to contact details the attacker set." },
         { "type": "escalate", "text": "Outbound payments set up during the compromise window: payments team, immediately." },
-        { "type": "resource", "text": "Account takeover lock-down checklist (placeholder)", "url": "#", "format": "pdf", "thumb": "form", "meta": "PDF · 2 pages · checklist" },
+        { "type": "resource", "text": "Account takeover lock-down checklist", "url": "#", "format": "pdf", "thumb": "form", "meta": "PDF · 2 pages · checklist" },
         { "type": "steps", "text": "Lock-down order", "items": ["Lock the online login", "Remove unknown devices", "Reset credentials", "Review new payees"] }
       ],
       "answers": [
@@ -1320,7 +1329,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
       "content": [
         { "type": "ask", "text": "The sequence in the customer's own words: first contact, what they were told, what they did." },
         { "type": "never", "text": "A promised refund outcome. The claim is assessed later by someone else." },
-        { "type": "resource", "text": "Scam claim form (placeholder)", "url": "#", "format": "pdf", "thumb": "form", "meta": "PDF · 5 pages · form" }
+        { "type": "resource", "text": "Scam claim form", "url": "#", "format": "pdf", "thumb": "form", "meta": "PDF · 5 pages · form" }
       ],
       "answers": [
         { "label": "Opened", "nextNodeId": "act-timeline" }
@@ -1329,12 +1338,12 @@ input:focus, textarea:focus { border-color: var(--accent); }
     {
       "id": "act-safeguard", "stageId": "act", "label": "Safeguarding referral", "risk": "critical",
       "prompt": "Are the referral and payment hold in place?",
-      "why": "This is the node the whole critical branch exists for. It is also the one reps skip because it feels like an accusation. It is not — it is a request for someone trained to take a look.",
+      "why": "Every critical call leads to this step. It is also the one reps skip because it feels like an accusation. It is not — it is a request for someone trained to take a look.",
       "content": [
         { "type": "ask", "text": "A safe number and time for a specialist colleague to call back." },
         { "type": "never", "text": "Describing the referral as being about the third party. The word abuse, on the call." },
         { "type": "escalate", "text": "Immediate risk to the customer's safety: emergency process, not this one." },
-        { "type": "resource", "text": "Vulnerable customer and safeguarding referral (placeholder)", "url": "#", "format": "deck", "thumb": "split", "meta": "Slides · 22 slides" },
+        { "type": "resource", "text": "Vulnerable customer and safeguarding referral", "url": "#", "format": "deck", "thumb": "split", "meta": "Slides · 22 slides" },
         { "type": "steps", "text": "Referral in three steps", "items": ["Place the payment hold", "Log the referral", "Arrange the specialist callback"] }
       ],
       "answers": [
@@ -1348,7 +1357,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
       "content": [
         { "type": "ask", "text": "Amount under threshold. First dispute in 12 months. Card blocked." },
         { "type": "never", "text": "Calling it a refund. It is provisional and can be reversed." },
-        { "type": "resource", "text": "Provisional credit criteria (placeholder)", "url": "#", "format": "deck", "thumb": "chart", "meta": "Slides · 9 slides" },
+        { "type": "resource", "text": "Provisional credit criteria", "url": "#", "format": "deck", "thumb": "chart", "meta": "Slides · 9 slides" },
         { "type": "brief", "text": "Provisional, not a refund", "body": "Provisional credit **can be reversed**. The explanation matters more than the decision.", "points": ["Amount under threshold", "First dispute in 12 months", "Card blocked"] }
       ],
       "answers": [
@@ -1362,7 +1371,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
       "why": "A customer with a reference number calls back once. A customer without one calls back three times.",
       "content": [
         { "type": "ask", "text": "The reference, read twice and read back by the customer." },
-        { "type": "resource", "text": "Case creation guide (placeholder)", "url": "#", "format": "deck", "thumb": "steps", "meta": "Slides · 14 slides" },
+        { "type": "resource", "text": "Case creation guide", "url": "#", "format": "deck", "thumb": "steps", "meta": "Slides · 14 slides" },
         { "type": "brief", "text": "A reference saves two calls", "body": "A customer with a reference number calls back **once**.", "points": ["Read it twice", "The customer reads it back"] }
       ],
       "answers": [
@@ -1379,7 +1388,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
       "content": [
         { "type": "ask", "text": "Three things: when the customer hears from us, when the card arrives, what to do if neither happens." },
         { "type": "never", "text": "Telling the customer it is out of your hands." },
-        { "type": "resource", "text": "Dispute timelines FAQ (placeholder)", "url": "#", "format": "pdf", "thumb": "text", "meta": "PDF · 6 pages · FAQ" },
+        { "type": "resource", "text": "Dispute timelines FAQ", "url": "#", "format": "pdf", "thumb": "text", "meta": "PDF · 6 pages · FAQ" },
         { "type": "steps", "text": "What happens next", "items": ["Letter within 5 working days", "New card within 7 days", "No word in 10 days: call with the reference"] }
       ],
       "answers": [
@@ -1417,7 +1426,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
       "why": "An escalation with a good note is a five-minute handover. Without one it is a repeat of the whole call.",
       "content": [
         { "type": "ask", "text": "The case note, handed over with the transfer." },
-        { "type": "resource", "text": "Escalation contacts (placeholder)", "url": "#", "format": "page", "thumb": "table", "meta": "Intranet page · updated daily" }
+        { "type": "resource", "text": "Escalation contacts", "url": "#", "format": "page", "thumb": "table", "meta": "Intranet page · updated daily" }
       ],
       "answers": []
     },
@@ -1446,7 +1455,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
       "prompt": "Warm transfer with a short handover note.",
       "why": "A short note prevents the receiving team from re-verifying the customer from scratch.",
       "content": [
-        { "type": "resource", "text": "Team routing directory (placeholder)", "url": "#", "format": "page", "thumb": "table", "meta": "Intranet page · updated weekly" }
+        { "type": "resource", "text": "Team routing directory", "url": "#", "format": "page", "thumb": "table", "meta": "Intranet page · updated weekly" }
       ],
       "answers": []
     },
@@ -1511,7 +1520,9 @@ function __fraudGuideStart(FLOW) {
     searchPlaceholder: 'Find a topic…',
     searchEmpty: 'No topic matches',
     coachingToggle: 'Coaching notes',
-    newCall: 'Start a new call',
+    newCall: 'Start over',
+    language: 'FR',
+    languageName: 'Français',
     flowLabel: 'The call so far',
     stageOf: 'Stage {n} of {total}',
     back: 'Back',
@@ -1519,13 +1530,13 @@ function __fraudGuideStart(FLOW) {
     otherQuestionsHint: 'Pick one to go straight there. The steps so far are kept.',
     youAreHere: 'you are here',
     close: 'Close',
-    riskLine: { elevated: 'Elevated risk', critical: 'Critical: read the guidance on the right before you speak' },
+    riskLine: { elevated: 'Elevated risk', critical: 'Critical: read the guidance before you speak' },
     revisit: 'You are back at step {n}. Choose the same answer to carry on, or a different one.',
     previously: 'your earlier answer',
     noneOfThese: 'None of these fit',
     later: 'Come back to this later',
     endTitle: 'End of call',
-    endHint: 'Start a new call for the next customer.',
+    endHint: 'Start over for the next customer.',
     coachingWhy: 'Why this matters',
     coachingExample: 'Example',
     speakers: { rep: 'You', customer: 'Customer' },
@@ -1544,9 +1555,10 @@ function __fraudGuideStart(FLOW) {
     staleHint: 'Because the answer at step {n} changed.',
     undo: 'Undo',
     dismiss: 'Dismiss',
+    devLabel: 'DEMO DEVELOPMENT:',
     keysHint: 'Keys 1 to 9 choose an answer',
     contentVersion: 'Content {v}',
-    behind: 'Behind the scenes',
+    behind: 'See content code',
     behindSummary: '{visits} steps visited · {jumps} jumps · {backs} times back · {stale} times later steps dropped · {later} skipped for now · {feedback} feedback',
     behindFeedback: 'Feedback',
     behindFeedbackEmpty: 'No feedback yet.',
@@ -1792,6 +1804,7 @@ function __fraudGuideStart(FLOW) {
       '<span class="spacer"></span>' +
       '<button type="button" class="btn-toggle" data-action="toggle-coaching" data-role="coaching-toggle"' + attr('aria-pressed', state.coaching ? 'true' : 'false') + '>' + esc(UI_TEXT.coachingToggle) + '</button>' +
       '<button type="button" class="btn-dark" data-action="reset" data-role="new-call">' + esc(UI_TEXT.newCall) + '</button>' +
+      '<button type="button" data-role="language" lang="fr"' + attr('aria-label', UI_TEXT.languageName) + attr('title', UI_TEXT.languageName) + '>' + esc(UI_TEXT.language) + '</button>' +
       '</div></header>';
   }
 
@@ -2041,7 +2054,7 @@ function __fraudGuideStart(FLOW) {
 
   /* ---- footer and behind the scenes ---- */
   function renderFoot() {
-    var h = '<footer data-role="foot"><span>' + esc(UI_TEXT.keysHint) + '</span><span>' + esc(fmt(UI_TEXT.contentVersion, { v: FLOW.meta.contentVersion })) + '</span><span class="spacer"></span>' +
+    var h = '<footer data-role="foot"><span class="dev-label">' + esc(UI_TEXT.devLabel) + '</span><span>' + esc(UI_TEXT.keysHint) + '</span><span>' + esc(fmt(UI_TEXT.contentVersion, { v: FLOW.meta.contentVersion })) + '</span><span class="spacer"></span>' +
       '<button type="button" class="btn-text small" data-action="toggle-debug" data-role="debug-toggle"' + attr('aria-expanded', state.ui.debugOpen ? 'true' : 'false') + '>' + esc(UI_TEXT.behind) + (state.feedback.length ? ' (' + state.feedback.length + ')' : '') + '</button>';
     if (state.ui.debugOpen) h += renderDebug();
     return h + '</footer>';

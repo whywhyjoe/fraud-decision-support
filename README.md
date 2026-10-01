@@ -46,8 +46,8 @@ never, escalate when, check or ask, watch for, resources.
 5. **Find a topic.** Type `elder` in the search box for a customer who
    opens mid-story.
 6. **Something wrong with this step?** Under every topic. Feedback lands on
-   the **Behind the scenes** panel in the footer, with an event log that
-   shows jumps and rewinds are measurable.
+   the **Behind the scenes** panel in the footer (**See content code** in the
+   BMO copy), with an event log that shows jumps and rewinds are measurable.
 
 ## The content model
 

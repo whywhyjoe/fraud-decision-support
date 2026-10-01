@@ -133,6 +133,24 @@ const widths = await page.evaluate(() => [document.querySelector('[data-role="pa
 assert.ok(Math.abs(widths[0] - widths[1]) < 8, `columns should be equal: ${widths}`);
 ok('guidance: the right half groups the current topic\'s content by kind, as wide as the flow');
 
+// 7b. BMO copy only: on a wider screen the flow keeps its width, the guidance
+//     takes the rest and splits into two internal columns; FR is in the toolbar.
+if (/bmo/.test(process.env.APP || '')) {
+  await page.setViewportSize({ width: 1700, height: 900 });
+  const wide = await page.evaluate(() => ({
+    path: document.querySelector('[data-role="path"]').offsetWidth,
+    guide: document.querySelector('[data-role="guide"]').offsetWidth,
+    cols: getComputedStyle(document.querySelector('[data-role="guide-body"]')).columnCount,
+  }));
+  assert.ok(Math.abs(wide.path - widths[0]) < 16, `the flow keeps its width: ${wide.path} vs ${widths[0]}`);
+  assert.ok(wide.guide > widths[1] + 300, `the guidance grows: ${wide.guide}`);
+  assert.equal(wide.cols, '2');
+  assert.equal(await page.textContent('[data-role="language"]'), 'FR');
+  assert.match(await page.textContent('[data-role="foot"]'), /^DEMO DEVELOPMENT:/);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  ok('wide screen: the flow holds its width, the guidance grows into two columns; FR and the development footer');
+}
+
 // 8. Feedback, visible behind the scenes with the event log.
 await page.click('[data-role="feedback-link"]');
 await page.check('[data-role="feedback-form"] input[value="missing"]');
