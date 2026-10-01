@@ -7,6 +7,18 @@ Newest first.
 
 ---
 
+## 2026-10-01 — one-command deploy
+
+`deploy\deploy.cmd` on the work machine runs `git pull`, then
+`tools/deploy.mjs prod --no-config`: render the entry file, copy the loader,
+player and entry into the synced library folder (`mirror` in
+`environments.json`), check each copy, print the Script URL. Hard rule 7
+rewritten: it said "not a Windows environment", a leftover from the first
+build session's container; it now says tooling is node and a `.cmd` may only
+wrap a node command.
+
+---
+
 ## 2026-10-01 — BMO round 1 on the dev page; guidance columns aligned
 
 The BMO player and its re-extracted `flow.json` are live in the dev

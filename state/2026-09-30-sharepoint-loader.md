@@ -46,8 +46,11 @@ is specific to this app and where it departs. `environments.json`
       custom script. Set it when custom script is back on.
 
 - [ ] Joe deploys to the work tenant (FCUPortal `code` library) with
-      `docs/02` *Deploying to the work tenant*, and pastes back the
-      preflight report. If its verdict is not Ready, fix from the report.
+      `docs/02` *Deploying to the work tenant*: add `mirror` to the `prod`
+      block of `environments.json`, then `deploy\deploy.cmd` (first try on
+      2026-10-01 failed because the whole repo was copied and the entry file
+      never rendered: the player ran with no `#flow-data` in reach). Then
+      paste back the preflight report. If its verdict is not Ready, fix from the report.
       The client demo happens there, not on dev.
 - [ ] The real run as a Read-only rep also happens there (Joe, 2026-09-30);
       permissions on dev are verified.

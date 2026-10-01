@@ -6,6 +6,7 @@
     "page": "/sites/<site>/SitePages/<page>.aspx",
     "library": "<library>",
     "folder": "<folder>/fraud-decision-support",
+    "mirror": "<local synced folder that is the library folder, forward slashes: C:/.../fraud-decision-support>",
     "pageColumns": {
       "itemType": "ItemType",
       "script": "Script",
@@ -22,6 +23,7 @@
     "page": "",
     "library": "",
     "folder": "",
+    "mirror": "",
     "pageColumns": "same as dev"
   }
 }

@@ -49,8 +49,10 @@ is not `xo-handoff` and `.xo-handoffs/`; don't cross-file them.
    `docs/00-overview.md` says why.
 6. **The placeholder banner stays.** Nobody in a demo may mistake this for
    real procedure.
-7. **Not a Windows environment.** Nothing here may depend on PowerShell or
-   `.cmd` tooling.
+7. **Tooling is node.** Tests, rendering and deploy are node scripts
+   (stdlib, plus Playwright for the browser tests). A `.cmd` may only wrap a
+   node command as a shortcut for the Windows machines (`deploy/deploy.cmd`);
+   no logic lives in `.cmd` or PowerShell.
 
 The `sp-app` family rules also hold. The first is already rule 1; the rest
 bite when the SharePoint work starts (`STATE.md`, deferred by design):
@@ -77,7 +79,8 @@ bite when the SharePoint work starts (`STATE.md`, deferred by design):
 | `tests/` | Fast content/CSS checks and one browser smoke. See `tests/README.md`. |
 | `app/boot-fraud-guide.js` | The web part loader: host wait, page-column binding, frame or script mount, edit mode, SPA re-mount. |
 | `app/fraud-guide.webpart.sample.html` | The snippet template. `tools/render-webpart.mjs` renders it per environment to the gitignored `app/fraud-guide.webpart.html`. |
-| `tools/` | Dev-only, stdlib-only scripts. Nothing here ships. |
+| `tools/` | Dev-only, stdlib-only scripts: render the entry file, deploy, console preflight. Nothing here ships. |
+| `deploy/deploy.cmd` | Work-machine shortcut: `git pull`, then `tools/deploy.mjs prod --no-config`. |
 | `state/` | Live threads of work. |
 | `environments.sample.json` | The shape of `environments.json`, which is gitignored and holds the real tenant paths and page column names. |
 
