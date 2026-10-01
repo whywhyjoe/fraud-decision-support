@@ -12,7 +12,7 @@ the `project-state` skill.
 | --- | --- |
 | **Version** | 0.3.1 — v3 layout, content 0.4 (guidance in the topic register) |
 | **Built** | Two players, the web part loader (0.3.0, to the DCS L1 hosting method: entry file, nonce-stamped srcdoc frame, full-window takeover), the entry template and renderer. Loader proven in `tests/loader.mjs` against SharePoint's headers and CSP |
-| **Live** | Dev page (an App page, version 7.0) runs the BMO player full-window through loader 0.3.0, its Script Editor in external mode on `fraud-guide.webpart.html`, bound by the page's columns. Library folder holds the entry, the loader, both players and both `flow.json` files, hash-checked 2026-09-30. See `state/` |
+| **Live** | Dev page (an App page, version 9.0) runs the BMO player full-window through loader 0.3.0, its Script Editor in external mode on `fraud-guide.webpart.html`, bound by the page's columns. Library folder holds the entry, the loader, the BMO player and its `flow.json`, hash-checked 2026-10-01; the greyscale files were deleted the same day (site recycle bin). See `state/` |
 | **Last shipped** | 2026-09-22, content 0.4 |
 | **Content** | One scenario, 47 topics, placeholder throughout |
 | **Player** | `app/fraud-decision-support-bmo.html`, content 0.5 (richer guidance). The greyscale original was deleted 2026-10-01 (Joe); it is in git history |

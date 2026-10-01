@@ -20,10 +20,12 @@ is specific to this app and where it departs. `environments.json`
 - Loader 0.3.0: entry file in external mode, double-boot guard, curtain,
   nonce-stamped `srcdoc` frame (eval only as fallback), App-page edit-mode
   detection. `tests/loader.mjs` proves both script paths under SharePoint's
-  headers; green on both players.
+  headers; green.
 - Dev page is version 7.0: Script Editor with `useExternalScript` on the
-  entry file. Library folder holds the entry, the loader, both players and
-  both `flow.json` files, hash-checked.
+  entry file. Library folder holds the entry, the loader, the BMO player
+  and its `flow.json`, hash-checked 2026-10-01. The greyscale player and its
+  `flow.json` were deleted from it that day through the mirror (they sit in
+  the site recycle bin).
 - The BMO copy carries Joe's work-side text edits (title, banner,
   disclaimer; `LOG.md`), uploaded to the dev folder with its `flow.json`.
 - Walked live as Joe (site owner): nonce path runs, no CSP violations; the
