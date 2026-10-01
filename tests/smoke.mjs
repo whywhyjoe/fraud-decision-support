@@ -41,10 +41,27 @@ for (const i of route) await answer(i);
 assert.equal(await at(), 'resolve-closed');
 await page.waitForSelector('[data-role="end-card"]');
 assert.equal((await state()).path.length, route.length + 1);
-assert.equal(await page.locator('[data-role="step"][data-state="past"]').count(), route.length);
 assert.equal(await page.locator('[data-role="stage-label"][data-state="ahead"]').count(), 0);
-assert.match(await page.textContent('[data-role="edge"]'), /Passed in full/, 'the chosen answer labels the connector');
-ok('full path: 13 answers reach an end of call; connectors carry the chosen answers; no stages left ahead');
+assert.equal(await page.locator('[data-role="stage-fold"]').count(), 4, 'the four finished stages fold to a line each');
+assert.match(await page.textContent('[data-role="stage-fold"] >> nth=0'), /Passed in full/, 'a folded stage lists what was chosen in it');
+const inStage = await page.evaluate(() => {
+  const s = window.__frd.getState(), nodes = {};
+  window.__frd.flow.nodes.forEach((n) => { nodes[n.id] = n; });
+  const stage = nodes[s.path[s.cursor].nodeId].stageId;
+  return s.path.slice(0, s.cursor).filter((p) => nodes[p.nodeId].stageId === stage).length;
+});
+assert.equal(await page.locator('[data-role="step"][data-state="past"]').count(), inStage, 'only the current stage shows its steps');
+await page.click('[data-role="stage-fold"] button >> nth=0');
+assert.equal(await page.getAttribute('[data-role="stage-fold"] button >> nth=0', 'aria-expanded'), 'true');
+assert.match(await page.textContent('[data-role="edge"]'), /Passed in full/, 'opened, the chosen answer labels the connector');
+await page.click('[data-role="stage-fold"] button >> nth=0');
+assert.equal(await page.locator('[data-role="stage-fold"][data-open="true"]').count(), 0);
+const pinned = await page.evaluate(() => {
+  const g = document.querySelector('[data-role="guide"]'), cs = getComputedStyle(g);
+  return { position: cs.position, fits: g.getBoundingClientRect().height <= innerHeight };
+});
+assert.deepEqual(pinned, { position: 'sticky', fits: true }, 'the guidance pins beside the question and fits the window');
+ok('full path: 13 answers reach an end of call; finished stages fold to a line with their answers, open to show steps and connectors; guidance pinned; no stages left ahead');
 
 // 2. Jump to another topic in the stage, from the card.
 await page.click('[data-role="new-call"]');
@@ -91,10 +108,11 @@ await page.click('[data-role="later"]');
 s = await state();
 assert.equal(s.path[0].status, 'later');
 assert.equal(await at(), 'triage-open');
-assert.match(await page.textContent('[data-role="step"][data-state="past"]'), /Skipped for now/);
+assert.match(await page.textContent('[data-role="stage-fold"]'), /Skipped for now/);
 await page.click('[data-role="none-of-these"]');
 assert.equal(await at(), 'triage-reanchor');
 assert.equal(await page.locator('[data-role="none-of-these"]').count(), 0, 'no none-of-these on the catch-all topic');
+await page.click('[data-role="stage-fold"] button'); // the skipped topic is in a finished, folded stage
 await page.click('[data-role="step-box"][data-index="0"]');
 await answer(0);
 s = await state();

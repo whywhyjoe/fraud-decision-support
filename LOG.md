@@ -7,6 +7,19 @@ Newest first.
 
 ---
 
+## 2026-10-01 — long calls: finished stages fold, guidance stays pinned
+
+From Joe's testing on the work side: deep into a call the question sat far
+down the page while its guidance stayed at the top. Now each finished stage
+folds to one line (its name, what was chosen, **Show steps**); opened, its
+steps come back and still take the rep back. Only one opens at a time, and
+it closes when the call moves on. The guidance column is sticky under the
+banner and, if taller than the window, scrolls on its own with a thin
+scrollbar. At 1600x900, 11 answers in, the question card sits level with
+its guidance (before: 14 answers put it 1,500px below).
+
+---
+
 ## 2026-10-01 — the greyscale original is deleted
 
 `app/fraud-decision-support.html` is gone at Joe's word: the BMO copy is the

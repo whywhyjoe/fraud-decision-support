@@ -30,9 +30,11 @@ never, escalate when, check or ask, watch for, resources.
 ## What to show, in order
 
 1. **Answer through a call.** Number keys 1 to 9 work. Watch the flow grow
-   down the left and the stages ahead fade in beneath it.
-2. **Go back and change an answer.** Click any earlier box, or **Back** on
-   the current one. Pick a different answer: the later steps stay on screen
+   down the left and the stages ahead fade in beneath it. Each finished
+   stage folds to one line with its answers, so the question stays beside
+   its guidance however long the call runs; the guidance stays pinned too.
+2. **Go back and change an answer.** Click any earlier box (**Show steps**
+   opens a finished stage), or **Back** on the current one. Pick a different answer: the later steps stay on screen
    struck through, with a notice and **Undo**. Pick the same answer instead
    and the call simply carries on.
 3. **Jump.** **Other topics in this stage** on the current box lists them;

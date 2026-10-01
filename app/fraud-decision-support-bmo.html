@@ -176,6 +176,8 @@
   --doc-min: 220px;       /* narrowest document card in the resources grid */
   --page-min: 900px;
   --banner-h: 36px;
+  --viewport-h: 100vh;
+  --guide-top: calc(var(--banner-h) + var(--s-5)); /* where the guidance pins while the call scrolls */
   --control-h: 40px;
   --answer-h: 64px;
   --search-w: 320px;
@@ -288,6 +290,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
 [data-role="foot"] { grid-area: foot; }
 @media (max-width: 1000px) {
   [data-role="shell"] { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "path" "guide" "foot"; }
+  [data-role="guide"] { position: static; max-height: none; }
   :root { --hero-photo-w: 36%; }
 }
 
@@ -380,6 +383,30 @@ input:focus, textarea:focus { border-color: var(--accent); }
 [data-role="stage-label"][data-state="ahead"] { color: var(--fg-faint); }
 [data-role="stage-label"][data-state="ahead"]::before { background: var(--surface-canvas); border: var(--bw-line) solid var(--line-ahead); box-shadow: none; }
 [data-role="stage-label"] + li { margin-top: var(--s-2); }
+
+/* A finished stage folds to one line: the stage, then what was chosen in it.
+   Opening it shows its steps again, which still take the rep back. */
+[data-role="stage-fold"] > button {
+  width: var(--full);
+  display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-2) 0;
+  background: none; border: 0; border-radius: var(--radius-sm);
+  font: inherit; text-align: left; cursor: pointer;
+  color: var(--fg-heading);
+}
+[data-role="stage-fold"] > button::before {
+  content: ""; flex: none;
+  width: var(--dot); height: var(--dot);
+  margin-left: calc(var(--spine-x) - var(--dot) / 2 + var(--bw-line) / 2);
+  border-radius: var(--radius-round);
+  background: var(--accent);
+  box-shadow: 0 0 0 var(--s-1) var(--surface-selected);
+}
+[data-role="stage-fold"] .fold-title { flex: none; font-weight: var(--fw-semibold); }
+[data-role="stage-fold"] .fold-summary { flex: 1; min-width: 0; color: var(--fg-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+[data-role="stage-fold"] .fold-toggle { flex: none; color: var(--accent); }
+[data-role="stage-fold"] > button:hover .fold-toggle { color: var(--accent-hover); text-decoration: underline; }
+[data-role="stage-fold"][data-open="true"] + li { margin-top: var(--s-2); }
 
 [data-role="edge"] {
   height: var(--edge-h);
@@ -537,6 +564,14 @@ input:focus, textarea:focus { border-color: var(--accent); }
   align-self: start;
   overflow: hidden;
   box-shadow: var(--shadow-8);
+  /* Pinned beside the question however long the call gets; taller than the
+     window, it scrolls on its own with a quiet scrollbar. */
+  position: sticky;
+  top: var(--guide-top);
+  max-height: calc(var(--viewport-h) - var(--guide-top) - var(--s-5));
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--stroke-divider) transparent;
 }
 [data-role="guide-head"] {
   display: flex; align-items: center; gap: var(--s-3);
@@ -1525,6 +1560,8 @@ function __fraudGuideStart(FLOW) {
     languageName: 'Français',
     flowLabel: 'The call so far',
     stageOf: 'Stage {n} of {total}',
+    foldShow: 'Show steps',
+    foldHide: 'Hide steps',
     back: 'Back',
     otherQuestions: 'Other topics in this stage',
     otherQuestionsHint: 'Pick one to go straight there. The steps so far are kept.',
@@ -1587,7 +1624,7 @@ function __fraudGuideStart(FLOW) {
       stale: null,
       feedback: [],
       log: [],
-      ui: { stageOpen: false, feedbackOpen: false, debugOpen: false, search: '', searchOpen: false, fresh: true, intro: false }
+      ui: { stageOpen: false, feedbackOpen: false, debugOpen: false, search: '', searchOpen: false, fresh: true, intro: false, openStage: null }
     };
   }
 
@@ -1628,6 +1665,7 @@ function __fraudGuideStart(FLOW) {
   /* ---------------------------------------------------------- */
   function dispatch(action) {
     var step = currentStep();
+    var was = step;
     var node = currentNode();
     var stage = STAGE[node.stageId];
     state.ui.fresh = false;
@@ -1714,6 +1752,7 @@ function __fraudGuideStart(FLOW) {
 
       case 'search': { state.ui.search = action.value; state.ui.searchOpen = action.value.trim().length > 0; break; }
       case 'toggle-debug': { state.ui.debugOpen = !state.ui.debugOpen; break; }
+      case 'toggle-fold': { state.ui.openStage = state.ui.openStage === action.stageId ? null : action.stageId; break; }
       case 'close-panels': { state.ui.stageOpen = false; state.ui.feedbackOpen = false; state.ui.searchOpen = false; break; }
 
       case 'reset': {
@@ -1724,6 +1763,7 @@ function __fraudGuideStart(FLOW) {
         break;
       }
     }
+    if (currentStep() !== was) state.ui.openStage = null; // a fold opened to look back closes when the call moves
     render();
   }
 
@@ -1832,9 +1872,22 @@ function __fraudGuideStart(FLOW) {
     var items = state.path.map(function (step, i) { return { step: step, i: i, state: i === state.cursor ? 'current' : (i < state.cursor ? 'past' : 'ahead') }; });
     if (state.stale) state.stale.steps.forEach(function (step, j) { items.push({ step: step, i: state.stale.changedAt + 1 + j, state: 'stale', firstStale: j === 0 }); });
 
-    items.forEach(function (it, k) {
+    // Stages finished before the current one fold to a line each, in stage order.
+    var currentOrder = STAGE[currentNode().stageId].order;
+    var folds = {}, foldStages = [];
+    items.forEach(function (it) {
+      var st = STAGE[NODES[it.step.nodeId].stageId];
+      if (it.state !== 'past' || st.order >= currentOrder) return;
+      if (!folds[st.id]) { folds[st.id] = []; foldStages.push(st); }
+      folds[st.id].push(it);
+      it.folded = true;
+    });
+    foldStages.sort(function (a, b) { return a.order - b.order; }).forEach(function (st) { h += renderFold(st, folds[st.id]); });
+
+    var prev = null;
+    items.forEach(function (it) {
+      if (it.folded) return;
       var node = NODES[it.step.nodeId];
-      var prev = k > 0 ? items[k - 1] : null;
       if (it.firstStale) h += '<li>' + renderStaleNotice() + '</li>';
       if (prev) h += renderEdge(prev.step, it.state === 'past' ? 'past' : it.state);
       if (node.stageId !== lastStage && it.state !== 'stale') {
@@ -1843,10 +1896,10 @@ function __fraudGuideStart(FLOW) {
       }
       if (it.state === 'current') h += '<li data-role="step" data-state="current">' + renderQuestionCard(it.step, it.i) + '</li>';
       else h += renderStepBox(it.step, it.i, it.state);
+      prev = it;
     });
 
     // the stages still to come, faint, so the road ahead is visible
-    var currentOrder = STAGE[currentNode().stageId].order;
     STAGES.filter(function (s) { return s.order > currentOrder; }).forEach(function (s) {
       h += renderStageLabel(s, 'ahead');
     });
@@ -1857,6 +1910,19 @@ function __fraudGuideStart(FLOW) {
     var idx = STAGES.indexOf(stage);
     return '<li data-role="stage-label"' + attr('data-state', st) + attr('data-stage-id', stage.id) + '>' +
       '<span>' + esc(fmt(UI_TEXT.stageOf, { n: idx + 1, total: STAGES.length })) + ' · ' + esc(stage.label) + '</span></li>';
+  }
+
+  /* a finished stage on one line; opened, its steps and answers as before */
+  function renderFold(stage, its) {
+    var open = state.ui.openStage === stage.id;
+    var summary = its.map(function (it) { return it.step.answer || stepNote(it.step); }).filter(Boolean).join(' · ');
+    var h = '<li data-role="stage-fold"' + attr('data-stage-id', stage.id) + attr('data-open', open ? 'true' : null) + '>' +
+      '<button type="button" data-action="toggle-fold"' + attr('data-stage-id', stage.id) + attr('aria-expanded', open ? 'true' : 'false') + attr('title', summary) + '>' +
+      '<span class="fold-title">' + esc(fmt(UI_TEXT.stageOf, { n: STAGES.indexOf(stage) + 1, total: STAGES.length })) + ' · ' + esc(stage.label) + '</span>' +
+      '<span class="fold-summary">' + esc(summary) + '</span>' +
+      '<span class="fold-toggle">' + esc(open ? UI_TEXT.foldHide : UI_TEXT.foldShow) + '</span></button></li>';
+    if (open) its.forEach(function (it) { h += renderStepBox(it.step, it.i, 'past') + renderEdge(it.step, 'past'); });
+    return h;
   }
 
   /* the connector between two boxes carries what was chosen at the upper one */
@@ -2095,6 +2161,7 @@ function __fraudGuideStart(FLOW) {
       case 'answer': dispatch({ type: 'answer', index: Number(el.getAttribute('data-index')) }); break;
       case 'jump': dispatch({ type: 'jump', nodeId: el.getAttribute('data-node-id'), via: el.getAttribute('data-via') }); break;
       case 'rewind': if (el.hasAttribute('data-index')) dispatch({ type: 'rewind', index: Number(el.getAttribute('data-index')) }); break;
+      case 'toggle-fold': dispatch({ type: 'toggle-fold', stageId: el.getAttribute('data-stage-id') }); break;
       default: dispatch({ type: action }); break;
     }
   });
