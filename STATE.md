@@ -15,7 +15,7 @@ the `project-state` skill.
 | **Live** | Dev page (an App page, version 7.0) runs the BMO player full-window through loader 0.3.0, its Script Editor in external mode on `fraud-guide.webpart.html`, bound by the page's columns. Library folder holds the entry, the loader, both players and both `flow.json` files, hash-checked 2026-09-30. See `state/` |
 | **Last shipped** | 2026-09-22, content 0.4 |
 | **Content** | One scenario, 47 topics, placeholder throughout |
-| **BMO copy** | `app/fraud-decision-support-bmo.html`, content 0.5 (richer guidance). The original stays greyscale at 0.4 |
+| **Player** | `app/fraud-decision-support-bmo.html`, content 0.5 (richer guidance). The greyscale original was deleted 2026-10-01 (Joe); it is in git history |
 
 ## Next committed step
 
@@ -78,8 +78,8 @@ built until it has been used once.
   split (`content/*.json`, `config/theme.json`, load order page properties
   → URL → sibling script → inline block). The single-file, no-`import`,
   no-CDN shape was chosen so none of this needs rework in the player.
-- **Design pass.** The original stays greyscale and token-driven on purpose.
-  A first BMO-styled copy exists beside it; see `state/` for where it stands.
+- **Design pass.** The BMO look is the design; it stays token-driven so a
+  further pass is a restyle. See `state/` for where it stands.
 
 ## Open questions
 

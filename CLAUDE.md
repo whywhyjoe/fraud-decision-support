@@ -26,18 +26,17 @@ is not `xo-handoff` and `.xo-handoffs/`; don't cross-file them.
 
 ## Hard rules
 
-1. **One self-contained HTML file.** `app/fraud-decision-support.html` opens
-   from `file://` in a locked-down browser. Its BMO-styled copy,
-   `app/fraud-decision-support-bmo.html`, is held to every rule here too. No build step, no npm in the
+1. **One self-contained HTML file.** `app/fraud-decision-support-bmo.html`
+   opens from `file://` in a locked-down browser. No build step, no npm in the
    deliverable, no framework, no CDN, no ES `import`, no network, no storage.
    Dev-only tooling (the tests) is fine; it never ships.
 2. **Content lives only in the `#flow-data` JSON block.** The render logic
    contains no scenario strings. UI chrome labels live in the one `UI_TEXT`
    table. A test enforces the first; keep the second by habit.
 3. **Every design value is a token in `:root`.** No raw colours, lengths or
-   durations anywhere else in the CSS (media queries excepted). Grayscale
-   only in the original; the BMO copy uses the BMO palette. In both, red,
-   amber and green are reserved for risk severity (BMO red: roundel only). A test enforces
+   durations anywhere else in the CSS (media queries excepted). The BMO
+   palette only; red, amber and green are reserved for risk severity (BMO
+   red: roundel only). A test enforces
    it. This is what makes the designer's pass a restyle, not a rebuild.
 4. **Render is pure: state in, DOM out.** One `render()` per `dispatch()`.
    No DOM mutation in handlers. Every interactive element and content region
@@ -73,8 +72,7 @@ bite when the SharePoint work starts (`STATE.md`, deferred by design):
 
 | Path | What it is |
 | --- | --- |
-| `app/fraud-decision-support.html` | The deliverable. Styles, content, shell, logic, in that order. |
-| `app/fraud-decision-support-bmo.html` | The same demo in the BMO look, with richer guidance (content 0.5). A copy, not a build output. |
+| `app/fraud-decision-support-bmo.html` | The deliverable, in the BMO look. Styles, content, shell, logic, in that order. (The greyscale original it was copied from was deleted on 2026-10-01; it is in git history.) |
 | `docs/` | Durable reference. Start at `docs/README.md`. |
 | `tests/` | Fast content/CSS checks and one browser smoke. See `tests/README.md`. |
 | `app/boot-fraud-guide.js` | The web part loader: host wait, page-column binding, frame or script mount, edit mode, SPA re-mount. |
@@ -106,7 +104,7 @@ NODE_PATH=$(npm root -g) node tests/smoke.mjs    # full tier, Chromium, ~5s
 NODE_PATH=$(npm root -g) node tests/loader.mjs   # full tier, the loader under SharePoint-like headers, ~4s
 ```
 
-Prefix any of them with `APP=fraud-decision-support-bmo.html` to test the BMO copy.
+They test `app/fraud-decision-support-bmo.html`; `APP=<file in app/>` points them at another.
 
 ---
 

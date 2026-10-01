@@ -10,8 +10,8 @@ State: v3 layout with content 0.4, tested, committed. Waiting on the client demo
 A single-file click-through demo of a guided call tool for bank fraud reps,
 built to draw requirements out of a vague client. One scenario (unauthorised
 card transactions), placeholder content throughout. The deliverable is
-`app/fraud-decision-support.html`; `README.md` says what to show and in
-what order.
+now `app/fraud-decision-support-bmo.html` (the greyscale original was
+deleted 2026-10-01); `README.md` says what to show and in what order.
 
 ## Done
 

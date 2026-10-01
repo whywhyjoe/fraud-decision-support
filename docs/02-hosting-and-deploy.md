@@ -181,7 +181,7 @@ What ships to the library folder named in `environments.json`, and how.
 | --- | --- | --- |
 | `app/fraud-guide.webpart.html` | The entry file the web part's Script URL names. Generated, gitignored | The loader changes (its URL carries the loader's hash), or the snippet defaults do |
 | `app/boot-fraud-guide.js` | The loader | It changes; always with a fresh entry file |
-| `app/fraud-decision-support-bmo.html`, `app/fraud-decision-support.html` | The players, one per look. Loaded into a frame until the content/theme split makes them scripts | They change |
+| `app/fraud-decision-support-bmo.html` | The player. Loaded into a frame until the content/theme split makes them scripts | They change |
 | `<player>.flow.json` | The content the page's `Config` column names. Extracted from a player's `#flow-data` block (`JSON.stringify(flow, null, 2)` plus a newline) until the split | Content changes |
 
 1. Run the fast tier and `tests/loader.mjs` on both players.

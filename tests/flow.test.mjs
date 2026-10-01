@@ -8,8 +8,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
-// APP picks the file: the grayscale original by default, or the BMO copy.
-const app = process.env.APP || 'fraud-decision-support.html';
+// APP picks another file in app/; the BMO player by default.
+const app = process.env.APP || 'fraud-decision-support-bmo.html';
 const html = readFileSync(join(here, '..', 'app', app), 'utf8');
 
 function extractFlow() {

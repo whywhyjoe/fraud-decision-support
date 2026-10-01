@@ -7,6 +7,14 @@ Newest first.
 
 ---
 
+## 2026-10-01 — the greyscale original is deleted
+
+`app/fraud-decision-support.html` is gone at Joe's word: the BMO copy is the
+only player. The tests default to it, and the docs, rules and state files no
+longer speak of two files. It is in history: `git show 3bf7018:app/fraud-decision-support.html`.
+
+---
+
 ## 2026-10-01 — one-command deploy
 
 `deploy\deploy.cmd` on the work machine runs `git pull`, then

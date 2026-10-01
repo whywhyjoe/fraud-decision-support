@@ -22,7 +22,7 @@ is not production software and its content is not bank policy.
 - **Content only in `#flow-data`.** The client will change the content and
   the shape of the flow. Both must be possible by editing JSON, without
   touching the logic. Chrome labels live in the one `UI_TEXT` table.
-- **Design values only in `:root`; greyscale except risk colours.** The
+- **Design values only in `:root`; the BMO palette, risk colours reserved.** The
   designer's pass has to be a restyle. Every colour, size, radius and
   duration is a token, and every element that matters has a `data-role`.
 - **Legible at a glance, no AI-design tells.** Nothing under 14px. No

@@ -1,7 +1,7 @@
 # Content model
 
 All content is the one JSON object in the `#flow-data` block of
-`app/fraud-decision-support.html`. Edit it there. `node --test
+`app/fraud-decision-support-bmo.html`. Edit it there. `node --test
 tests/flow.test.mjs` checks the result in under a second.
 
 The word for one screen in the data is `node`, kept from the build brief.
@@ -92,8 +92,8 @@ Order within a group is authoring order. Groups render in the order above.
 
 ### Richer blocks (BMO copy, content 0.5)
 
-`app/fraud-decision-support-bmo.html` also renders these. The original
-ignores the types it does not know.
+Rendered by `app/fraud-decision-support-bmo.html`; a block of a type it
+does not know is skipped.
 
 | `type` | Fields | Rendered as |
 | --- | --- | --- |

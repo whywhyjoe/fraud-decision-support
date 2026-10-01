@@ -14,8 +14,8 @@ NODE_PATH=$(npm root -g) node tests/smoke.mjs
 NODE_PATH=$(npm root -g) node tests/loader.mjs
 ```
 
-Both test `app/fraud-decision-support.html` unless `APP` names another file
-in `app/`, e.g. `APP=fraud-decision-support-bmo.html`. Run both files.
+They test `app/fraud-decision-support-bmo.html` unless `APP` names another
+file in `app/`.
 
 **Fast tier budget: 30s.** If it creeps past, move something to full; do not
 raise the budget. A check that does not need the DOM does not get a browser.
